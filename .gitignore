@@ -28,6 +28,8 @@ yarn-error.log*
 .env*.local
 .env
 mcp.json
+.mcp.json
+CLAUDE.md
 
 # vercel
 .vercel
