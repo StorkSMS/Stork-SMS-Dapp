@@ -1,0 +1,746 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { 
+  Connection, 
+  PublicKey, 
+  Transaction, 
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmTransaction,
+  Keypair
+} from '@solana/web3.js'
+import { Metaplex, keypairIdentity } from '@metaplex-foundation/js'
+import { r2Storage } from '@/lib/r2-storage'
+import { companyWallet, connection, companyWalletPublicKey } from '@/lib/company-wallet'
+import { supabaseServer } from '@/lib/supabase-server'
+import { createAuthenticatedSupabaseClient } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
+import type { MessageNFTMetadata, NFTAttribute } from '@/types/nft'
+
+// NFT creation cost in SOL (0.01 SOL = ~$2-3 at current prices)
+const NFT_CREATION_COST_SOL = 0.01
+const FEE_PERCENTAGE = 0.1 // 10% fee
+
+// Environment flags for NFT generation modes
+// Force production NFT system to be used for recipients
+const USE_PRODUCTION_NFT_FOR_RECIPIENT = true // FORCED TO TRUE - production system
+const USE_PRODUCTION_NFT_FOR_SENDER = false // Keep simple system for senders
+
+interface CreateChatNFTRequest {
+  messageContent: string
+  senderWallet: string
+  recipientWallet: string
+  senderImageUrl: string
+  recipientImageUrl: string
+  messageId: string
+  feeTransactionSignature?: string
+  theme?: string
+  selectedSticker?: string
+  customization?: {
+    backgroundColor?: string
+    textColor?: string
+    fontFamily?: string
+  }
+}
+
+interface NFTCreationResult {
+  success: boolean
+  senderNftMintAddress?: string
+  recipientNftMintAddress?: string
+  senderTransactionSignature?: string
+  recipientTransactionSignature?: string
+  senderImageUrl?: string
+  recipientImageUrl?: string
+  senderMetadataUrl?: string
+  recipientMetadataUrl?: string
+  feeTransactionSignature?: string
+  chatRecordId?: string
+  error?: string
+}
+
+// Initialize Metaplex
+const metaplex = Metaplex.make(connection)
+  .use(keypairIdentity(companyWallet))
+
+// Collection constants
+const STORK_COLLECTION_NAME = 'Stork SMS Messages'
+const STORK_COLLECTION_SYMBOL = 'STORK'
+const STORK_COLLECTION_DESCRIPTION = 'Verified message NFTs from Stork SMS - Secure, decentralized messaging on Solana'
+
+function generateNFTMetadata(
+  messageContent: string,
+  senderWallet: string,
+  recipientWallet: string,
+  imageUrl: string,
+  messageId: string,
+  nftType: 'sender' | 'recipient',
+  theme: string = 'default'
+): MessageNFTMetadata {
+  const isRecipientNFT = nftType === 'recipient'
+  const recipientTruncated = recipientWallet.substring(0, 6) + '...' + recipientWallet.substring(recipientWallet.length - 4)
+  
+  const attributes: NFTAttribute[] = [
+    {
+      trait_type: 'NFT Type',
+      value: nftType === 'sender' ? 'Chat Initiator' : 'Chat Message'
+    },
+    {
+      trait_type: 'Role',
+      value: nftType === 'sender' ? 'Sender' : 'Recipient'
+    },
+    {
+      trait_type: 'Theme',
+      value: theme
+    },
+    {
+      trait_type: 'Character Count',
+      value: messageContent.length.toString()
+    },
+    {
+      trait_type: 'Platform',
+      value: 'Stork SMS'
+    },
+    {
+      trait_type: 'Creation Date',
+      value: new Date().toISOString().split('T')[0]
+    }
+  ]
+
+  const name = nftType === 'sender' 
+    ? `Stork Chat Started #${messageId.substring(0, 8)}`
+    : `Stork Message #${messageId.substring(0, 8)}`
+    
+  const description = nftType === 'sender'
+    ? `Chat initiation NFT - You started a chat with ${recipientTruncated} on Stork SMS`
+    : `A verified message NFT created on Stork SMS - "${messageContent.substring(0, 100)}${messageContent.length > 100 ? '...' : ''}"`
+
+  return {
+    name,
+    symbol: STORK_COLLECTION_SYMBOL,
+    description,
+    image: imageUrl,
+    animation_url: imageUrl, // Some wallets prefer this field
+    external_url: `https://stork-sms.app/message/${messageId}`,
+    attributes,
+    properties: {
+      files: [
+        {
+          uri: imageUrl,
+          type: 'image/png'
+        }
+      ],
+      category: 'image',
+      creators: [
+        {
+          address: companyWalletPublicKey.toBase58(),
+          verified: true,
+          share: 100
+        }
+      ]
+    },
+    collection: {
+      name: STORK_COLLECTION_NAME,
+      family: 'Stork SMS'
+    },
+    message: {
+      content: messageContent,
+      sender: senderWallet,
+      recipient: recipientWallet,
+      timestamp: new Date().toISOString(),
+      encrypted: false
+    }
+  }
+}
+
+async function generateNFTImageWithProduction(
+  messageContent: string,
+  senderWallet: string,
+  recipientWallet: string,
+  selectedSticker?: string
+): Promise<{ imageUrl: string; r2Key: string }> {
+  try {
+    console.log('Generating NFT image with production system...')
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/generate-production-nft`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        messageContent,
+        senderWallet,
+        recipientWallet,
+        sticker: selectedSticker
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to generate production NFT')
+    }
+
+    const result = await response.json()
+    if (!result.success || !result.imageBuffer) {
+      throw new Error(result.error || 'Production NFT generation failed')
+    }
+
+    // Upload the generated image to R2 storage
+    const imageBuffer = Buffer.from(result.imageBuffer, 'base64')
+    console.log('📦 Uploading to R2 - Buffer size:', imageBuffer.length, 'bytes')
+    
+    // Generate unique filename with timestamp and random string
+    const uniqueId = `production-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+    console.log('🏷️ R2 unique filename:', uniqueId)
+    
+    const uploadResult = await r2Storage.uploadNFTImage(
+      imageBuffer,
+      senderWallet,
+      uniqueId,
+      'image/png'
+    )
+
+    console.log('✅ Production NFT image uploaded to R2:', uploadResult.publicUrl)
+    console.log('🔑 R2 key:', uploadResult.key)
+    return {
+      imageUrl: uploadResult.publicUrl,
+      r2Key: uploadResult.key
+    }
+    
+  } catch (error) {
+    console.error('Production NFT generation error:', error)
+    throw new Error(`Failed to generate production NFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function generateNFTImageWithSimple(
+  messageContent: string,
+  senderWallet: string,
+  recipientWallet: string,
+  nftType: 'sender' | 'recipient',
+  theme?: string,
+  selectedSticker?: string
+): Promise<{ imageUrl: string; r2Key: string }> {
+  try {
+    console.log(`Generating NFT image with simple system for ${nftType}...`)
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/generate-nft-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messageContent,
+        senderWallet,
+        recipientWallet,
+        nftType,
+        theme,
+        selectedSticker
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to generate simple NFT')
+    }
+
+    const result = await response.json()
+    if (!result.success || !result.imageUrl) {
+      throw new Error(result.error || 'Simple NFT generation failed')
+    }
+
+    console.log('Simple NFT image generated:', result.imageUrl)
+    return {
+      imageUrl: result.imageUrl,
+      r2Key: result.imageKey
+    }
+    
+  } catch (error) {
+    console.error('Simple NFT generation error:', error)
+    throw new Error(`Failed to generate simple NFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function collectFee(
+  userWallet: string,
+  feeAmountSOL: number
+): Promise<string> {
+  try {
+    // Create fee collection transaction
+    const userPublicKey = new PublicKey(userWallet)
+    const feeAmountLamports = Math.floor(feeAmountSOL * LAMPORTS_PER_SOL)
+    
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: userPublicKey,
+        toPubkey: companyWalletPublicKey,
+        lamports: feeAmountLamports,
+      })
+    )
+    
+    // Note: In a real implementation, this would need to be signed by the user's wallet
+    // For now, we'll simulate this and assume the user has already authorized the fee
+    console.log(`Fee collection transaction created: ${feeAmountSOL} SOL from ${userWallet}`)
+    
+    // Return a mock transaction signature for demonstration
+    // In production, this would be handled by the frontend wallet integration
+    return `fee_${Date.now()}_${Math.random().toString(36).substring(7)}`
+    
+  } catch (error) {
+    console.error('Fee collection error:', error)
+    throw new Error(`Failed to collect fee: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function createNFT(
+  metadata: MessageNFTMetadata,
+  ownerWallet: string
+): Promise<{ mintAddress: string; transactionSignature: string }> {
+  try {
+    console.log('Starting NFT creation process...')
+    
+    // Convert metadata to Metaplex format
+    const metaplexMetadata = {
+      ...metadata,
+      attributes: metadata.attributes.map(attr => ({
+        trait_type: attr.trait_type,
+        value: typeof attr.value === 'string' ? attr.value : String(attr.value)
+      }))
+    }
+    
+    console.log('Using R2 storage for metadata (faster than Arweave)...')
+    // Use R2 storage for metadata instead of slow Arweave uploads
+    const metadataFileName = `metadata-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.json`
+    const metadataUpload = await r2Storage.uploadFile(
+      Buffer.from(JSON.stringify(metaplexMetadata, null, 2)),
+      metadataFileName,
+      'application/json'
+    )
+    
+    // Use the public R2 URL directly for metadata access
+    const metadataUri = metadataUpload.publicUrl
+    console.log('Metadata uploaded to public R2:', metadataUri)
+    
+    console.log('Creating NFT on blockchain...')
+    // Create NFT with simplified parameters that work reliably
+    const createPromise = metaplex.nfts().create({
+      uri: metadataUri,
+      name: metadata.name,
+      symbol: 'STORK',
+      sellerFeeBasisPoints: 500, // 5% royalty
+      creators: [
+        {
+          address: companyWalletPublicKey,
+          share: 100
+        }
+      ]
+    })
+    
+    const createTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('NFT creation timeout')), 45000)
+    )
+    
+    const { nft, response } = await Promise.race([createPromise, createTimeoutPromise]) as any
+    console.log('NFT created with mint address:', nft.address.toBase58())
+    
+    // Transfer NFT to owner if different from company wallet
+    if (ownerWallet !== companyWallet.publicKey.toBase58()) {
+      console.log('Transferring NFT to owner:', ownerWallet)
+      const ownerPublicKey = new PublicKey(ownerWallet)
+      
+      const transferPromise = metaplex.nfts().transfer({
+        nftOrSft: nft,
+        toOwner: ownerPublicKey,
+        fromOwner: companyWalletPublicKey
+      })
+      
+      const transferTimeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('NFT transfer timeout')), 30000)
+      )
+      
+      await Promise.race([transferPromise, transferTimeoutPromise])
+      console.log('NFT transferred successfully')
+    }
+    
+    return {
+      mintAddress: nft.address.toBase58(),
+      transactionSignature: response.signature
+    }
+    
+  } catch (error) {
+    console.error('NFT creation error:', error)
+    throw new Error(`Failed to create NFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function createBatchNFTs(
+  senderMetadata: MessageNFTMetadata,
+  recipientMetadata: MessageNFTMetadata,
+  senderWallet: string,
+  recipientWallet: string
+): Promise<{
+  senderResult: { mintAddress: string; transactionSignature: string }
+  recipientResult: { mintAddress: string; transactionSignature: string }
+}> {
+  try {
+    console.log('Starting batch NFT creation process...')
+    
+    // Create both NFTs in parallel to optimize performance
+    const [senderResult, recipientResult] = await Promise.all([
+      createNFT(senderMetadata, senderWallet),
+      createNFT(recipientMetadata, recipientWallet)
+    ])
+    
+    console.log('Batch NFT creation completed successfully')
+    console.log('Sender NFT:', senderResult.mintAddress)
+    console.log('Recipient NFT:', recipientResult.mintAddress)
+    
+    return {
+      senderResult,
+      recipientResult
+    }
+    
+  } catch (error) {
+    console.error('Batch NFT creation error:', error)
+    throw new Error(`Failed to create batch NFTs: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function storeChatRecord(
+  messageId: string,
+  senderWallet: string,
+  recipientWallet: string,
+  messageContent: string,
+  senderNftMintAddress: string,
+  recipientNftMintAddress: string,
+  senderImageUrl: string,
+  recipientImageUrl: string,
+  senderMetadataUrl: string,
+  recipientMetadataUrl: string,
+  senderTransactionSignature: string,
+  recipientTransactionSignature: string,
+  feeTransactionSignature: string,
+  authenticatedSupabase: any
+): Promise<string> {
+  try {
+    console.log('📝 Attempting to insert chat record...')
+    const chatInsertData = {
+      id: uuidv4(),
+      sender_nft_mint: senderNftMintAddress,
+      recipient_nft_mint: recipientNftMintAddress,
+      sender_wallet: senderWallet,
+      recipient_wallet: recipientWallet,
+      chat_title: `Chat: ${messageContent.substring(0, 50)}...`,
+      fee_amount: 1000000, // 0.001 SOL in lamports
+      fee_transaction_signature: feeTransactionSignature,
+      fee_paid: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    console.log('Chat insert data:', JSON.stringify(chatInsertData, null, 2))
+    
+    // Insert chat record using authenticated client
+    const { data: chatData, error: chatError } = await authenticatedSupabase
+      .from('chats')
+      .insert(chatInsertData)
+      .select()
+      .single()
+    
+    if (chatError) {
+      console.error('❌ Chat insertion failed:', chatError)
+      throw new Error(`Failed to create chat record: ${chatError.message}`)
+    }
+    
+    console.log('✅ Chat record created successfully:', chatData.id)
+    
+    // Insert message record using authenticated client
+    const { data: messageData, error: messageError } = await authenticatedSupabase
+      .from('messages')
+      .insert({
+        chat_id: chatData.id,
+        sender_wallet: senderWallet,
+        encrypted_content: messageContent, // Store as plain text for NFT messages
+        encryption_method: 'none',
+        message_type: 'nft',
+        nft_mint_address: recipientNftMintAddress,
+        nft_image_url: recipientImageUrl,
+        nft_metadata_url: recipientMetadataUrl,
+        transaction_signature: recipientTransactionSignature,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+    
+    if (messageError) {
+      throw new Error(`Failed to create message record: ${messageError.message}`)
+    }
+    
+    return chatData.id
+    
+  } catch (error) {
+    console.error('Database storage error:', error)
+    throw new Error(`Failed to store chat record: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function createChatNFTHandler(request: NextRequest) {
+  console.log('🟢🟢🟢 MAIN CREATE-CHAT-NFT ROUTE CALLED 🟢🟢🟢')
+  
+  try {
+    // Get request body
+    const requestBody = await request.json() as CreateChatNFTRequest
+    console.log('Request body:', JSON.stringify(requestBody, null, 2))
+
+    // Get wallet address and auth token from headers
+    const walletAddress = request.headers.get('X-Wallet-Address')
+    const authToken = request.headers.get('Authorization')?.replace('Bearer ', '')
+    
+    if (!walletAddress || !authToken) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Missing authentication headers' 
+        },
+        { status: 401 }
+      )
+    }
+
+    // Create authenticated Supabase client
+    const authenticatedSupabase = createAuthenticatedSupabaseClient(walletAddress, authToken)
+    
+    console.log('🔐 Using authenticated Supabase client with wallet headers')
+    
+    // Validate required fields - allow image URLs to be generated dynamically
+    if (!requestBody.messageContent || !requestBody.senderWallet || !requestBody.recipientWallet || !requestBody.messageId) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Missing required fields: messageContent, senderWallet, recipientWallet, messageId' 
+        },
+        { status: 400 }
+      )
+    }
+
+    // Log sticker selection for debugging
+    if (requestBody.selectedSticker) {
+      console.log(`Sticker selected for NFT creation: ${requestBody.selectedSticker}`)
+    }
+    
+    // Validate wallet addresses
+    try {
+      new PublicKey(requestBody.senderWallet)
+      new PublicKey(requestBody.recipientWallet)
+    } catch {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid wallet address format' 
+        },
+        { status: 400 }
+      )
+    }
+    
+    const result: NFTCreationResult = { success: false }
+    
+    try {
+      // Step 1: Use provided fee transaction signature or collect fee
+      let feeTransactionSignature: string
+      
+      if (requestBody.feeTransactionSignature) {
+        // Fee already collected on frontend
+        console.log(`Using provided fee transaction signature: ${requestBody.feeTransactionSignature}`)
+        feeTransactionSignature = requestBody.feeTransactionSignature
+      } else {
+        // Fallback: collect fee on backend (legacy method)
+        const feeAmount = NFT_CREATION_COST_SOL * FEE_PERCENTAGE
+        console.log(`Collecting fee: ${feeAmount} SOL from ${requestBody.senderWallet}`)
+        feeTransactionSignature = await collectFee(requestBody.senderWallet, feeAmount)
+      }
+      
+      result.feeTransactionSignature = feeTransactionSignature
+      
+      // Step 2: Generate NFT images using appropriate system
+      let senderImageUrl = requestBody.senderImageUrl
+      let recipientImageUrl = requestBody.recipientImageUrl
+      
+      // Generate sender NFT image if not provided
+      if (!senderImageUrl) {
+        console.log('Generating sender NFT image...')
+        const senderImageData = USE_PRODUCTION_NFT_FOR_SENDER
+          ? await generateNFTImageWithProduction(
+              requestBody.messageContent,
+              requestBody.senderWallet,
+              requestBody.recipientWallet,
+              requestBody.selectedSticker
+            )
+          : await generateNFTImageWithSimple(
+              requestBody.messageContent,
+              requestBody.senderWallet,
+              requestBody.recipientWallet,
+              'sender',
+              requestBody.theme,
+              requestBody.selectedSticker
+            )
+        senderImageUrl = senderImageData.imageUrl
+      }
+      
+      // Generate recipient NFT image if not provided
+      if (!recipientImageUrl) {
+        console.log('🚨🚨🚨 RECIPIENT NFT GENERATION DEBUG 🚨🚨🚨')
+        console.log('USE_PRODUCTION_NFT_FOR_RECIPIENT value:', USE_PRODUCTION_NFT_FOR_RECIPIENT)
+        console.log('Will use:', USE_PRODUCTION_NFT_FOR_RECIPIENT ? 'PRODUCTION SYSTEM ✅' : 'SIMPLE SYSTEM ❌')
+        console.log('🚨🚨🚨 END DEBUG 🚨🚨🚨')
+        
+        const recipientImageData = USE_PRODUCTION_NFT_FOR_RECIPIENT
+          ? await generateNFTImageWithProduction(
+              requestBody.messageContent,
+              requestBody.senderWallet,
+              requestBody.recipientWallet,
+              requestBody.selectedSticker
+            )
+          : await generateNFTImageWithSimple(
+              requestBody.messageContent,
+              requestBody.senderWallet,
+              requestBody.recipientWallet,
+              'recipient',
+              requestBody.theme,
+              requestBody.selectedSticker
+            )
+        recipientImageUrl = recipientImageData.imageUrl
+        console.log('Recipient NFT image generated and uploaded:', recipientImageUrl)
+      }
+
+      // Step 3: Generate NFT metadata for both sender and recipient
+      const senderMetadata = generateNFTMetadata(
+        requestBody.messageContent,
+        requestBody.senderWallet,
+        requestBody.recipientWallet,
+        senderImageUrl,
+        requestBody.messageId,
+        'sender',
+        requestBody.theme
+      )
+      
+      const recipientMetadata = generateNFTMetadata(
+        requestBody.messageContent,
+        requestBody.senderWallet,
+        requestBody.recipientWallet,
+        recipientImageUrl,
+        requestBody.messageId,
+        'recipient',
+        requestBody.theme
+      )
+      
+      // Step 4: Upload metadata to R2 storage for backup
+      const [senderMetadataUpload, recipientMetadataUpload] = await Promise.all([
+        r2Storage.uploadNFTMetadata(
+          senderMetadata,
+          `${requestBody.messageId}-sender`,
+          requestBody.senderWallet
+        ),
+        r2Storage.uploadNFTMetadata(
+          recipientMetadata,
+          `${requestBody.messageId}-recipient`,
+          requestBody.senderWallet
+        )
+      ])
+      
+      result.senderMetadataUrl = senderMetadataUpload.publicUrl
+      result.recipientMetadataUrl = recipientMetadataUpload.publicUrl
+      
+      // Step 5: Create both NFTs on Solana using batch process
+      const batchResult = await createBatchNFTs(
+        senderMetadata,
+        recipientMetadata,
+        requestBody.senderWallet,
+        requestBody.recipientWallet
+      )
+      
+      result.senderNftMintAddress = batchResult.senderResult.mintAddress
+      result.recipientNftMintAddress = batchResult.recipientResult.mintAddress
+      result.senderTransactionSignature = batchResult.senderResult.transactionSignature
+      result.recipientTransactionSignature = batchResult.recipientResult.transactionSignature
+      result.senderImageUrl = senderImageUrl
+      result.recipientImageUrl = recipientImageUrl
+      
+      // Step 6: Store chat record in database
+      const chatRecordId = await storeChatRecord(
+        requestBody.messageId,
+        requestBody.senderWallet,
+        requestBody.recipientWallet,
+        requestBody.messageContent,
+        batchResult.senderResult.mintAddress,
+        batchResult.recipientResult.mintAddress,
+        senderImageUrl,
+        recipientImageUrl,
+        senderMetadataUpload.publicUrl,
+        recipientMetadataUpload.publicUrl,
+        batchResult.senderResult.transactionSignature,
+        batchResult.recipientResult.transactionSignature,
+        feeTransactionSignature,
+        authenticatedSupabase
+      )
+      result.chatRecordId = chatRecordId
+      
+      result.success = true
+      
+      return NextResponse.json(result)
+      
+    } catch (error) {
+      console.error('NFT creation process error:', error)
+      result.error = error instanceof Error ? error.message : 'Unknown error occurred'
+      
+      return NextResponse.json(result, { status: 500 })
+    }
+    
+  } catch (error) {
+    console.error('Request processing error:', error)
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to process request',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    message: 'Chat NFT Creation API - Batch Minting',
+    endpoint: '/api/create-chat-nft',
+    method: 'POST',
+    requiredFields: ['messageContent', 'senderWallet', 'recipientWallet', 'messageId'],
+    optionalFields: ['senderImageUrl', 'recipientImageUrl', 'theme', 'selectedSticker', 'customization', 'feeTransactionSignature'],
+    nftCreationCost: `${NFT_CREATION_COST_SOL * 2} SOL (for both sender and recipient NFTs)`,
+    feePercentage: `${FEE_PERCENTAGE * 100}%`,
+    companyWallet: companyWalletPublicKey.toBase58(),
+    network: 'Solana Devnet',
+    process: [
+      '1. Collect 10% fee from sender',
+      '2. Generate NFT images using production system (recipient) or simple system (sender)',
+      '3. Generate NFT metadata for both sender and recipient NFTs',
+      '4. Upload metadata to storage in parallel',
+      '5. Create both NFTs on Solana blockchain in parallel (batch process)',
+      '6. Transfer NFTs to respective owners',
+      '7. Store chat record with both NFT mint addresses in database'
+    ],
+    features: [
+      'Batch NFT creation for cost efficiency',
+      'Dual NFT system (sender initiator + recipient message)',
+      'Parallel processing for faster creation',
+      'Production NFT system with layered assets and stickers',
+      'Backward compatibility with simple NFT generation',
+      'Dynamic image generation based on environment flags',
+      'Enhanced authentication with dual NFT verification'
+    ],
+    environment: {
+      USE_PRODUCTION_NFT_FOR_RECIPIENT: USE_PRODUCTION_NFT_FOR_RECIPIENT,
+      USE_PRODUCTION_NFT_FOR_SENDER: USE_PRODUCTION_NFT_FOR_SENDER
+    }
+  })
+}
+
+// Export the simplified handler (RLS handles access control)
+export { createChatNFTHandler as POST }

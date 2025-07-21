@@ -1,0 +1,602 @@
+
+> stork-sms-web@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.3.5
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.3.150:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1338ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5s (8909 modules)
+ GET / 200 in 5272ms
+ ✓ Compiled in 223ms (4337 modules)
+ ✓ Compiled in 774ms (8895 modules)
+ ✓ Compiled in 387ms (8895 modules)
+ ✓ Compiled in 374ms (4337 modules)
+ ✓ Compiled in 181ms (4337 modules)
+ ✓ Compiled in 345ms (4337 modules)
+ ✓ Compiled in 180ms (4337 modules)
+ ✓ Compiled in 217ms (4337 modules)
+ ✓ Compiled in 368ms (4337 modules)
+ ✓ Compiled in 177ms (4337 modules)
+ ✓ Compiled in 252ms (4323 modules)
+ ✓ Compiled in 405ms (4323 modules)
+ ✓ Compiled in 157ms (4323 modules)
+ ✓ Compiled in 211ms (4323 modules)
+ ✓ Compiled in 316ms (4323 modules)
+ ✓ Compiled in 152ms (4323 modules)
+ ✓ Compiled in 198ms (4323 modules)
+ ✓ Compiled in 388ms (4323 modules)
+ ✓ Compiled in 145ms (4323 modules)
+ ✓ Compiled in 163ms (4323 modules)
+ ✓ Compiled in 192ms (4323 modules)
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/.next/cache/webpack/client-development/8.pack.gz_' -> '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/.next/cache/webpack/client-development/8.pack.gz'
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@keystonehq/sol-keyring/dist/sol-keyring.cjs.development.js
+./node_modules/@keystonehq/sol-keyring/dist/index.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-keystone/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⨯ ./node_modules/bs58/index.js
+Error: ENOENT: no such file or directory, open '/Users/ryandimi/Documents/Projects/Stork-SMS-Web/node_modules/bs58/index.js'
+
+Import trace for requested module:
+./node_modules/bs58/index.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/core/fractal-wallet-adapter-impl.js
+./node_modules/@fractalwagmi/solana-wallet-adapter/dist/esm/index.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/adapter.js
+./node_modules/@solana/wallet-adapter-fractal/lib/esm/index.js
+./node_modules/@solana/wallet-adapter-wallets/lib/esm/index.js
+./src/components/wallet-provider.tsx
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+   ▲ Next.js 15.3.5
+   - Local:        http://localhost:3000
+   - Network:      http://10.10.1.102:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1156ms
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+   ▲ Next.js 15.3.5
+   - Local:        http://localhost:3000
+   - Network:      http://10.10.1.102:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1262ms
