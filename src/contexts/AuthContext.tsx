@@ -46,6 +46,7 @@ interface AuthContextType {
   // Methods
   authenticateWithWallet: () => Promise<void>
   signOut: () => Promise<void>
+  setAwaitingSignature: (awaiting: boolean) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -195,6 +196,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       AuthLogger.logSignatureRequest(walletAddress)
       console.log('📝 Requesting wallet signature...')
       
+      // Double-check wallet is still connected before requesting signature
+      if (!connected || !signMessage) {
+        throw new Error('Wallet disconnected before signature could be requested')
+      }
+      
       // Step 2: Request signature from wallet
       const signature = await getWalletSignature(sigData.message)
       if (!signature) {
@@ -333,6 +339,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [publicKey])
 
+  // Method to set awaiting signature state during delays
+  const setAwaitingSignature = useCallback((awaiting: boolean) => {
+    setState(prev => ({
+      ...prev,
+      requiresSignature: awaiting,
+      status: awaiting ? 'authenticating' : (prev.status === 'authenticating' ? 'idle' : prev.status)
+    }))
+  }, [])
+
   const contextValue = useMemo(() => ({
     // State
     isAuthenticated: state.status === 'authenticated',
@@ -349,7 +364,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Methods
     authenticateWithWallet,
-    signOut
+    signOut,
+    setAwaitingSignature
   }), [
     state.status,
     state.user,
@@ -359,7 +375,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     connected,
     signatureData,
     authenticateWithWallet,
-    signOut
+    signOut,
+    setAwaitingSignature
   ])
 
   // Log only important auth state changes

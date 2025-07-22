@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { v4 as uuidv4 } from 'uuid'
@@ -42,9 +42,23 @@ const CREATION_STEPS = [
   { name: 'Generating sender NFT image...', weight: 15 },
   { name: 'Generating recipient NFT image...', weight: 15 },
   { name: 'Collecting creation fee...', weight: 10 },
-  { name: 'Creating NFTs on blockchain...', weight: 40 },
-  { name: 'Storing chat record...', weight: 20 }
+  { name: 'Creating NFTs on blockchain...', weight: 35 }, // 0-60%
+  { name: 'Verifying NFTs in collection...', weight: 15 }, // 60-75%
+  { name: 'Encrypting message...', weight: 5 }, // 75-80%
+  { name: 'Creating chat...', weight: 10 } // 80-90%
 ]
+
+// Animation configuration for smooth progress after fee collection
+const ANIMATION_CONFIG = {
+  duration: 22000, // 22 seconds
+  maxProgress: 98, // Stop at 98%
+  steps: [
+    { name: 'Creating NFTs on blockchain...', endProgress: 60 },
+    { name: 'Verifying NFTs in collection...', endProgress: 75 },
+    { name: 'Encrypting message...', endProgress: 80 },
+    { name: 'Creating chat...', endProgress: 98 }
+  ]
+}
 
 export const useNFTChatCreation = () => {
   const { publicKey, connected, sendTransaction } = useWallet()
@@ -59,18 +73,83 @@ export const useNFTChatCreation = () => {
   })
   
   const [previewCanvasData, setPreviewCanvasData] = useState<string | null>(null)
+  const [senderPreviewCanvasData, setSenderPreviewCanvasData] = useState<string | null>(null)
+  const [animationStartTime, setAnimationStartTime] = useState<number | null>(null)
+  const [animationInterval, setAnimationInterval] = useState<NodeJS.Timeout | null>(null)
 
   const updateProgress = useCallback((stepIndex: number, stepProgress: number = 100) => {
     const completedSteps = CREATION_STEPS.slice(0, stepIndex)
     const completedWeight = completedSteps.reduce((sum, step) => sum + step.weight, 0)
     const currentStepWeight = CREATION_STEPS[stepIndex]?.weight || 0
     const currentProgress = (currentStepWeight * stepProgress) / 100
+    const newProgress = Math.min(100, completedWeight + currentProgress)
     
-    setState(prev => ({
-      ...prev,
-      progress: Math.min(100, completedWeight + currentProgress)
-    }))
+    console.log('📊 Progress Update Debug:', {
+      stepIndex,
+      stepName: CREATION_STEPS[stepIndex]?.name,
+      stepProgress: `${stepProgress}%`,
+      completedWeight,
+      currentStepWeight,
+      currentProgress,
+      newProgress: `${newProgress}%`
+    })
+    
+    setState(prev => {
+      console.log('📊 State Update:', { 
+        oldProgress: `${prev.progress}%`, 
+        newProgress: `${newProgress}%`,
+        isCreating: prev.isCreating,
+        isCreatingNFT: prev.isCreatingNFT 
+      })
+      return {
+        ...prev,
+        progress: newProgress
+      }
+    })
   }, [])
+
+  // Smooth animation function that starts after fee collection
+  const startSmoothAnimation = useCallback(() => {
+    console.log('🎬 Starting smooth 22-second animation')
+    
+    // Clear any existing animation
+    if (animationInterval) {
+      clearInterval(animationInterval)
+    }
+    
+    const startTime = Date.now()
+    setAnimationStartTime(startTime)
+    
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min((elapsed / ANIMATION_CONFIG.duration) * ANIMATION_CONFIG.maxProgress, ANIMATION_CONFIG.maxProgress)
+      
+      console.log('🎬 Animation progress:', `${progress.toFixed(1)}%`, `(${(elapsed/1000).toFixed(1)}s)`)
+      
+      setState(prev => ({
+        ...prev,
+        progress: 40 + (progress * 0.59) // Start from 40% and animate to 98% (40 + 58% range)
+      }))
+      
+      // Stop animation when we reach max progress or time limit
+      if (progress >= ANIMATION_CONFIG.maxProgress || elapsed >= ANIMATION_CONFIG.duration) {
+        console.log('🎬 Animation completed at', `${progress.toFixed(1)}%`)
+        clearInterval(interval)
+        setAnimationInterval(null)
+      }
+    }, 100) // Update every 100ms for smooth animation
+    
+    setAnimationInterval(interval)
+  }, [animationInterval])
+
+  // Clean up animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationInterval) {
+        clearInterval(animationInterval)
+      }
+    }
+  }, [animationInterval])
 
   const generateNFTImage = async (
     messageContent: string, 
@@ -94,8 +173,19 @@ export const useNFTChatCreation = () => {
       return previewCanvasData
     }
     
-    // For senders, use the simple system
-    console.log(`🎯 Generating sender NFT using SIMPLE system...`)
+    // For senders, use the preview canvas data (like recipients)
+    if (nftType === 'sender') {
+      console.log(`🎯 Using sender preview canvas data for sender NFT`)
+      if (!senderPreviewCanvasData) {
+        throw new Error('Sender preview canvas data not available - please wait for preview to load')
+      }
+      console.log(`📷 Sender canvas data URL length:`, senderPreviewCanvasData.length)
+      console.log(`📷 Sender canvas data preview:`, senderPreviewCanvasData.substring(0, 50) + '...')
+      return senderPreviewCanvasData
+    }
+    
+    // Fallback for other types - use the simple system
+    console.log(`🎯 Generating NFT using SIMPLE system...`)
     
     const response = await fetch('/api/generate-nft-image', {
       method: 'POST',
@@ -134,8 +224,8 @@ export const useNFTChatCreation = () => {
       throw new Error('Wallet not connected')
     }
 
-    // Generate sender image and use preview canvas data for recipient
-    const senderImageUrl = await generateNFTImage(messageContent, recipientWallet, 'sender', theme, selectedSticker)
+    // Use sender preview canvas data (like recipients)
+    const senderImageUrl = senderPreviewCanvasData // Frontend-generated high-quality canvas data
     
     // Use preview canvas data for recipient if available
     const recipientImageUrl = previewCanvasData || await generateNFTImage(messageContent, recipientWallet, 'recipient', theme, selectedSticker)
@@ -153,7 +243,12 @@ export const useNFTChatCreation = () => {
 
     // Create fee transaction for dual NFT creation
     const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com')
-    const companyWalletPubkey = new PublicKey('ELY9hWRL9UeoFiip9eVU6y68vG12DZTwVPk9bmV3FcSw')
+    const companyWalletPubkey = new PublicKey('EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
+    console.log('💰 Fee collection details:', {
+      rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+      companyWallet: 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork',
+      feeAmount: '0.002 SOL'
+    })
     
     // Fee for dual NFT creation: (0.01 SOL * 2 NFTs) * 10% fee = 0.002 SOL
     const baseCost = 0.01 // SOL per NFT
@@ -176,11 +271,22 @@ export const useNFTChatCreation = () => {
     transaction.feePayer = publicKey
 
     // Send transaction for user signing
+    console.log('💳 Sending transaction for user signature...')
     const signature = await sendTransaction(transaction, connection)
+    console.log('📝 Transaction sent, signature:', signature)
 
-    // Wait for confirmation
-    await connection.confirmTransaction(signature, 'confirmed')
+    // Wait for confirmation with timeout
+    console.log('⏳ Waiting for transaction confirmation...')
+    try {
+      await connection.confirmTransaction(signature, 'confirmed')
+      console.log('✅ Transaction confirmed successfully')
+    } catch (confirmError) {
+      console.error('❌ Transaction confirmation failed:', confirmError)
+      // Still return the signature even if confirmation fails
+      console.log('⚠️ Continuing with unconfirmed transaction - this is often normal')
+    }
 
+    console.log('💰 Fee collection function returning signature:', signature)
     return signature
   }
 
@@ -188,7 +294,7 @@ export const useNFTChatCreation = () => {
     messageContent: string
     senderWallet: string
     recipientWallet: string
-    senderImageUrl: string
+    senderImageUrl?: string // Optional - let server generate if not provided
     recipientImageUrl: string
     messageId: string
     feeTransactionSignature: string
@@ -265,13 +371,8 @@ export const useNFTChatCreation = () => {
       setState(prev => ({ ...prev, isGeneratingImage: true }))
       updateProgress(0, 0)
       
-      const senderImageUrl = await generateNFTImage(
-        params.messageContent,
-        params.recipientWallet,
-        'sender',
-        params.theme || 'default',
-        params.selectedSticker
-      )
+      // Don't generate sender image URL here - let /api/create-chat-nft decide which system to use
+      const senderImageUrl = undefined // This will trigger server-side generation with correct system
       
       updateProgress(0, 100)
 
@@ -292,14 +393,17 @@ export const useNFTChatCreation = () => {
       // Step 3: Collect fee with wallet signing
       updateProgress(2, 0)
       
+      console.log('💰 Starting fee collection for messageId:', messageId)
       const feeTransactionSignature = await collectFee(messageId)
-      
+      console.log('✅ Fee collection completed, signature:', feeTransactionSignature)
       updateProgress(2, 100)
+      console.log('✅ Progress updated to step 3 (fee collection complete)')
 
-      // Step 4-5: Create NFTs and chat (handled by API)
+      // Start smooth animation immediately after fee collection
       setState(prev => ({ ...prev, isCreatingNFT: true }))
-      updateProgress(3, 0)
+      startSmoothAnimation()
 
+      console.log('📝 Starting NFT creation API call...')
       const nftResult = await createChatNFT({
         messageContent: params.messageContent,
         senderWallet,
@@ -312,8 +416,10 @@ export const useNFTChatCreation = () => {
         selectedSticker: params.selectedSticker,
         customization: params.customization
       })
+      console.log('✅ NFT creation API call completed')
 
-      updateProgress(4, 100)
+      // API call is complete, but animation continues until 90%
+      // The animation will stop itself at 90% or after 20 seconds
 
       const result: NFTChatResult = {
         chatId: nftResult.chatRecordId,
@@ -410,13 +516,8 @@ export const useNFTChatCreation = () => {
         try {
           // Step 1: Generate sender NFT image
           updateProgress(0, 0)
-          const senderImageUrl = await generateNFTImage(
-            params.messageContent,
-            params.recipientWallet,
-            'sender',
-            params.theme || 'default',
-            params.selectedSticker
-          )
+          // Don't generate sender image URL here - let /api/create-chat-nft decide which system to use
+          const senderImageUrl = undefined // This will trigger server-side generation with correct system
           updateProgress(0, 100)
 
           // Step 2: Generate recipient NFT image
@@ -431,8 +532,10 @@ export const useNFTChatCreation = () => {
           updateProgress(1, 100)
           setState(prev => ({ ...prev, isGeneratingImage: false, isCreatingNFT: true }))
 
-          // Step 3-4: Create NFTs and chat (handled by API)
-          updateProgress(3, 0)
+          // Start smooth animation after fee collection and image generation
+          startSmoothAnimation()
+          
+          console.log('📝 Starting NFT creation API call...')
           const nftResult = await createChatNFT({
             messageContent: params.messageContent,
             senderWallet,
@@ -445,7 +548,9 @@ export const useNFTChatCreation = () => {
             selectedSticker: params.selectedSticker,
             customization: params.customization
           })
-          updateProgress(4, 100)
+          console.log('✅ NFT creation API call completed')
+          
+          // API call is complete, but animation continues until 90%
 
           const result: NFTChatResult = {
             chatId: nftResult.chatRecordId,
@@ -525,31 +630,70 @@ export const useNFTChatCreation = () => {
   }, [])
 
   const getCurrentStep = useCallback(() => {
+    console.log('🎯 getCurrentStep called:', { 
+      isCreating: state.isCreating,
+      isGeneratingImage: state.isGeneratingImage, 
+      isCreatingNFT: state.isCreatingNFT,
+      progress: `${state.progress}%`,
+      animationActive: animationStartTime !== null
+    })
+    
     if (!state.isCreating) return null
     
     if (state.isGeneratingImage) {
-      if (state.progress < 15) return CREATION_STEPS[0].name // Generating sender NFT
+      // Step 0: 0-15%, Step 1: 15-30%
+      if (state.progress < 15) {
+        console.log('🎯 Returning step 0:', CREATION_STEPS[0].name)
+        return CREATION_STEPS[0].name // Generating sender NFT
+      }
+      console.log('🎯 Returning step 1:', CREATION_STEPS[1].name)
       return CREATION_STEPS[1].name // Generating recipient NFT
     }
     
     if (state.isCreatingNFT) {
-      if (state.progress < 40) return CREATION_STEPS[2].name // Collecting fee
-      if (state.progress < 80) return CREATION_STEPS[3].name // Creating NFTs
-      return CREATION_STEPS[4].name // Storing chat record
+      // If animation is running, use animation-based steps
+      if (animationStartTime !== null) {
+        // Animation steps based on progress: 40-60%, 60-75%, 75-80%, 80-98%
+        if (state.progress < 60) {
+          console.log('🎯 Animation step: Creating NFTs')
+          return 'Creating NFTs on blockchain...'
+        }
+        if (state.progress < 75) {
+          console.log('🎯 Animation step: Verifying')
+          return 'Verifying NFTs in collection...'
+        }
+        if (state.progress < 80) {
+          console.log('🎯 Animation step: Encrypting')
+          return 'Encrypting message...'
+        }
+        console.log('🎯 Animation step: Creating chat')
+        return 'Creating chat...'
+      }
+      
+      // Original logic for fee collection phase
+      if (state.progress < 40) {
+        console.log('🎯 Returning step 2:', CREATION_STEPS[2].name)
+        return CREATION_STEPS[2].name // Collecting fee
+      }
+      
+      // Default to creating NFTs if not in animation yet
+      return 'Creating NFTs on blockchain...'
     }
     
     return null
-  }, [state])
+  }, [state, animationStartTime])
 
   return {
     ...state,
     createNFTChat,
+    startSmoothAnimation,
     createNFTChatWithImmediateSignature,
     resetState,
     getCurrentStep,
     canCreate: connected && publicKey,
     estimatedCost: '0.002 SOL', // Fee amount for dual NFT creation from backend
     steps: CREATION_STEPS,
-    setPreviewCanvasData
+    setPreviewCanvasData,
+    setSenderPreviewCanvasData
   }
 }

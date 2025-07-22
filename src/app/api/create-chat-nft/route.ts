@@ -21,9 +21,9 @@ const NFT_CREATION_COST_SOL = 0.01
 const FEE_PERCENTAGE = 0.1 // 10% fee
 
 // Environment flags for NFT generation modes
-// Force production NFT system to be used for recipients
-const USE_PRODUCTION_NFT_FOR_RECIPIENT = true // FORCED TO TRUE - production system
-const USE_PRODUCTION_NFT_FOR_SENDER = false // Keep simple system for senders
+// Read from environment variables with fallback defaults
+const USE_PRODUCTION_NFT_FOR_RECIPIENT = process.env.USE_PRODUCTION_NFT_FOR_RECIPIENT === 'true' || true // Default to true if not set
+const USE_PRODUCTION_NFT_FOR_SENDER = process.env.USE_PRODUCTION_NFT_FOR_SENDER === 'true' // Read from environment
 
 interface CreateChatNFTRequest {
   messageContent: string
@@ -77,6 +77,8 @@ function generateNFTMetadata(
 ): MessageNFTMetadata {
   const isRecipientNFT = nftType === 'recipient'
   const recipientTruncated = recipientWallet.substring(0, 6) + '...' + recipientWallet.substring(recipientWallet.length - 4)
+  
+  console.log(`🏷️ Generating NFT metadata for ${nftType} NFT with collection:`, STORK_COLLECTION_NAME)
   
   const attributes: NFTAttribute[] = [
     {
@@ -139,7 +141,8 @@ function generateNFTMetadata(
     },
     collection: {
       name: STORK_COLLECTION_NAME,
-      family: 'Stork SMS'
+      family: 'Stork SMS',
+      address: process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS || undefined
     },
     message: {
       content: messageContent,
@@ -209,6 +212,53 @@ async function generateNFTImageWithProduction(
   } catch (error) {
     console.error('Production NFT generation error:', error)
     throw new Error(`Failed to generate production NFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+async function generateProductionSenderNFTImage(
+  messageContent: string,
+  senderWallet: string,
+  recipientWallet: string
+): Promise<{ imageUrl: string; r2Key: string }> {
+  try {
+    console.log('Generating production sender NFT image directly...')
+    
+    // Import the production sender NFT generation function from lib
+    const { generateProductionSenderNFT } = await import('../../../lib/generate-production-sender-nft')
+    
+    // Create the request object
+    const requestBody = {
+      messageContent,
+      senderWallet,
+      recipientWallet
+    }
+    
+    // Call the function directly instead of making HTTP request
+    const imageBuffer = await generateProductionSenderNFT(requestBody)
+    
+    console.log('📦 Uploading sender NFT to R2 - Buffer size:', imageBuffer.length, 'bytes')
+    
+    // Generate unique filename with timestamp and random string
+    const uniqueId = `production-sender-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+    console.log('🏷️ R2 sender unique filename:', uniqueId)
+    
+    const uploadResult = await r2Storage.uploadNFTImage(
+      imageBuffer,
+      senderWallet,
+      uniqueId,
+      'image/png'
+    )
+
+    console.log('✅ Production sender NFT image uploaded to R2:', uploadResult.publicUrl)
+    console.log('🔑 R2 key:', uploadResult.key)
+    return {
+      imageUrl: uploadResult.publicUrl,
+      r2Key: uploadResult.key
+    }
+    
+  } catch (error) {
+    console.error('Production sender NFT generation error:', error)
+    throw new Error(`Failed to generate production sender NFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
@@ -321,7 +371,10 @@ async function createNFT(
     console.log('Metadata uploaded to public R2:', metadataUri)
     
     console.log('Creating NFT on blockchain...')
-    // Create NFT with simplified parameters that work reliably
+    // Get collection address from environment
+    const collectionAddress = process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS
+    
+    // Create NFT with collection reference
     const createPromise = metaplex.nfts().create({
       uri: metadataUri,
       name: metadata.name,
@@ -332,7 +385,8 @@ async function createNFT(
           address: companyWalletPublicKey,
           share: 100
         }
-      ]
+      ],
+      // Collection will be set and verified after NFT creation
     })
     
     const createTimeoutPromise = new Promise((_, reject) => 
@@ -341,6 +395,34 @@ async function createNFT(
     
     const { nft, response } = await Promise.race([createPromise, createTimeoutPromise]) as any
     console.log('NFT created with mint address:', nft.address.toBase58())
+    
+    // Set and verify NFT as part of collection if collection exists
+    if (collectionAddress) {
+      try {
+        console.log('🔐 Setting collection on NFT first:', collectionAddress)
+        
+        // First, set the collection on the NFT using a simpler approach
+        const updatedNft = await metaplex.nfts().update({
+          nftOrSft: nft,
+          collection: new PublicKey(collectionAddress), // Simplified format
+        })
+        
+        console.log('✅ Collection set on NFT, now attempting verification...')
+        
+        // Then verify the collection
+        await metaplex.nfts().verifyCollection({
+          mintAddress: nft.address,
+          collectionMintAddress: new PublicKey(collectionAddress),
+          isSizedCollection: false,
+        })
+        
+        console.log('✅ NFT successfully verified as part of collection!')
+      } catch (verificationError) {
+        console.warn('⚠️ Collection setup failed (continuing anyway):', verificationError)
+        console.warn('⚠️ Error details:', verificationError.message)
+        console.log('ℹ️ NFT created - collection reference added to metadata for wallet compatibility')
+      }
+    }
     
     // Transfer NFT to owner if different from company wallet
     if (ownerWallet !== companyWallet.publicKey.toBase58()) {
@@ -564,13 +646,16 @@ async function createChatNFTHandler(request: NextRequest) {
       
       // Generate sender NFT image if not provided
       if (!senderImageUrl) {
-        console.log('Generating sender NFT image...')
+        console.log('🚨🚨🚨 SENDER NFT GENERATION DEBUG 🚨🚨🚨')
+        console.log('USE_PRODUCTION_NFT_FOR_SENDER value:', USE_PRODUCTION_NFT_FOR_SENDER)
+        console.log('Will use:', USE_PRODUCTION_NFT_FOR_SENDER ? 'PRODUCTION SENDER SYSTEM ✅' : 'SIMPLE SYSTEM ❌')
+        console.log('🚨🚨🚨 END DEBUG 🚨🚨🚨')
+        
         const senderImageData = USE_PRODUCTION_NFT_FOR_SENDER
-          ? await generateNFTImageWithProduction(
+          ? await generateProductionSenderNFTImage(
               requestBody.messageContent,
               requestBody.senderWallet,
-              requestBody.recipientWallet,
-              requestBody.selectedSticker
+              requestBody.recipientWallet
             )
           : await generateNFTImageWithSimple(
               requestBody.messageContent,
@@ -581,6 +666,7 @@ async function createChatNFTHandler(request: NextRequest) {
               requestBody.selectedSticker
             )
         senderImageUrl = senderImageData.imageUrl
+        console.log('Sender NFT image generated and uploaded:', senderImageUrl)
       }
       
       // Generate recipient NFT image if not provided
@@ -719,7 +805,7 @@ export async function GET() {
     network: 'Solana Devnet',
     process: [
       '1. Collect 10% fee from sender',
-      '2. Generate NFT images using production system (recipient) or simple system (sender)',
+      '2. Generate NFT images using production systems (both sender and recipient)',
       '3. Generate NFT metadata for both sender and recipient NFTs',
       '4. Upload metadata to storage in parallel',
       '5. Create both NFTs on Solana blockchain in parallel (batch process)',
@@ -730,7 +816,7 @@ export async function GET() {
       'Batch NFT creation for cost efficiency',
       'Dual NFT system (sender initiator + recipient message)',
       'Parallel processing for faster creation',
-      'Production NFT system with layered assets and stickers',
+      'Production NFT systems for both sender (Frame 11.png + Helvetica) and recipient (layered assets + stickers)',
       'Backward compatibility with simple NFT generation',
       'Dynamic image generation based on environment flags',
       'Enhanced authentication with dual NFT verification'

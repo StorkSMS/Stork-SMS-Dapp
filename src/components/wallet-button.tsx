@@ -6,34 +6,76 @@ import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 
 export function WalletButton() {
-  const { wallets, wallet, publicKey, connect, disconnect, connecting, connected, select } = useWallet()
-  const { isAuthenticated, isAuthenticating, requiresSignature, error, signOut, authenticateWithWallet } = useAuth()
+  const { wallets, wallet, publicKey, connect, disconnect, connecting, connected, select, signMessage } = useWallet()
+  const { isAuthenticated, isAuthenticating, requiresSignature, error, signOut, authenticateWithWallet, setAwaitingSignature } = useAuth()
   const [showWalletList, setShowWalletList] = useState(false)
   const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [hasTriggeredAuth, setHasTriggeredAuth] = useState(false)
   const [userInitiatedConnection, setUserInitiatedConnection] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+  const [pendingConnection, setPendingConnection] = useState(false)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
+  const [isPostDisconnectCooldown, setIsPostDisconnectCooldown] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    // Wait 2 seconds after page load before allowing wallet connections
+    const timer = setTimeout(() => {
+      setIsReady(true)
+    }, 2000)
+    return () => clearTimeout(timer)
   }, [])
+
+  // Handle 4-second cooldown after wallet disconnection
+  useEffect(() => {
+    let cooldownTimer: NodeJS.Timeout
+    if (isPostDisconnectCooldown) {
+      cooldownTimer = setTimeout(() => {
+        setIsPostDisconnectCooldown(false)
+      }, 4000)
+    }
+    return () => {
+      if (cooldownTimer) {
+        clearTimeout(cooldownTimer)
+      }
+    }
+  }, [isPostDisconnectCooldown])
+
+  // Handle pending connection when app becomes ready and not in cooldown
+  useEffect(() => {
+    if (isReady && !isPostDisconnectCooldown && pendingConnection && wallet) {
+      // Clear the awaiting signature state as we're about to connect
+      setAwaitingSignature(false)
+      connect().catch((error) => {
+        console.error("Failed to connect wallet:", error)
+      })
+      setPendingConnection(false)
+    }
+  }, [isReady, isPostDisconnectCooldown, pendingConnection, wallet, connect, setAwaitingSignature])
 
   // Trigger authentication after wallet connects (only for user-initiated connections and not already authenticated)
   useEffect(() => {
-    if (connected && publicKey && !isAuthenticated && !isAuthenticating && !hasTriggeredAuth && userInitiatedConnection) {
+    if (connected && publicKey && !isAuthenticated && !isAuthenticating && !hasTriggeredAuth && userInitiatedConnection && signMessage && !isDisconnecting) {
       setHasTriggeredAuth(true)
       // Trigger authentication immediately - wallets are ready when connected
       authenticateWithWallet()
     }
-  }, [connected, publicKey, isAuthenticated, isAuthenticating, hasTriggeredAuth, userInitiatedConnection, authenticateWithWallet])
+  }, [connected, publicKey, isAuthenticated, isAuthenticating, hasTriggeredAuth, userInitiatedConnection, authenticateWithWallet, signMessage, isDisconnecting])
 
   // Reset auth trigger and user-initiated flag when wallet disconnects
   useEffect(() => {
     if (!connected) {
       setHasTriggeredAuth(false)
       setUserInitiatedConnection(false)
+      setIsDisconnecting(false)
+      setPendingConnection(false)
+      setAwaitingSignature(false)
+    } else {
+      // If wallet reconnects, clear the post-disconnect cooldown
+      setIsPostDisconnectCooldown(false)
     }
-  }, [connected])
+  }, [connected, setAwaitingSignature])
 
   // Reset hasTriggeredAuth when authentication completes to allow future authentication attempts
   useEffect(() => {
@@ -65,11 +107,21 @@ export function WalletButton() {
         select(selectedWallet.adapter.name)
         setShowWalletList(false)
         setUserInitiatedConnection(true) // Mark this as a user-initiated connection
-        // Connect immediately after wallet selection
-        try {
-          await connect()
-        } catch (error) {
-          console.error("Failed to connect wallet:", error)
+        
+        // Add a small delay to ensure wallet is properly selected before connecting
+        await new Promise(resolve => setTimeout(resolve, 150))
+        
+        // If app is ready and not in post-disconnect cooldown, connect immediately. Otherwise, queue for later.
+        if (isReady && !isPostDisconnectCooldown) {
+          try {
+            await connect()
+          } catch (error) {
+            console.error("Failed to connect wallet:", error)
+          }
+        } else {
+          // Show "Awaiting signature" during the delay period
+          setPendingConnection(true)
+          setAwaitingSignature(true)
         }
       } catch (error) {
         console.error("Failed to select wallet:", error)
@@ -79,20 +131,30 @@ export function WalletButton() {
 
   const handleConnect = async () => {
     if (wallet) {
-      try {
-        await connect()
-      } catch (error) {
-        console.error("Failed to connect wallet:", error)
+      if (isReady && !isPostDisconnectCooldown) {
+        try {
+          await connect()
+        } catch (error) {
+          console.error("Failed to connect wallet:", error)
+        }
+      } else {
+        setPendingConnection(true)
+        setAwaitingSignature(true)
       }
     }
   }
 
   const handleDisconnect = async () => {
+    setIsDisconnecting(true)
     try {
       await signOut()
       await disconnect()
+      // Start 4 second cooldown after successful disconnection
+      setIsPostDisconnectCooldown(true)
     } catch (error) {
       console.error("Failed to disconnect wallet:", error)
+    } finally {
+      setIsDisconnecting(false)
     }
   }
 
@@ -114,8 +176,8 @@ export function WalletButton() {
     )
   }
 
-  // Show authentication status
-  if (connected && publicKey && isAuthenticating) {
+  // Show authentication status or delay status
+  if ((connected && publicKey && isAuthenticating) || (pendingConnection && requiresSignature)) {
     const statusText = requiresSignature ? 'Awaiting Signature' : 'Awaiting Signature'
     return (
       <Button

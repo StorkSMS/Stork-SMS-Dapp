@@ -23,7 +23,7 @@ export const NFT_CONFIG = {
   CREATION_COST_SOL: 0.01,
   FEE_PERCENTAGE: 0.1,
   ROYALTY_BASIS_POINTS: 500, // 5%
-  COLLECTION_NAME: 'Stork Messages',
+  COLLECTION_NAME: 'Stork SMS Messages',
   COLLECTION_FAMILY: 'Stork SMS'
 } as const
 
@@ -242,7 +242,10 @@ export class NFTService {
       // Upload metadata to Metaplex/Arweave
       const { uri: metadataUri } = await metaplex.nfts().uploadMetadata(metaplexMetadata)
       
-      // Create NFT
+      // Get collection address from environment
+      const collectionAddress = process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS
+      
+      // Create NFT with collection reference
       const { nft, response } = await metaplex.nfts().create({
         uri: metadataUri,
         name: metadata.name,
@@ -253,7 +256,35 @@ export class NFTService {
             share: 100
           }
         ],
+        // Collection will be set and verified after NFT creation
       })
+      
+      // Set and verify NFT as part of collection if collection exists
+      if (collectionAddress) {
+        try {
+          console.log('🔐 Setting collection on NFT first:', collectionAddress)
+          
+          // First, set the collection on the NFT
+          const updatedNft = await metaplex.nfts().update({
+            nftOrSft: nft,
+            collection: new PublicKey(collectionAddress), // Simplified format
+          })
+          
+          console.log('✅ Collection set on NFT, now attempting verification...')
+          
+          // Then verify the collection
+          await metaplex.nfts().verifyCollection({
+            mintAddress: nft.address,
+            collectionMintAddress: new PublicKey(collectionAddress),
+            isSizedCollection: false,
+          })
+          
+          console.log('✅ NFT successfully verified as part of collection!')
+        } catch (verificationError) {
+          console.warn('⚠️ Collection setup failed (continuing anyway):', verificationError)
+          console.warn('⚠️ NFT created - collection reference added to metadata for wallet compatibility')
+        }
+      }
       
       // Transfer NFT to recipient if different from company wallet
       if (recipientWallet !== companyWallet.publicKey.toBase58()) {
