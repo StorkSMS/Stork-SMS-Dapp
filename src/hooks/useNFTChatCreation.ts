@@ -241,27 +241,33 @@ export const useNFTChatCreation = () => {
       throw new Error('Wallet not connected or does not support transactions')
     }
 
-    // Create fee transaction for dual NFT creation
+    // Create payment transaction for dual NFT creation (base cost + fee)
     const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com')
-    const companyWalletPubkey = new PublicKey('EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
-    console.log('💰 Fee collection details:', {
+    const companyWalletPubkey = new PublicKey(process.env.NEXT_PUBLIC_COMPANY_WALLET || 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
+    
+    // Skip payment collection if the sender is the company wallet
+    if (publicKey.equals(companyWalletPubkey)) {
+      console.log('💰 Company wallet detected - skipping payment collection')
+      return 'company-wallet-exempt'
+    }
+    
+    // Total cost for dual NFT creation
+    const totalAmount = 0.0033 // SOL for both NFTs
+    
+    console.log('💰 Payment collection details:', {
       rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
-      companyWallet: 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork',
-      feeAmount: '0.002 SOL'
+      companyWallet: companyWalletPubkey.toBase58(),
+      totalAmount: `${totalAmount} SOL`,
+      description: 'Dual NFT creation (sender + recipient)'
     })
     
-    // Fee for dual NFT creation: (0.01 SOL * 2 NFTs) * 10% fee = 0.002 SOL
-    const baseCost = 0.01 // SOL per NFT
-    const dualNFTCost = baseCost * 2 // Two NFTs
-    const feePercentage = 0.1 // 10%
-    const totalFeeAmount = dualNFTCost * feePercentage
-    const feeAmountLamports = totalFeeAmount * LAMPORTS_PER_SOL
+    const totalAmountLamports = totalAmount * LAMPORTS_PER_SOL
 
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: publicKey,
         toPubkey: companyWalletPubkey,
-        lamports: feeAmountLamports,
+        lamports: totalAmountLamports,
       })
     )
 

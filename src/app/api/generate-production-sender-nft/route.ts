@@ -244,7 +244,7 @@ export async function GET() {
       baseAsset: 'Frame 11.png',
       font: {
         family: 'Helvetica Neue with system fallbacks',
-        size: SENDER_TEXT_AREA.fontSize,
+        size: SENDER_TEXT_AREA.baseFontSize,
         weight: 500,
         letterSpacing: `${SENDER_TEXT_AREA.letterSpacing * 100}%`,
         color: '#000000'

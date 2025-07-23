@@ -8,7 +8,18 @@ import {
   sendAndConfirmTransaction,
   Keypair
 } from '@solana/web3.js'
-import { Metaplex, keypairIdentity } from '@metaplex-foundation/js'
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults'
+import { 
+  mplBubblegum, 
+  mintV2,
+  getAssetWithProof
+} from '@metaplex-foundation/mpl-bubblegum'
+import { 
+  keypairIdentity,
+  publicKey as umiPublicKey,
+  generateSigner,
+  none
+} from '@metaplex-foundation/umi'
 import { r2Storage } from '@/lib/r2-storage'
 import { companyWallet, connection, companyWalletPublicKey } from '@/lib/company-wallet'
 import { supabaseServer } from '@/lib/supabase-server'
@@ -16,9 +27,10 @@ import { createAuthenticatedSupabaseClient } from '@/lib/supabase'
 import { v4 as uuidv4 } from 'uuid'
 import type { MessageNFTMetadata, NFTAttribute } from '@/types/nft'
 
-// NFT creation cost in SOL (0.01 SOL = ~$2-3 at current prices)
-const NFT_CREATION_COST_SOL = 0.01
-const FEE_PERCENTAGE = 0.1 // 10% fee
+// NFT creation pricing
+const TOTAL_COST_SOL = 0.0033 // Total cost for dual NFT creation
+const NFT_CREATION_COST_SOL = 0.00165 // Per NFT (for legacy compatibility)
+const FEE_PERCENTAGE = 0 // No separate fee - flat pricing
 
 // Environment flags for NFT generation modes
 // Read from environment variables with fallback defaults
@@ -57,9 +69,16 @@ interface NFTCreationResult {
   error?: string
 }
 
-// Initialize Metaplex
-const metaplex = Metaplex.make(connection)
-  .use(keypairIdentity(companyWallet))
+// Initialize UMI with Bubblegum V2
+const umi = createUmi(connection.rpcEndpoint)
+  .use(mplBubblegum())
+
+// Convert company wallet to UMI format
+const companyUmiKeypair = {
+  publicKey: umiPublicKey(companyWallet.publicKey.toBase58()),
+  secretKey: companyWallet.secretKey
+}
+umi.use(keypairIdentity(companyUmiKeypair))
 
 // Collection constants
 const STORK_COLLECTION_NAME = 'Stork SMS Messages'
@@ -141,8 +160,7 @@ function generateNFTMetadata(
     },
     collection: {
       name: STORK_COLLECTION_NAME,
-      family: 'Stork SMS',
-      address: process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS || undefined
+      family: 'Stork SMS'
     },
     message: {
       content: messageContent,
@@ -346,22 +364,30 @@ async function createNFT(
   ownerWallet: string
 ): Promise<{ mintAddress: string; transactionSignature: string }> {
   try {
-    console.log('Starting NFT creation process...')
+    console.log('Starting cNFT creation process...')
     
-    // Convert metadata to Metaplex format
-    const metaplexMetadata = {
-      ...metadata,
-      attributes: metadata.attributes.map(attr => ({
-        trait_type: attr.trait_type,
-        value: typeof attr.value === 'string' ? attr.value : String(attr.value)
-      }))
+    // Get environment configuration
+    const isMainnet = process.env.NODE_ENV === 'production'
+    const merkleTreeAddress = isMainnet 
+      ? process.env.MERKLE_TREE_ADDRESS_MAINNET 
+      : process.env.MERKLE_TREE_ADDRESS_DEVNET
+    const collectionAddress = isMainnet
+      ? process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS_MAINNET
+      : process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS_DEVNET
+    
+    if (!merkleTreeAddress) {
+      throw new Error(`Merkle tree address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
+    }
+    
+    if (!collectionAddress) {
+      throw new Error(`Collection address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
     }
     
     console.log('Using R2 storage for metadata (faster than Arweave)...')
     // Use R2 storage for metadata instead of slow Arweave uploads
     const metadataFileName = `metadata-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.json`
     const metadataUpload = await r2Storage.uploadFile(
-      Buffer.from(JSON.stringify(metaplexMetadata, null, 2)),
+      Buffer.from(JSON.stringify(metadata, null, 2)),
       metadataFileName,
       'application/json'
     )
@@ -370,87 +396,49 @@ async function createNFT(
     const metadataUri = metadataUpload.publicUrl
     console.log('Metadata uploaded to public R2:', metadataUri)
     
-    console.log('Creating NFT on blockchain...')
-    // Get collection address from environment
-    const collectionAddress = process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS
+    console.log('🌳 Using Merkle Tree:', merkleTreeAddress)
+    console.log('🎨 Using Collection:', collectionAddress)
     
-    // Create NFT with collection reference
-    const createPromise = metaplex.nfts().create({
-      uri: metadataUri,
-      name: metadata.name,
-      symbol: 'STORK',
-      sellerFeeBasisPoints: 500, // 5% royalty
-      creators: [
-        {
-          address: companyWalletPublicKey,
-          share: 100
-        }
-      ],
-      // Collection will be set and verified after NFT creation
-    })
+    // Convert addresses to UMI format
+    const merkleTree = umiPublicKey(merkleTreeAddress)
+    const leafOwner = umiPublicKey(ownerWallet)
     
-    const createTimeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('NFT creation timeout')), 45000)
-    )
+    // Generate asset ID (this will be the "mint address" equivalent for cNFTs)
+    const assetId = generateSigner(umi)
     
-    const { nft, response } = await Promise.race([createPromise, createTimeoutPromise]) as any
-    console.log('NFT created with mint address:', nft.address.toBase58())
+    console.log('🚀 Minting compressed NFT...')
     
-    // Set and verify NFT as part of collection if collection exists
-    if (collectionAddress) {
-      try {
-        console.log('🔐 Setting collection on NFT first:', collectionAddress)
-        
-        // First, set the collection on the NFT using a simpler approach
-        const updatedNft = await metaplex.nfts().update({
-          nftOrSft: nft,
-          collection: new PublicKey(collectionAddress), // Simplified format
-        })
-        
-        console.log('✅ Collection set on NFT, now attempting verification...')
-        
-        // Then verify the collection
-        await metaplex.nfts().verifyCollection({
-          mintAddress: nft.address,
-          collectionMintAddress: new PublicKey(collectionAddress),
-          isSizedCollection: false,
-        })
-        
-        console.log('✅ NFT successfully verified as part of collection!')
-      } catch (verificationError) {
-        console.warn('⚠️ Collection setup failed (continuing anyway):', verificationError)
-        console.warn('⚠️ Error details:', verificationError.message)
-        console.log('ℹ️ NFT created - collection reference added to metadata for wallet compatibility')
+    // Mint cNFT using Bubblegum V2
+    const result = await mintV2(umi, {
+      leafOwner,
+      merkleTree,
+      metadata: {
+        name: metadata.name,
+        uri: metadataUri,
+        sellerFeeBasisPoints: 500, // 5% royalty
+        collection: none(), // No on-chain collection verification
+        creators: [
+          {
+            address: companyUmiKeypair.publicKey,
+            verified: true,
+            share: 100
+          }
+        ]
       }
-    }
+    }).sendAndConfirm(umi)
     
-    // Transfer NFT to owner if different from company wallet
-    if (ownerWallet !== companyWallet.publicKey.toBase58()) {
-      console.log('Transferring NFT to owner:', ownerWallet)
-      const ownerPublicKey = new PublicKey(ownerWallet)
-      
-      const transferPromise = metaplex.nfts().transfer({
-        nftOrSft: nft,
-        toOwner: ownerPublicKey,
-        fromOwner: companyWalletPublicKey
-      })
-      
-      const transferTimeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('NFT transfer timeout')), 30000)
-      )
-      
-      await Promise.race([transferPromise, transferTimeoutPromise])
-      console.log('NFT transferred successfully')
-    }
+    console.log('✅ Compressed NFT minted successfully!')
+    console.log('Transaction signature:', result.signature)
     
+    // For cNFTs, we return the asset ID as the "mint address"
     return {
-      mintAddress: nft.address.toBase58(),
-      transactionSignature: response.signature
+      mintAddress: assetId.publicKey.toString(), // This will be the asset ID for cNFTs
+      transactionSignature: result.signature.toString()
     }
     
   } catch (error) {
-    console.error('NFT creation error:', error)
-    throw new Error(`Failed to create NFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error('cNFT creation error:', error)
+    throw new Error(`Failed to create cNFT: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
@@ -632,10 +620,9 @@ async function createChatNFTHandler(request: NextRequest) {
         console.log(`Using provided fee transaction signature: ${requestBody.feeTransactionSignature}`)
         feeTransactionSignature = requestBody.feeTransactionSignature
       } else {
-        // Fallback: collect fee on backend (legacy method)
-        const feeAmount = NFT_CREATION_COST_SOL * FEE_PERCENTAGE
-        console.log(`Collecting fee: ${feeAmount} SOL from ${requestBody.senderWallet}`)
-        feeTransactionSignature = await collectFee(requestBody.senderWallet, feeAmount)
+        // Fallback: collect payment on backend (legacy method)
+        console.log(`Collecting payment: ${TOTAL_COST_SOL} SOL from ${requestBody.senderWallet}`)
+        feeTransactionSignature = await collectFee(requestBody.senderWallet, TOTAL_COST_SOL)
       }
       
       result.feeTransactionSignature = feeTransactionSignature
@@ -799,12 +786,12 @@ export async function GET() {
     method: 'POST',
     requiredFields: ['messageContent', 'senderWallet', 'recipientWallet', 'messageId'],
     optionalFields: ['senderImageUrl', 'recipientImageUrl', 'theme', 'selectedSticker', 'customization', 'feeTransactionSignature'],
-    nftCreationCost: `${NFT_CREATION_COST_SOL * 2} SOL (for both sender and recipient NFTs)`,
-    feePercentage: `${FEE_PERCENTAGE * 100}%`,
+    totalCost: `${TOTAL_COST_SOL} SOL (for both sender and recipient NFTs)`,
+    pricing: 'Flat rate - no separate fees',
     companyWallet: companyWalletPublicKey.toBase58(),
     network: 'Solana Devnet',
     process: [
-      '1. Collect 10% fee from sender',
+      '1. Collect payment from sender (0.0033 SOL)',
       '2. Generate NFT images using production systems (both sender and recipient)',
       '3. Generate NFT metadata for both sender and recipient NFTs',
       '4. Upload metadata to storage in parallel',

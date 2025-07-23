@@ -11,8 +11,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.844.0",
     "@breezystack/lamejs": "^1.2.7",
-    "@metaplex-foundation/js": "^0.20.1",
-    "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
+    "@metaplex-foundation/mpl-bubblegum": "^5.0.2",
+    "@metaplex-foundation/mpl-core": "^1.6.0",
+    "@metaplex-foundation/umi": "^1.2.0",
     "@metaplex-foundation/umi-bundle-defaults": "^1.2.0",
     "@radix-ui/react-slot": "^1.2.3",
     "@solana/wallet-adapter-base": "^0.9.27",
@@ -28,6 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.525.0",
     "next": "15.3.5",
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.11.6",
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
