@@ -1087,7 +1087,7 @@ export default function ChatApp() {
         const localBlobUrl = URL.createObjectURL(file)
         
         // Add file to uploading state for UI display
-        setUploadingImages(prev => new Map(prev).set(uploadId, {
+        setUploadingImages(prev => new Map(prev).set(uploadId!, {
           file,
           progress: 0,
           url: localBlobUrl,
@@ -1096,7 +1096,7 @@ export default function ChatApp() {
           status: 'uploading'
         }))
         
-        console.log('📝 Added image to uploading state:', { uploadId, fileName: file.name })
+        console.log('📝 Added image to uploading state:', { uploadId: uploadId!, fileName: file.name })
       } else {
         console.log('📝 Using existing upload placeholder:', { uploadId, fileName: file.name })
         // Get dimensions from the URL if we skipped calculating them
@@ -1212,11 +1212,11 @@ export default function ChatApp() {
           if (uploadId) {
             setUploadingImages(prev => {
               const updated = new Map(prev)
-              const uploadData = updated.get(uploadId)
+              const uploadData = updated.get(uploadId!)
               if (uploadData?.url) {
                 URL.revokeObjectURL(uploadData.url)
               }
-              updated.delete(uploadId)
+              updated.delete(uploadId!)
               return updated
             })
           }
@@ -1249,13 +1249,13 @@ export default function ChatApp() {
       if (uploadId) {
         setUploadingImages(prev => {
           const updated = new Map(prev)
-          const uploadData = updated.get(uploadId)
+          const uploadData = updated.get(uploadId!)
           if (uploadData?.url) {
             URL.revokeObjectURL(uploadData.url)
           }
           // Mark as error instead of removing, so UI can show error state
           if (uploadData) {
-            updated.set(uploadId, {
+            updated.set(uploadId!, {
               ...uploadData,
               status: 'error',
               error: errorMessage
