@@ -410,7 +410,7 @@ async function resizeAndConvertServerImage(
 
     // Apply image smoothing for better quality
     ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
+    // Note: imageSmoothingQuality not available in Node.js canvas
 
     // Draw resized image
     ctx.drawImage(img, 0, 0, width, height)
