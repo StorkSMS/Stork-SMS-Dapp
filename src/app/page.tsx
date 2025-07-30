@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState, useEffect, useCallback, useMemo, useRef, useReducer } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Menu, X, Send, AlertCircle } from "lucide-react"
@@ -20,8 +21,17 @@ import ChatStickerButton from "@/components/ChatStickerButton"
 import ChatStickerPicker from "@/components/ChatStickerPicker"
 import ExpandingVoiceRecorder from "@/components/ExpandingVoiceRecorder"
 import VoiceMessageBubble from "@/components/VoiceMessageBubble"
-import type { Conversation, Message } from "@/types/messaging"
+import ImageMessageBubble from "@/components/ImageMessageBubble"
+import OnlineStatus from "@/components/OnlineStatus"
+import FileUploadButton from "@/components/FileUploadButton"
+import ImagePreview from "@/components/ImagePreview"
+// WebP conversion now handled server-side only
+// import type { } from "@/types/messaging"
 import "@/lib/debug-auth" // Import debug functions for testing
+import LinkPreview from "@/components/LinkPreview"
+import { detectUrls, calculateSkeletonDimensions } from "@/lib/url-utils"
+import { PRIORITY_LEVELS } from "@/lib/link-loading-queue"
+import { getSimpleImageDimensions, calculateSimpleResize } from "@/lib/simple-image-processing"
 
 interface NewChatData {
   to: string
@@ -30,26 +40,19 @@ interface NewChatData {
   selectedSticker?: string | null
 }
 
-interface ChatMessage {
-  id: string
-  content: string
-  sender: string
-  timestamp: string
-  type: 'text' | 'nft'
-  nft_image_url?: string
-}
 
 export default function ChatApp() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null)
   const [message, setMessage] = useState("")
+  const [isInputFocused, setIsInputFocused] = useState(false)
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false)
   const [isWaitingForSignature, setIsWaitingForSignature] = useState(false)
   const [isChatStickerPickerOpen, setIsChatStickerPickerOpen] = useState(false)
-  const [selectedChatSticker, setSelectedChatSticker] = useState<string | null>(null)
+  const [selectedChatSticker] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [pendingChats, setPendingChats] = useState<any[]>([])
+  const [pendingChats, setPendingChats] = useState<unknown[]>([])
   const [timestampUpdate, setTimestampUpdate] = useState(0)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const [newlyCreatedChats, setNewlyCreatedChats] = useState<Set<string>>(new Set())
@@ -59,6 +62,17 @@ export default function ChatApp() {
   const chatStickerButtonRef = useRef<HTMLButtonElement>(null)
   const [audioInitialized, setAudioInitialized] = useState(false)
   const [userInteracted, setUserInteracted] = useState(false)
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [uploadingImages, setUploadingImages] = useState<Map<string, { 
+    file: File; 
+    progress: number; 
+    url?: string;
+    chatId?: string;
+    recipientWallet?: string;
+    status?: 'uploading' | 'error';
+    error?: string;
+  }>>(new Map())
+  const [showCopyToast, setShowCopyToast] = useState(false)
   const [newChatData, setNewChatData] = useState<NewChatData>({
     to: "",
     from: "",
@@ -66,6 +80,17 @@ export default function ChatApp() {
     selectedSticker: null,
   })
   const [isStickerPickerOpen, setIsStickerPickerOpen] = useState(false)
+  
+  // Typing detection refs
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isCurrentlyTypingRef = useRef<boolean>(false)
+  
+  // Copy wallet address handler
+  const handleCopyWalletAddress = useCallback((address: string) => {
+    navigator.clipboard.writeText(address)
+    setShowCopyToast(true)
+    setTimeout(() => setShowCopyToast(false), 2000)
+  }, [])
   
   // Initialize sticker state for new chat
   const stickerState = useStickerState(newChatData.message)
@@ -87,8 +112,10 @@ export default function ChatApp() {
   const hasLoadedConversationsRef = useRef(false)
   const lastAuthenticatedWalletRef = useRef<string | null>(null)
   
-  const { checkChatAccess, verifyNFTOwnership, ownedNFTs, refreshOwnedNFTs } = useNFTVerification()
+  const { } = useNFTVerification()
   const { getStatusFromMessage, isMessageEncrypted, getMessageTimestamp } = useMessageStatus()
+  
+
   const {
     conversations,
     currentChatMessages,
@@ -102,12 +129,22 @@ export default function ChatApp() {
     retryMessage,
     subscribeToMessageUpdates,
     subscribeToReadReceiptsUpdates,
+    subscribeToPresenceUpdates,
     clearCurrentChat,
     refreshConversations,
     clearUnreadStatus,
     addUnreadStatus,
-    error: messagingError,
-    onNewMessage
+    error: _messagingError,
+    onNewMessage,
+    // Presence state
+    onlineUsers,
+    typingUsers,
+    presenceData: _presenceData,
+    // Presence functions
+    startTyping,
+    extendTyping,
+    stopTyping,
+    setOnlineStatus
   } = useRealtimeMessaging()
   const {
     progress,
@@ -420,7 +457,7 @@ export default function ChatApp() {
               // Set scroll to top
               messagesContainerRef.current.scrollTop = 0
               
-              // Pause at top for 500ms, then smooth scroll to bottom
+              // Pause at top for 550ms to allow LinkPreview animations to complete
               setTimeout(() => {
                 if (messagesContainerRef.current) {
                   messagesContainerRef.current.scrollTo({
@@ -428,7 +465,7 @@ export default function ChatApp() {
                     behavior: 'smooth'
                   })
                 }
-              }, 500)
+              }, 550)
             }
           })
         })
@@ -438,6 +475,21 @@ export default function ChatApp() {
       }
     }
   }, [currentChatMessages, isLoadingMessages])
+
+  // Auto-scroll when typing indicator appears/disappears
+  useEffect(() => {
+    if (messagesContainerRef.current && typingUsers.size > 0) {
+      // Scroll to bottom smoothly when someone starts typing
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTo({
+            top: messagesContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+      }, 100) // Small delay to allow the typing indicator to render
+    }
+  }, [typingUsers.size])
 
   // Theme colors helper
   const getThemeColors = () => ({
@@ -451,6 +503,28 @@ export default function ChatApp() {
   const colors = getThemeColors()
 
   // Helper function to format relative time
+  // Cleanup typing timeouts when chat changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = null
+      }
+      isCurrentlyTypingRef.current = false
+    }
+  }, [selectedChat])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = null
+      }
+      isCurrentlyTypingRef.current = false
+    }
+  }, [])
+
   const formatRelativeTime = (timestamp: string) => {
     const now = new Date()
     const time = new Date(timestamp)
@@ -475,7 +549,7 @@ export default function ChatApp() {
   // Format conversations for display and sort by most recent activity
   const formattedChats = useMemo(() => {
     // Include timestampUpdate to trigger re-computation when timestamps need updating
-    timestampUpdate
+    void timestampUpdate
     
     return conversations
       .sort((a, b) => {
@@ -691,6 +765,13 @@ export default function ChatApp() {
     subscribeToReadReceiptsUpdates(chatId)
     console.log('✅ Called subscribeToReadReceiptsUpdates')
     
+    console.log('👥 About to call subscribeToPresenceUpdates with:', chatId)
+    subscribeToPresenceUpdates(chatId)
+    console.log('✅ Called subscribeToPresenceUpdates')
+    
+    // Set online status when joining chat
+    setOnlineStatus(chatId, true)
+    
     // Clear unread status for this thread (FIX: This was missing!)
     console.log('🔵 Clearing unread status for chat:', chatId)
     clearUnreadStatus(chatId)
@@ -698,7 +779,7 @@ export default function ChatApp() {
     if (isMobile) {
       setIsMobileMenuOpen(false)
     }
-  }, [clearCurrentChat, loadChatMessages, subscribeToMessageUpdates, subscribeToReadReceiptsUpdates, isMobile])
+  }, [clearCurrentChat, loadChatMessages, subscribeToMessageUpdates, subscribeToReadReceiptsUpdates, subscribeToPresenceUpdates, setOnlineStatus, clearUnreadStatus, isMobile])
 
   const handleSendSticker = useCallback(async (stickerName: string) => {
     if (!selectedChat) return
@@ -819,6 +900,424 @@ export default function ChatApp() {
     }
   }, [selectedChat, conversations, publicKey, sendMessage])
 
+  // Image upload handlers
+  const handleFileSelect = useCallback((file: File) => {
+    console.log('🖼️ File selected:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    })
+    
+    // Only allow 1 image at a time - replace any existing image
+    setSelectedImages([file])
+  }, [])
+
+  const handleRemoveImage = useCallback((index: number) => {
+    console.log('🗑️ Removing image at index:', index)
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const handleSendImagesWithText = useCallback(async (textContent: string, recipientWallet: string, chatId: string) => {
+    console.log('🖼️ Sending images with text:', {
+      textContent,
+      imageCount: selectedImages.length,
+      chatId
+    })
+    
+    // Store selected images before clearing
+    const imagesToUpload = [...selectedImages]
+    
+    // Create all upload entries BEFORE clearing images
+    const newUploads = new Map()
+    const uploadIds: string[] = []
+    
+    imagesToUpload.forEach(file => {
+      const uploadId = `upload_${Date.now()}_${Math.random()}`
+      uploadIds.push(uploadId)
+      newUploads.set(uploadId, {
+        file,
+        progress: 0,
+        url: '', // Don't create blob URL yet - not needed for skeleton
+        chatId,
+        recipientWallet,
+        status: 'uploading'
+      })
+    })
+    
+    // Use flushSync to force immediate render
+    flushSync(() => {
+      // Clear selected images and add upload placeholders in same render
+      setSelectedImages([])
+      setUploadingImages(prev => new Map([...prev, ...newUploads]))
+    })
+    
+    // Use requestAnimationFrame to ensure UI updates before any other work
+    requestAnimationFrame(() => {
+      try {
+        // Do everything else asynchronously after UI updates
+        setTimeout(async () => {
+        // Create blob URLs asynchronously
+        uploadIds.forEach((uploadId, index) => {
+          const file = imagesToUpload[index]
+          const localBlobUrl = URL.createObjectURL(file)
+          
+          setUploadingImages(prev => {
+            const updated = new Map(prev)
+            const uploadData = updated.get(uploadId)
+            if (uploadData) {
+              updated.set(uploadId, {
+                ...uploadData,
+                url: localBlobUrl
+              })
+            }
+            return updated
+          })
+        })
+        
+        // Calculate dimensions asynchronously
+        imagesToUpload.forEach(async (file, index) => {
+          try {
+            const originalDimensions = await getSimpleImageDimensions(file)
+            const imageDimensions = calculateSimpleResize(originalDimensions.width, originalDimensions.height, 400, 300)
+            
+            // Update with proper dimensions
+            setUploadingImages(prev => {
+              const updated = new Map(prev)
+              const uploadData = updated.get(uploadIds[index])
+              if (uploadData) {
+                updated.set(uploadIds[index], {
+                  ...uploadData,
+                  // Store dimensions for later use if needed
+                })
+              }
+              return updated
+            })
+          } catch (dimensionError) {
+            console.warn(`⚠️ Failed to get image dimensions for ${file.name}, using fallback:`, dimensionError)
+          }
+        })
+        // If there's text content, send it as a separate text message first
+        if (textContent.trim()) {
+          await sendMessage({
+            chatId,
+            content: textContent.trim(),
+            recipientWallet,
+            messageType: 'text',
+            metadata: {}
+          })
+        }
+
+        // Send each image as a separate message
+        for (const file of imagesToUpload) {
+          try {
+            console.log(`🖼️ Processing image: ${file.name}`)
+            
+            // Upload and process image directly (no placeholder message)
+            uploadAndUpdateImageMessage(file, chatId, recipientWallet)
+            
+          } catch (error) {
+            console.error(`❌ Failed to send image ${file.name}:`, error)
+            // Continue with other images
+          }
+        }
+        
+        console.log('✅ All images queued for upload')
+      }, 0)
+      } catch (error) {
+        console.error('❌ Failed to send images with text:', error)
+        throw error
+      }
+    })
+  }, [selectedImages, sendMessage])
+
+  const uploadAndUpdateImageMessage = useCallback(async (file: File, chatId: string, recipientWallet: string) => {
+    let uploadBlob: Blob = file
+    let retryCount = 0
+    const maxRetries = 2
+    
+    // Find existing upload placeholder for this file (if it was pre-created)
+    let uploadId: string | null = null
+    let existingUploadEntry = false
+    let imageDimensions = { width: 300, height: 200 } // fallback dimensions
+    
+    // Check if upload placeholder already exists for this file
+    uploadingImages.forEach((uploadData, id) => {
+      if (uploadData.file === file && uploadData.chatId === chatId) {
+        uploadId = id
+        existingUploadEntry = true
+      }
+    })
+    
+    try {
+      // Skip client-side WebP conversion - let server handle it
+      console.log('📤 Uploading original image format to server for processing')
+      uploadBlob = file
+
+      // Validate authentication
+      const walletAddress = publicKey?.toString()
+      if (!walletAddress) {
+        throw new Error('Please connect your wallet to upload images')
+      }
+      
+      // Only create placeholder if not already done
+      if (!existingUploadEntry) {
+        // Get image dimensions for proper placeholder sizing
+        try {
+          const originalDimensions = await getSimpleImageDimensions(file)
+          imageDimensions = calculateSimpleResize(originalDimensions.width, originalDimensions.height, 400, 300)
+          console.log('📐 Image dimensions calculated:', { original: originalDimensions, display: imageDimensions })
+        } catch (dimensionError) {
+          console.warn('⚠️ Failed to get image dimensions, using fallback:', dimensionError)
+        }
+        
+        // Generate unique upload ID
+        uploadId = `upload_${Date.now()}_${Math.random()}`
+        const localBlobUrl = URL.createObjectURL(file)
+        
+        // Add file to uploading state for UI display
+        setUploadingImages(prev => new Map(prev).set(uploadId, {
+          file,
+          progress: 0,
+          url: localBlobUrl,
+          chatId,
+          recipientWallet,
+          status: 'uploading'
+        }))
+        
+        console.log('📝 Added image to uploading state:', { uploadId, fileName: file.name })
+      } else {
+        console.log('📝 Using existing upload placeholder:', { uploadId, fileName: file.name })
+        // Get dimensions from the URL if we skipped calculating them
+        try {
+          const originalDimensions = await getSimpleImageDimensions(file)
+          imageDimensions = calculateSimpleResize(originalDimensions.width, originalDimensions.height, 400, 300)
+        } catch (dimensionError) {
+          console.warn('⚠️ Failed to get image dimensions for existing upload, using fallback:', dimensionError)
+        }
+      }
+      
+      const storedData = localStorage.getItem(`auth_token_${walletAddress}`)
+      if (!storedData) {
+        throw new Error('Authentication expired. Please reconnect your wallet')
+      }
+      
+      let authData
+      try {
+        authData = JSON.parse(storedData)
+      } catch (parseError) {
+        throw new Error('Invalid authentication data. Please reconnect your wallet')
+      }
+      
+      const authToken = authData.token
+      if (!authToken) {
+        throw new Error('No authentication token found. Please reconnect your wallet')
+      }
+
+      // Generate unique message ID
+      const messageId = `image_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      // Upload with retry logic
+      while (retryCount <= maxRetries) {
+        try {
+          console.log(`🔄 Uploading image (attempt ${retryCount + 1}/${maxRetries + 1})...`)
+          
+          // Prepare upload data
+          const formData = new FormData()
+          // Keep the original filename to preserve extension and avoid confusion
+          // The server will handle renaming for storage
+          formData.append('image', uploadBlob, file.name)
+          formData.append('messageId', messageId)
+
+          const response = await fetch('/api/image-upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'X-Wallet-Address': walletAddress
+            },
+            body: formData
+          })
+
+          let errorData
+          if (!response.ok) {
+            try {
+              errorData = await response.json()
+            } catch (jsonError) {
+              errorData = { error: `Upload failed with status ${response.status}` }
+            }
+
+            // Handle specific error types
+            if (response.status === 401) {
+              throw new Error('Authentication failed. Please reconnect your wallet')
+            } else if (response.status === 403) {
+              throw new Error('Access denied. Please check your permissions')
+            } else if (response.status === 413) {
+              throw new Error('Image file is too large. Please use a smaller image')
+            } else if (response.status >= 500) {
+              // Server error - retry might help
+              if (retryCount < maxRetries) {
+                console.warn(`⚠️ Server error (${response.status}), retrying...`)
+                retryCount++
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)) // Progressive delay
+                continue
+              } else {
+                throw new Error('Server error. Please try again later')
+              }
+            } else {
+              throw new Error(errorData.error || `Upload failed with status ${response.status}`)
+            }
+          }
+
+          const result = await response.json()
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Upload processing failed')
+          }
+
+          // Upload successful - create database message and clean up uploading state
+          console.log('✅ Image upload successful, creating database message...')
+          
+          await sendMessage({
+            chatId,
+            content: "",
+            recipientWallet,
+            messageType: 'image',
+            file_url: result.data.imageUrl,
+            file_name: file.name,
+            file_size: file.size,
+            file_type: file.type,
+            metadata: {
+              thumbnail_url: result.data.thumbnailUrl,
+              original_name: file.name,
+              upload_timestamp: new Date().toISOString(),
+              compression_ratio: result.data.compressionRatio,
+              processed_format: result.data.fileType,
+              display_width: imageDimensions.width,
+              display_height: imageDimensions.height
+            }
+          })
+          
+          // Remove from uploading state and clean up blob URL
+          if (uploadId) {
+            setUploadingImages(prev => {
+              const updated = new Map(prev)
+              const uploadData = updated.get(uploadId)
+              if (uploadData?.url) {
+                URL.revokeObjectURL(uploadData.url)
+              }
+              updated.delete(uploadId)
+              return updated
+            })
+          }
+
+          console.log(`✅ Image uploaded and message sent successfully: ${file.name}`)
+          return // Success - exit the function
+          
+        } catch (uploadError) {
+          if (retryCount >= maxRetries) {
+            throw uploadError // Re-throw if we've exhausted retries
+          }
+          
+          // Check if this is a retryable error
+          const errorMessage = uploadError instanceof Error ? uploadError.message : String(uploadError)
+          if (errorMessage.includes('Network') || errorMessage.includes('timeout') || errorMessage.includes('Server error')) {
+            console.warn(`⚠️ Retryable error: ${errorMessage}. Retrying...`)
+            retryCount++
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)) // Progressive delay
+          } else {
+            throw uploadError // Non-retryable error
+          }
+        }
+      }
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      console.error(`❌ Failed to upload image ${file.name}:`, error)
+      
+      // Clean up uploading state and blob URL on error
+      if (uploadId) {
+        setUploadingImages(prev => {
+          const updated = new Map(prev)
+          const uploadData = updated.get(uploadId)
+          if (uploadData?.url) {
+            URL.revokeObjectURL(uploadData.url)
+          }
+          // Mark as error instead of removing, so UI can show error state
+          if (uploadData) {
+            updated.set(uploadId, {
+              ...uploadData,
+              status: 'error',
+              error: errorMessage
+            })
+          }
+          return updated
+        })
+      }
+      
+      console.error(`❌ Upload failed for ${file.name}: ${errorMessage}`)
+      // Don't throw error - let UI handle error state display
+    }
+  }, [publicKey, sendMessage, setUploadingImages, uploadingImages])
+
+  // Typing detection functions
+  const handleStartTyping = useCallback(() => {
+    if (!selectedChat || isCurrentlyTypingRef.current) return
+    
+    console.log('⌨️ Starting typing for chat:', selectedChat)
+    isCurrentlyTypingRef.current = true
+    startTyping(selectedChat)
+  }, [selectedChat, startTyping])
+
+  const handleExtendTyping = useCallback(() => {
+    if (!selectedChat) return
+    
+    console.log('⌨️ Extending typing for chat:', selectedChat)
+    extendTyping(selectedChat)
+  }, [selectedChat, extendTyping])
+
+  const handleStopTyping = useCallback(() => {
+    if (!selectedChat || !isCurrentlyTypingRef.current) return
+    
+    console.log('⌨️ Stopping typing for chat:', selectedChat)
+    isCurrentlyTypingRef.current = false
+    stopTyping(selectedChat)
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+  }, [selectedChat, stopTyping])
+
+  // Enhanced message input handler with typing detection
+  const handleMessageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setMessage(value)
+    
+    if (value.length > 0) {
+      // Start typing indicator if not already typing, extend if already typing
+      if (!isCurrentlyTypingRef.current) {
+        handleStartTyping()
+      } else {
+        // User is continuing to type - extend the typing indicator
+        handleExtendTyping()
+      }
+      
+      // Reset the typing timeout on EVERY keystroke when typing
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      
+      // Set new timeout - typing stops after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        handleStopTyping()
+      }, 3000)
+    } else {
+      // Stop typing when message is cleared
+      if (isCurrentlyTypingRef.current) {
+        handleStopTyping()
+      }
+    }
+  }, [handleStartTyping, handleExtendTyping, handleStopTyping])
+
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -827,12 +1326,18 @@ export default function ChatApp() {
       selectedChatSticker,
       selectedChat,
       hasMessage: !!message.trim(),
-      hasSticker: !!selectedChatSticker
+      hasSticker: !!selectedChatSticker,
+      hasImages: selectedImages.length > 0,
+      imageCount: selectedImages.length
     })
     
-    // Allow sending if there's a message (no sticker logic needed here since stickers send immediately)
-    if (!message.trim() || !selectedChat) {
-      console.log('❌ Message send blocked - insufficient data')
+    // Allow sending if there's a message OR images (images can be sent without text)
+    if ((!message.trim() && selectedImages.length === 0) || !selectedChat) {
+      console.log('❌ Message send blocked - insufficient data:', {
+        hasMessage: !!message.trim(),
+        hasImages: selectedImages.length > 0,
+        hasSelectedChat: !!selectedChat
+      })
       return
     }
     
@@ -843,22 +1348,34 @@ export default function ChatApp() {
       const recipientWallet = selectedConversation.participants.find(p => p !== publicKey?.toString())
       if (!recipientWallet) return
       
-      // Text message only (stickers are handled separately)
+      // Stop typing indicator before sending
+      handleStopTyping()
+      
+      // Get the message content
       const messageContent = message.trim()
-      const messageType: 'text' | 'image' | 'file' | 'system' | 'nft' | 'sticker' = 'text'
-      const metadata = {}
+      
+      // Handle different message types
+      if (selectedImages.length > 0) {
+        // Handle image messages
+        await handleSendImagesWithText(messageContent, recipientWallet, selectedChat)
+      } else {
+        // Text message only (stickers are handled separately)
+        const messageType: 'text' | 'image' | 'file' | 'system' | 'nft' | 'sticker' = 'text'
+        const metadata = {}
+        
+        // Send message (this now creates optimistic message immediately)
+        await sendMessage({
+          chatId: selectedChat,
+          content: messageContent,
+          recipientWallet,
+          messageType,
+          metadata
+        })
+      }
       
       // Clear input immediately for instant feedback - this is key for optimistic UX!
       setMessage("")
-      
-      // Send message (this now creates optimistic message immediately)
-      await sendMessage({
-        chatId: selectedChat,
-        content: messageContent,
-        recipientWallet,
-        messageType,
-        metadata
-      })
+      // Note: selectedImages are already cleared in handleSendImagesWithText
       
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -866,7 +1383,7 @@ export default function ChatApp() {
       // This keeps the optimistic UX consistent
       alert('Failed to send message. Please try again.')
     }
-  }, [message, selectedChat, conversations, publicKey, sendMessage])
+  }, [message, selectedChat, conversations, publicKey, sendMessage, handleStopTyping])
   
   const handleCancelNewChat = useCallback(() => {
     setIsCreatingNewChat(false)
@@ -876,8 +1393,6 @@ export default function ChatApp() {
     stickerState.handleStickerSelect(null)
     stickerState.setCurrentMessage("")
   }, [connected, publicKey, stickerState])
-
-
 
   return (
     <div className="h-screen w-screen relative overflow-hidden">
@@ -909,8 +1424,7 @@ export default function ChatApp() {
       <div 
         className="md:hidden relative z-20 flex items-center justify-between px-4 py-3"
         style={{ 
-          backgroundColor: colors.bg, 
-          borderBottom: `4px solid ${colors.border}` 
+          backgroundColor: colors.bg
         }}
       >
         <Button
@@ -925,11 +1439,67 @@ export default function ChatApp() {
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
         
-        <div className="flex items-center">
-          <Image src="/stork-logo.svg" alt="Stork Logo" width={100} height={33} className="h-8 w-auto" />
+        <div className="flex flex-col items-center">
+          {!selectedChat ? (
+            <Image src="/stork-logo.svg" alt="Stork Logo" width={100} height={33} className="h-8 w-auto" />
+          ) : (
+            <>
+              {(() => {
+                const selectedConversation = conversations.find(c => c.id === selectedChat)
+                const otherParticipant = selectedConversation?.participants.find(p => p !== publicKey?.toString())
+                
+                if (!otherParticipant) return (
+                  <Image src="/stork-logo.svg" alt="Stork Logo" width={100} height={33} className="h-8 w-auto" />
+                )
+                
+                return (
+                  <div className="flex flex-col items-center">
+                    <h2 
+                      className="text-sm font-medium cursor-pointer transition-colors duration-200"
+                      style={{ 
+                        color: colors.text,
+                        fontFamily: "Helvetica Neue, sans-serif"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#38F'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = colors.text
+                      }}
+                      onClick={() => handleCopyWalletAddress(otherParticipant)}
+                      title="Click to copy wallet address"
+                    >
+                      {otherParticipant.slice(0, 8)}...{otherParticipant.slice(-4)}
+                    </h2>
+                    
+                    {/* Online Status */}
+                    <OnlineStatus 
+                      isOnline={onlineUsers.has(otherParticipant)}
+                      isTyping={typingUsers.has(otherParticipant)}
+                      showCopyFeedback={showCopyToast}
+                      className="mt-0.5"
+                    />
+                  </div>
+                )
+              })()}
+            </>
+          )}
         </div>
 
         <WalletButton />
+        
+        {/* Paper Texture Overlay */}
+        <div 
+          className="absolute inset-0 z-[1] pointer-events-none"
+          style={{
+            backgroundImage: 'url(/Paper-Texture-7.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            mixBlendMode: 'multiply',
+            opacity: isDarkMode ? 0.8 : 0.4
+          }}
+        />
       </div>
 
       {/* Main Container */}
@@ -954,27 +1524,24 @@ export default function ChatApp() {
             }}
           />
           {/* Mobile Sidebar Overlay */}
-          {isMobile && isMobileMenuOpen && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-30"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-          )}
           
           {/* Left Sidebar */}
           <div 
             className={`
-              w-80 border-r-4 flex flex-col relative z-[0]
               ${isMobile ? `
-                fixed top-[73px] left-0 h-[calc(100vh-73px)] z-40
-                transform transition-transform duration-300 ease-in-out
+                ${isMobileMenuOpen ? 'w-full' : 'w-0'}
+                fixed top-0 left-0 h-[calc(100vh-73px)] z-40
+                transform transition-all duration-300 ease-in-out
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-              ` : ''}
-              md:relative md:transform-none md:transition-none
+                overflow-hidden p-0
+              ` : 'w-80 border-r-4 h-full'}
+              flex flex-col relative z-[0]
+              md:relative md:transform-none md:transition-none md:w-80 md:border-r-4 md:h-full
             `}
             style={{ 
               backgroundColor: colors.bg, 
-              borderRightColor: colors.border 
+              borderRightColor: colors.border,
+              ...(isMobile ? { borderTop: `4px solid ${colors.border}` } : {})
             }}
           >
             {/* Logo Section - Desktop Only */}
@@ -1287,14 +1854,55 @@ export default function ChatApp() {
           </div>
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col relative z-[1]" style={{ overflow: 'hidden' }}>
-            {/* Desktop Header with Connect Wallet */}
+          <div className={`flex-1 flex flex-col relative z-[1] ${isMobile ? 'w-full' : ''}`} style={{ overflow: 'hidden' }}>
+            {/* Desktop Header with Chat Info and Connect Wallet */}
             <div 
-              className="hidden md:flex items-center justify-end p-6 relative"
+              className="hidden md:flex items-center justify-between p-6 relative"
               style={{ 
                 background: `linear-gradient(to bottom, ${colors.bg}, transparent)` 
               }}
             >
+              {/* Chat Info - Left Side */}
+              <div className="flex flex-col">
+                {selectedChat && (() => {
+                  const selectedConversation = conversations.find(c => c.id === selectedChat)
+                  const otherParticipant = selectedConversation?.participants.find(p => p !== publicKey?.toString())
+                  
+                  if (!otherParticipant) return null
+                  
+                  return (
+                    <>
+                      <h2 
+                        className="text-lg font-medium cursor-pointer transition-colors duration-200"
+                        style={{ 
+                          color: colors.text,
+                          fontFamily: "Helvetica Neue, sans-serif"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#38F'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = colors.text
+                        }}
+                        onClick={() => handleCopyWalletAddress(otherParticipant)}
+                        title="Click to copy wallet address"
+                      >
+                        {otherParticipant.slice(0, 8)}...{otherParticipant.slice(-4)}
+                      </h2>
+                      
+                      {/* Online Status - positioned beneath receiver wallet address on far left */}
+                      <OnlineStatus 
+                        isOnline={onlineUsers.has(otherParticipant)}
+                        isTyping={typingUsers.has(otherParticipant)}
+                        showCopyFeedback={showCopyToast}
+                        className="mt-1"
+                      />
+                    </>
+                  )
+                })()}
+              </div>
+              
+              {/* Wallet Button - Right Side */}
               <WalletButton />
             </div>
 
@@ -1313,7 +1921,7 @@ export default function ChatApp() {
               {selectedChat ? (
                 <>
                   {/* Messages Area */}
-                  <div ref={messagesContainerRef} className="flex-1 p-6 overflow-y-auto relative" style={{ overflowX: 'visible', paddingLeft: '50px', paddingRight: '50px', minHeight: 0 }}>
+                  <div ref={messagesContainerRef} className="flex-1 p-6 overflow-y-auto relative" style={{ overflowX: 'visible', paddingLeft: isMobile ? '16px' : '50px', paddingRight: isMobile ? '16px' : '50px', minHeight: 0 }}>
                     {isLoadingMessages ? (
                       <div className="text-center mt-20">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: colors.border }}></div>
@@ -1460,6 +2068,7 @@ export default function ChatApp() {
                             </div>
                           )}
                           
+                          
                           {connected && publicKey && isAuthenticated && currentChatMessages.map((msg, index) => {
                             const isOwnMessage = msg.sender_wallet === publicKey?.toString()
                             const isFirstMessage = index === 0
@@ -1474,57 +2083,112 @@ export default function ChatApp() {
                               return null
                             }
                             
+                            // Check if message has a link preview
+                            const hasLinkPreview = msg.type === 'text' && detectUrls(msg.message_content).length > 0;
+                            
+                            // Check if message is optimistic (temporary/pending)
+                            const isOptimisticMessage = msg.id.startsWith('optimistic_') || (msg as any).optimistic === true;
+                            
                             return (
                               <div
                                 key={msg.id}
                                 className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                               >
-                                <div
-                                  className={`${
-                                    msg.type === 'sticker' || msg.type === 'voice'
-                                      ? '' // No styling for sticker and voice messages (they handle their own styling)
-                                      : `max-w-[70%] p-3 border-2 ${isOwnMessage ? 'bg-blue-50' : ''}`
-                                  }`}
-                                  style={msg.type === 'sticker' || msg.type === 'voice' ? {} : {
-                                    borderColor: colors.border,
-                                    backgroundColor: isOwnMessage ? (isDarkMode ? '#1E3A8A20' : '#EFF6FF') : colors.bg
-                                  }}
-                                >
-                                  {msg.type === 'nft' && msg.nft_image_url && (
-                                    <div className="mb-2">
-                                      <img 
-                                        src={msg.nft_image_url} 
-                                        alt="NFT Message" 
-                                        className="w-full max-w-[200px] rounded-sm"
+                                <div className={`${msg.type === 'sticker' || msg.type === 'voice' || msg.type === 'image' ? '' : hasLinkPreview ? (isMobile ? 'max-w-[85%]' : 'max-w-[50%]') : (isMobile ? 'max-w-[90%]' : 'max-w-[60%]')}`}>
+                                  {/* Link Preview - Rendered outside and above the message box */}
+                                  {hasLinkPreview && (() => {
+                                    const url = detectUrls(msg.message_content)[0];
+                                    const skeletonDimensions = calculateSkeletonDimensions(url);
+                                    
+                                    // Calculate priority based on message recency (newest messages get higher priority)
+                                    const totalMessages = currentChatMessages.length;
+                                    const isNewest = index >= totalMessages - 5; // Last 5 messages
+                                    const messagePriority = isNewest ? PRIORITY_LEVELS.NEWEST : PRIORITY_LEVELS.NORMAL;
+                                    
+                                    return (
+                                      <LinkPreview 
+                                        url={url} 
+                                        isDarkMode={isDarkMode}
+                                        colors={colors}
+                                        initialDimensions={skeletonDimensions}
+                                        priority={messagePriority}
+                                        isOptimistic={isOptimisticMessage}
                                       />
-                                    </div>
-                                  )}
+                                    );
+                                  })()}
                                   
-                                  {msg.type === 'sticker' && ((msg as any).sticker_name || msg.metadata?.sticker_name) && (
-                                    <div>
-                                      <img 
-                                        src={`/Message-Stickers/${(msg as any).sticker_name || msg.metadata?.sticker_name}`} 
-                                        alt="Sticker" 
-                                        className="w-64 h-64"
-                                        style={{ imageRendering: 'crisp-edges' }}
+                                  <div
+                                    className={`${
+                                      msg.type === 'sticker' || msg.type === 'voice' || msg.type === 'image'
+                                        ? '' // No styling for sticker, voice, and image messages (they handle their own styling)
+                                        : `p-3 border-2 ${isOwnMessage ? 'bg-blue-50' : ''}`
+                                    }`}
+                                    style={msg.type === 'sticker' || msg.type === 'voice' || msg.type === 'image' ? {} : {
+                                      borderColor: colors.border,
+                                      backgroundColor: isOwnMessage ? (isDarkMode ? '#1E3A8A20' : '#EFF6FF') : colors.bg,
+                                      // Remove top border if there's a link preview
+                                      ...(hasLinkPreview ? { borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 } : {})
+                                    }}
+                                  >
+                                    {msg.type === 'nft' && msg.nft_image_url && (
+                                      <div className="mb-2">
+                                        <img 
+                                          src={msg.nft_image_url} 
+                                          alt="NFT Message" 
+                                          className="w-full max-w-[200px] rounded-sm"
+                                        />
+                                      </div>
+                                    )}
+                                    
+                                    {msg.type === 'sticker' && ((msg as any).sticker_name || msg.metadata?.sticker_name) && (
+                                      <div>
+                                        <img 
+                                          src={`/Message-Stickers/${(msg as any).sticker_name || msg.metadata?.sticker_name}`} 
+                                          alt="Sticker" 
+                                          className="w-64 h-64"
+                                          style={{ imageRendering: 'crisp-edges' }}
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* Voice Message */}
+                                    {msg.type === 'voice' && (
+                                      <VoiceMessageBubble
+                                        message={msg as any}
+                                        isOwnMessage={isOwnMessage}
+                                        colors={colors}
+                                        isDarkMode={isDarkMode}
+                                        isMobile={isMobile}
+                                        status={isOwnMessage ? getStatusFromMessage(msg) : 'received'}
+                                        isReadByRecipient={isReadByRecipient}
                                       />
-                                    </div>
-                                  )}
+                                    )}
 
-                                  {/* Voice Message */}
-                                  {msg.type === 'voice' && (
-                                    <VoiceMessageBubble
-                                      message={msg as any}
-                                      isOwnMessage={isOwnMessage}
-                                      colors={colors}
-                                      isDarkMode={isDarkMode}
-                                      status={isOwnMessage ? getStatusFromMessage(msg) : 'received'}
-                                      isReadByRecipient={isReadByRecipient}
-                                    />
-                                  )}
+                                    {/* Image Message */}
+                                    {msg.type === 'image' && (
+                                      <ImageMessageBubble
+                                        message={msg}
+                                        onImageClick={(imageUrl) => window.open(imageUrl, '_blank')}
+                                        onRetry={getStatusFromMessage(msg) === 'failed' ? () => retryMessage(msg) : undefined}
+                                        isDarkMode={isDarkMode}
+                                      />
+                                    )}
 
-                                  {/* Only show message text for non-sticker/voice messages or special messages with custom text */}
-                                  {(msg.type !== 'sticker' && msg.type !== 'voice' || (msg.type === 'sticker' && msg.message_content !== 'Sent a sticker')) && (
+                                    {/* Text content for image messages - show after image */}
+                                    {msg.type === 'image' && msg.message_content && msg.message_content.trim() && (
+                                      <p 
+                                        className="text-sm mt-2"
+                                        style={{ 
+                                          fontFamily: "Helvetica Neue, sans-serif",
+                                          color: colors.text 
+                                        }}
+                                      >
+                                        {msg.message_content}
+                                      </p>
+                                    )}
+
+                                  {/* Only show message text for non-sticker/voice/image messages or special messages with custom text */}
+                                  {(msg.type !== 'sticker' && msg.type !== 'voice' && msg.type !== 'image' || (msg.type === 'sticker' && msg.message_content !== 'Sent a sticker')) && (
                                     <p 
                                       className="text-sm"
                                       style={{ 
@@ -1532,11 +2196,59 @@ export default function ChatApp() {
                                         color: colors.text 
                                       }}
                                     >
-                                      {msg.message_content}
+                                      {msg.type === 'text' && detectUrls(msg.message_content).length > 0 ? (
+                                        // Parse message and make URLs clickable
+                                        (() => {
+                                          const urls = detectUrls(msg.message_content);
+                                          let lastIndex = 0;
+                                          const parts: React.ReactNode[] = [];
+                                          
+                                          urls.forEach((url, index) => {
+                                            const urlIndex = msg.message_content.indexOf(url, lastIndex);
+                                            
+                                            // Add text before URL
+                                            if (urlIndex > lastIndex) {
+                                              parts.push(msg.message_content.slice(lastIndex, urlIndex));
+                                            }
+                                            
+                                            // Add URL as clickable link
+                                            parts.push(
+                                              <a
+                                                key={`url-${index}`}
+                                                href={url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="break-all overflow-wrap-anywhere"
+                                                style={{
+                                                  color: '#3388FF',
+                                                  textDecoration: 'underline',
+                                                  cursor: 'pointer',
+                                                  overflowWrap: 'anywhere',
+                                                  wordBreak: 'break-all'
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                              >
+                                                {url}
+                                              </a>
+                                            );
+                                            
+                                            lastIndex = urlIndex + url.length;
+                                          });
+                                          
+                                          // Add remaining text
+                                          if (lastIndex < msg.message_content.length) {
+                                            parts.push(msg.message_content.slice(lastIndex));
+                                          }
+                                          
+                                          return <>{parts}</>;
+                                        })()
+                                      ) : (
+                                        msg.message_content
+                                      )}
                                     </p>
                                   )}
-                                  {/* Show timestamp/status for all messages except voice (they handle their own) */}
-                                  {msg.type !== 'voice' && (
+                                  {/* Show timestamp/status for all messages except voice (they handle their own) and images without file_url */}
+                                  {msg.type !== 'voice' && !(msg.type === 'image' && !msg.file_url) && (
                                     <div 
                                       className={`flex items-center mt-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                                       style={{ opacity: msg.type === 'sticker' ? 0.8 : 1 }}
@@ -1553,6 +2265,7 @@ export default function ChatApp() {
                                       />
                                     </div>
                                   )}
+                                  </div>
                                 </div>
                               </div>
                             )
@@ -1563,7 +2276,7 @@ export default function ChatApp() {
                   </div>
                   
                   {/* Input Area - Fixed Container */}
-                  <div className="relative flex items-center justify-center flex-shrink-0 z-[5]" style={{ 
+                  <div className={`${isMobile ? 'fixed bottom-0 left-0 right-0' : 'relative'} flex items-center justify-center flex-shrink-0 z-[5]`} style={{ 
                     backgroundColor: colors.bg, 
                     borderTop: `4px solid ${colors.border}`,
                     height: '80px',
@@ -1591,6 +2304,27 @@ export default function ChatApp() {
                       buttonRef={chatStickerButtonRef}
                     />
                     
+                    {/* Image Previews - positioned above input area */}
+                    {selectedImages.length > 0 && (
+                      <div 
+                        className="absolute bottom-full left-0 right-0 p-3 flex flex-wrap gap-3 z-[2]"
+                        style={{
+                          backgroundColor: colors.bg,
+                          borderTop: `2px solid ${colors.border}`
+                        }}
+                      >
+                        {selectedImages.map((file, index) => (
+                          <ImagePreview
+                            key={`${file.name}-${file.lastModified}-${index}`}
+                            file={file}
+                            onRemove={() => handleRemoveImage(index)}
+                            colors={colors}
+                            isDarkMode={isDarkMode}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    
                     {/* Paper Texture Overlay */}
                     <div 
                       className="absolute inset-0 z-[1] pointer-events-none"
@@ -1606,12 +2340,14 @@ export default function ChatApp() {
                     <div className="w-full" style={{ maxWidth: 'calc(72rem - 5px)' }}>
                       
                       {/* Input Controls Container - moved outside form to isolate voice recorder */}
-                      <div className="flex items-center gap-3 w-full relative z-[3]">
-                        <form onSubmit={handleSendMessage} className="flex items-center gap-3 flex-1">
-                          <div className="flex-1 flex items-center" style={{ border: `2px solid ${colors.border}` }}>
+                      <div className="flex items-center gap-1 w-full relative z-[3] transition-all duration-300 ease-in-out">
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-3 flex-1 transition-all duration-300 ease-in-out">
+                          <div className="flex-1 flex items-center transition-all duration-300 ease-in-out" style={{ border: `2px solid ${colors.border}` }}>
                             <Input
                               value={message}
-                              onChange={(e) => setMessage(e.target.value)}
+                              onChange={handleMessageInputChange}
+                              onFocus={() => setIsInputFocused(true)}
+                              onBlur={() => setIsInputFocused(false)}
                               placeholder="Type your message..."
                               disabled={!connected || !publicKey || !isAuthenticated}
                               className="flex-1 border-none rounded-none focus:ring-0 focus:border-none h-12 disabled:opacity-50"
@@ -1623,8 +2359,13 @@ export default function ChatApp() {
                             />
                             <Button
                               type="submit"
-                              disabled={!message.trim() || !connected || !publicKey || !isAuthenticated}
-                              className="rounded-none h-12 w-12 p-0 hover:opacity-80 disabled:opacity-50"
+                              onClick={(e) => {
+                                if ((!message.trim() && selectedImages.length === 0) || !connected || !publicKey || !isAuthenticated) {
+                                  e.preventDefault();
+                                  return;
+                                }
+                              }}
+                              className="rounded-none h-12 w-12 p-0 hover:opacity-80"
                               style={{
                                 backgroundColor: colors.bg,
                                 color: colors.text,
@@ -1634,25 +2375,43 @@ export default function ChatApp() {
                                 borderLeft: `2px solid ${colors.border}`
                               }}
                             >
-                              <Send className="w-4 h-4" />
+                              <Send 
+                                className="w-4 h-4 transition-opacity duration-200" 
+                                style={{ 
+                                  opacity: ((!message.trim() && selectedImages.length === 0) || !connected || !publicKey || !isAuthenticated) ? 0.3 : 1 
+                                }} 
+                              />
                             </Button>
                           </div>
 
                           {/* Chat Sticker Button - kept inside form */}
-                          <ChatStickerButton
-                            ref={chatStickerButtonRef}
-                            isOpen={isChatStickerPickerOpen}
-                            onClick={() => setIsChatStickerPickerOpen(!isChatStickerPickerOpen)}
-                            colors={colors}
-                          />
+                          {!(isMobile && isInputFocused) && (
+                            <ChatStickerButton
+                              ref={chatStickerButtonRef}
+                              isOpen={isChatStickerPickerOpen}
+                              onClick={() => setIsChatStickerPickerOpen(!isChatStickerPickerOpen)}
+                              colors={colors}
+                            />
+                          )}
                         </form>
 
+                        {/* File Upload Button - outside form to prevent interference */}
+                        {!(isMobile && isInputFocused) && (
+                          <FileUploadButton
+                            onFileSelect={handleFileSelect}
+                            colors={colors}
+                            disabled={!connected || !publicKey || !isAuthenticated}
+                          />
+                        )}
+
                         {/* Voice Recorder - moved OUTSIDE form to prevent interference */}
-                        <ExpandingVoiceRecorder
-                          onSend={handleSendVoice}
-                          colors={colors}
-                          isDarkMode={isDarkMode}
-                        />
+                        {!isMobile && (
+                          <ExpandingVoiceRecorder
+                            onSend={handleSendVoice}
+                            colors={colors}
+                            isDarkMode={isDarkMode}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

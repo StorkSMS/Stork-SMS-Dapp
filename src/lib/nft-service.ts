@@ -285,6 +285,7 @@ export class NFTService {
       const result = await mintV2(umi, {
         leafOwner,
         merkleTree,
+        assetId,
         metadata: {
           name: metadata.name,
           uri: metadataUri,

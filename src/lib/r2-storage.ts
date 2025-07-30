@@ -28,7 +28,15 @@ export const BUCKET_NAME = process.env.R2_BUCKET || 'stork-nft'
 export const getPublicUrl = (key: string): string => {
   // Use the public R2 development URL if available, otherwise fall back to base URL
   const baseUrl = process.env.R2_PUBLIC_URL || process.env.R2_BASE_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${BUCKET_NAME}`
-  return `${baseUrl}/${key}`
+  const publicUrl = `${baseUrl}/${key}`
+  
+  // Log the generated URL for debugging
+  console.log(`🔗 Generated R2 public URL: ${publicUrl}`)
+  console.log(`📝 R2_PUBLIC_URL: ${process.env.R2_PUBLIC_URL || 'not set'}`)
+  console.log(`📝 R2_BASE_URL: ${process.env.R2_BASE_URL || 'not set'}`)
+  console.log(`📝 Using fallback: ${!process.env.R2_PUBLIC_URL && !process.env.R2_BASE_URL}`)
+  
+  return publicUrl
 }
 
 // File upload types
@@ -79,6 +87,8 @@ export const r2Storage = {
         ContentType: contentType,
         Metadata: s3Metadata,
         ACL: 'public-read', // Make files publicly accessible
+        // Add cache control for better performance
+        CacheControl: 'public, max-age=31536000' // Cache for 1 year
       })
 
       await r2Client.send(command)
@@ -189,6 +199,126 @@ export const r2Storage = {
     } catch (error) {
       console.error('R2 voice upload error:', error)
       throw new Error(`Failed to upload voice message to R2: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  },
+
+  /**
+   * Upload image message with specific naming convention for stork-nft/images/ directory
+   */
+  async uploadImageMessage(
+    imageBlob: Blob,
+    walletAddress: string,
+    messageId: string,
+    dimensions: { width: number; height: number },
+    originalFormat?: string,
+    compressionRatio?: number
+  ): Promise<UploadResult> {
+    try {
+      // Generate unique key in images directory with timestamp and metadata
+      const timestamp = Date.now()
+      const uuid = uuidv4().substring(0, 8)
+      const walletShort = walletAddress.slice(0, 8)
+      const key = `images/${timestamp}_${messageId}_${walletShort}.webp`
+
+      // Convert Blob to Buffer
+      const arrayBuffer = await imageBlob.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      // Prepare metadata for S3 with image-specific information
+      const s3Metadata: Record<string, string> = {
+        originalName: `image_${messageId}.webp`,
+        contentType: 'image/webp',
+        walletAddress,
+        messageId,
+        type: 'chat-image',
+        width: dimensions.width.toString(),
+        height: dimensions.height.toString(),
+        uploadedAt: new Date().toISOString()
+      }
+
+      // Add optional metadata if provided
+      if (originalFormat) {
+        s3Metadata.originalFormat = originalFormat
+      }
+      if (compressionRatio) {
+        s3Metadata.compressionRatio = compressionRatio.toString()
+      }
+
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/webp',
+        Metadata: s3Metadata,
+        ACL: 'public-read', // Make files publicly accessible
+      })
+
+      await r2Client.send(command)
+
+      return {
+        key,
+        publicUrl: getPublicUrl(key),
+        size: buffer.length,
+      }
+    } catch (error) {
+      console.error('R2 image upload error:', error)
+      throw new Error(`Failed to upload image message to R2: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  },
+
+  /**
+   * Upload image thumbnail with specific naming convention for stork-nft/images/thumbnails/ directory
+   */
+  async uploadImageThumbnail(
+    thumbnailBlob: Blob,
+    walletAddress: string,
+    messageId: string,
+    dimensions: { width: number; height: number },
+    parentImageKey: string
+  ): Promise<UploadResult> {
+    try {
+      // Generate unique key in thumbnails directory
+      const timestamp = Date.now()
+      const uuid = uuidv4().substring(0, 8)
+      const walletShort = walletAddress.slice(0, 8)
+      const key = `images/thumbnails/${timestamp}_${messageId}_${walletShort}.webp`
+
+      // Convert Blob to Buffer
+      const arrayBuffer = await thumbnailBlob.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      // Prepare metadata for S3 with thumbnail-specific information
+      const s3Metadata: Record<string, string> = {
+        originalName: `thumb_${messageId}.webp`,
+        contentType: 'image/webp',
+        walletAddress,
+        messageId,
+        type: 'chat-image-thumbnail',
+        width: dimensions.width.toString(),
+        height: dimensions.height.toString(),
+        parentImageKey,
+        uploadedAt: new Date().toISOString()
+      }
+
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/webp',
+        Metadata: s3Metadata,
+        ACL: 'public-read', // Make files publicly accessible
+      })
+
+      await r2Client.send(command)
+
+      return {
+        key,
+        publicUrl: getPublicUrl(key),
+        size: buffer.length,
+      }
+    } catch (error) {
+      console.error('R2 thumbnail upload error:', error)
+      throw new Error(`Failed to upload image thumbnail to R2: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   },
 

@@ -153,9 +153,34 @@ export interface PaginatedMessages {
 
 // Real-time messaging types
 export interface MessageEvent {
-  type: 'message_sent' | 'message_received' | 'message_read' | 'typing_start' | 'typing_stop'
-  data: Message | { sender_wallet: string; recipient_wallet: string }
+  type: 'message_sent' | 'message_received' | 'message_read' | 'typing_start' | 'typing_stop' | 'presence_update'
+  data: Message | { sender_wallet: string; recipient_wallet: string } | PresenceUser
   timestamp: string
+}
+
+// Presence and typing indicator types
+export interface PresenceUser {
+  wallet_address: string
+  online: boolean
+  typing: boolean
+  last_seen: string
+  chat_id?: string
+}
+
+export interface PresenceState {
+  online_users: Set<string>
+  typing_users: Set<string>
+  presence_data: Record<string, PresenceUser>
+}
+
+export interface TypingIndicatorState {
+  typing_users: string[]
+  is_typing: boolean
+}
+
+export interface OnlineStatusState {
+  online_users: Set<string>
+  user_presence: Record<string, PresenceUser>
 }
 
 // Search and filter types

@@ -7,7 +7,7 @@ interface MessageResponse {
   sender_wallet: string
   recipient_wallet: string
   message_content: string
-  message_type: 'text' | 'nft' | 'sticker' | 'voice'
+  message_type: 'text' | 'nft' | 'sticker' | 'voice' | 'image'
   nft_mint_address?: string
   nft_image_url?: string
   nft_metadata_url?: string
@@ -17,7 +17,7 @@ interface MessageResponse {
   file_size?: number
   file_type?: string
   created_at: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   encrypted: boolean
 }
 
@@ -169,7 +169,20 @@ export async function POST(
     // Get request body
     const body = await request.json()
     
-    if (!body.message_content && body.message_type !== 'voice') {
+    // Debug image message data
+    if (body.message_type === 'image' || body.file_url || body.file_name) {
+      console.log('📋 Image message API debug:', {
+        message_type: body.message_type,
+        file_url: body.file_url,
+        file_name: body.file_name,
+        file_size: body.file_size,
+        file_type: body.file_type,
+        hasMetadata: !!body.metadata,
+        fullBody: body
+      })
+    }
+    
+    if (!body.message_content && body.message_type !== 'voice' && body.message_type !== 'image') {
       return NextResponse.json({ error: 'Message content is required' }, { status: 400 })
     }
 
@@ -195,8 +208,11 @@ export async function POST(
       file_name: body.file_name,
       file_size: body.file_size,
       file_type: body.file_type,
-      // Metadata includes voice-specific data like duration and expires_at
-      metadata: body.metadata
+      // Metadata includes voice-specific data like duration and expires_at, plus optimistic_id for message matching
+      metadata: {
+        ...body.metadata,
+        ...(body.optimistic_id ? { optimistic_id: body.optimistic_id } : {})
+      }
     }
 
     const { data: newMessage, error: messageError } = await supabase

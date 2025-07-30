@@ -17,6 +17,7 @@ interface VoiceMessageBubbleProps {
     textSecondary: string
   }
   isDarkMode: boolean
+  isMobile?: boolean
   status?: MessageStatusType
   isReadByRecipient?: boolean
 }
@@ -58,7 +59,7 @@ function WaveformDisplay({ isPlaying, progress, colors }: WaveformDisplayProps) 
   )
 }
 
-export default function VoiceMessageBubble({ message, isOwnMessage, colors, isDarkMode, status, isReadByRecipient }: VoiceMessageBubbleProps) {
+export default function VoiceMessageBubble({ message, isOwnMessage, colors, isDarkMode, isMobile = false, status, isReadByRecipient }: VoiceMessageBubbleProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
@@ -190,9 +191,9 @@ export default function VoiceMessageBubble({ message, isOwnMessage, colors, isDa
   }, [])
 
   return (
-    <div className="flex items-start gap-2 max-w-[70%]">
+    <div className={`flex items-start gap-2 ${isMobile ? 'max-w-[90%]' : 'max-w-[60%]'}`}>
       {/* Download Button - positioned outside on LEFT for SENDER (own messages) */}
-      {!isExpired && isOwnMessage && (
+      {!isExpired && isOwnMessage && !isMobile && (
         <Button
           onClick={handleDownload}
           disabled={isDownloading}
@@ -310,7 +311,7 @@ export default function VoiceMessageBubble({ message, isOwnMessage, colors, isDa
       </div>
       
       {/* Download Button - positioned outside on RIGHT for RECEIVER (not own messages) */}
-      {!isExpired && !isOwnMessage && (
+      {!isExpired && !isOwnMessage && !isMobile && (
         <Button
           onClick={handleDownload}
           disabled={isDownloading}

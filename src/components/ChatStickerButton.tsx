@@ -37,18 +37,18 @@ const ChatStickerButton = React.forwardRef<HTMLButtonElement, ChatStickerButtonP
       aria-label={isOpen ? 'Close sticker picker' : 'Open sticker picker'}
       aria-pressed={isOpen}
     >
-      {/* Chat sticker icon - different from NFT sticker picker */}
+      {/* Chat sticker icon - sticky note design */}
       <svg 
         className="w-5 h-5" 
         viewBox="0 0 24 24" 
         fill="none" 
         stroke="currentColor" 
         strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
-        <circle cx="12" cy="12" r="10" />
-        <circle cx="8" cy="10" r="1" fill="currentColor" />
-        <circle cx="16" cy="10" r="1" fill="currentColor" />
-        <path d="M8 16s1.5 2 4 2 4-2 4-2" strokeLinecap="round" />
+        <path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/>
+        <path d="M15 3v4a2 2 0 0 0 2 2h4"/>
       </svg>
     </Button>
   )
