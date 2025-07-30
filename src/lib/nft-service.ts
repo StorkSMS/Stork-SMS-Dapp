@@ -276,7 +276,7 @@ export class NFTService {
       const merkleTree = umiPublicKey(merkleTreeAddress)
       const leafOwner = umiPublicKey(recipientWallet)
       
-      console.log('🚀 Minting compressed NFT...')
+      console.log('🚀 Minting compressed NFT with Bubblegum V2...')
       
       // Mint cNFT using Bubblegum V2
       const result = await mintV2(umi, {
