@@ -40,6 +40,18 @@ interface NewChatData {
   selectedSticker?: string | null
 }
 
+interface PendingChat {
+  id: string
+  status: 'processing' | 'completed' | 'failed'
+  recipient: string
+  message: string
+  theme: string
+  error?: string
+  result?: {
+    chatId: string
+  }
+}
+
 
 export default function ChatApp() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null)
@@ -52,7 +64,7 @@ export default function ChatApp() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
-  const [pendingChats, setPendingChats] = useState<unknown[]>([])
+  const [pendingChats, setPendingChats] = useState<PendingChat[]>([])
   const [timestampUpdate, setTimestampUpdate] = useState(0)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const [newlyCreatedChats, setNewlyCreatedChats] = useState<Set<string>>(new Set())
