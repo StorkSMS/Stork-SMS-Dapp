@@ -31,6 +31,9 @@ mcp.json
 .mcp.json
 CLAUDE.md
 
+# Environment variable documentation (contains sensitive data)
+netlify-env/
+
 # vercel
 .vercel
 
