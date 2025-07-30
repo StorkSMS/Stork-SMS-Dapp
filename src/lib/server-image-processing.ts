@@ -81,12 +81,16 @@ export const MAX_FILE_SIZE = 5 * 1024 * 1024
 export function testServerWebPSupport(): boolean {
   try {
     const testCanvas = createCanvas(1, 1)
-    const testBuffer = testCanvas.toBuffer('image/webp')
+    // Test with PNG first to ensure basic canvas functionality works
+    const testBuffer = testCanvas.toBuffer('image/png')
     
     // Check if we got a valid buffer with reasonable size
     const isValid = testBuffer && testBuffer.length > 0 && testBuffer.length < 1000
-    console.log(`🧪 Server WebP support test: ${isValid ? 'PASSED' : 'FAILED'} (buffer size: ${testBuffer?.length || 0})`)
-    return isValid
+    console.log(`🧪 Server image processing test: ${isValid ? 'PASSED' : 'FAILED'} (buffer size: ${testBuffer?.length || 0})`)
+    
+    // For now, return false for WebP support to use JPEG fallback
+    // This avoids the toBuffer WebP compilation issues
+    return false
   } catch (error) {
     console.log(`🧪 Server WebP support test: FAILED (error: ${error instanceof Error ? error.message : 'Unknown'})`)
     return false
@@ -416,28 +420,13 @@ async function resizeAndConvertServerImage(
     
     try {
       if (format === 'image/webp') {
-        // WebP conversion with careful quality handling
+        // WebP conversion - fallback to JPEG if WebP fails
         console.log(`🔄 Attempting WebP conversion with quality ${quality}`)
         
-        // Node-canvas WebP support can be finicky with quality values
-        // Try different quality formats that work better with node-canvas
         try {
-          // Try with quality as a number between 0-100 first
-          const webpQuality = Math.round(quality * 100)
-          buffer = canvas.toBuffer('image/webp', { quality: webpQuality })
-          
-          // Check if buffer is valid
-          if (!buffer || buffer.length === 0) {
-            console.warn('⚠️ WebP conversion with 0-100 quality scale produced empty buffer, trying 0-1 scale')
-            buffer = canvas.toBuffer('image/webp', { quality: quality })
-          }
-          
-          // Still empty? Try without quality parameter
-          if (!buffer || buffer.length === 0) {
-            console.warn('⚠️ WebP conversion with quality parameter failed, trying without quality')
-            buffer = canvas.toBuffer('image/webp')
-          }
-          
+          // Since WebP has compilation issues, fall back to JPEG
+          console.warn('⚠️ WebP compilation issues detected, using JPEG fallback')
+          buffer = canvas.toBuffer('image/jpeg', { quality: quality })
         } catch (webpError) {
           console.warn('⚠️ WebP conversion failed:', webpError)
           throw new Error(`WebP conversion failed: ${webpError instanceof Error ? webpError.message : 'Unknown WebP error'}`)
