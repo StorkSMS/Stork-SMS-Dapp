@@ -3,7 +3,8 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { getAuthenticatedClient, subscribeToMessages, subscribeToChats, subscribeToReadReceipts } from '@/lib/supabase'
 import { useMessageEncryption } from '@/lib/message-encryption'
 import { useAuth } from '@/contexts/AuthContext'
-import type { Message, Conversation } from '@/types/messaging'
+import { useTypingSound } from '@/hooks/useTypingSound'
+import type { Message, Conversation, PresenceState, PresenceUser } from '@/types/messaging'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface RealtimeMessagingState {
@@ -15,6 +16,10 @@ interface RealtimeMessagingState {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error'
   readReceipts: Record<string, string> // messageId -> lastReadByWallet
   unreadThreads: Set<string> // chatIds with unread messages
+  // Presence state
+  onlineUsers: Set<string> // wallet addresses of online users
+  typingUsers: Set<string> // wallet addresses of currently typing users
+  presenceData: Record<string, PresenceUser> // detailed presence information
 }
 
 interface SendMessageParams {
@@ -24,6 +29,7 @@ interface SendMessageParams {
   encrypt?: boolean
   messageType?: 'text' | 'image' | 'file' | 'system' | 'nft' | 'sticker' | 'voice'
   metadata?: Record<string, any>
+  optimistic_id?: string // ID for matching optimistic messages with confirmed database messages
   // Voice message file fields
   file_url?: string
   file_name?: string
@@ -35,6 +41,10 @@ export const useRealtimeMessaging = () => {
   const { publicKey, connected } = useWallet()
   const { isAuthenticated } = useAuth()
   const { decryptFromChat, checkIfEncrypted, encryptForChat } = useMessageEncryption()
+  const { playTypingSound, resetCooldown: resetTypingSoundCooldown } = useTypingSound({
+    volume: 0.15,
+    cooldownDuration: 20000
+  })
   
   const [state, setState] = useState<RealtimeMessagingState>({
     conversations: [],
@@ -44,15 +54,24 @@ export const useRealtimeMessaging = () => {
     error: null,
     connectionStatus: 'disconnected',
     readReceipts: {},
-    unreadThreads: new Set<string>()
+    unreadThreads: new Set<string>(),
+    // Presence state
+    onlineUsers: new Set<string>(),
+    typingUsers: new Set<string>(),
+    presenceData: {}
   })
 
   const conversationsChannelRef = useRef<RealtimeChannel | null>(null)
   const messagesChannelRef = useRef<RealtimeChannel | null>(null)
   const readReceiptsChannelRef = useRef<RealtimeChannel | null>(null)
+  const presenceChannelRef = useRef<RealtimeChannel | null>(null)
   const currentChatIdRef = useRef<string | null>(null)
   const messageCallbackRef = useRef<((message: Message, isFromCurrentUser: boolean) => void) | null>(null)
   const processedMessageIds = useRef<Set<string>>(new Set())
+  
+  // Presence state refs for efficient updates
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isCurrentlyTypingRef = useRef<boolean>(false)
   
   // Subscription state management
   const [subscriptionState, setSubscriptionState] = useState({
@@ -108,7 +127,8 @@ export const useRealtimeMessaging = () => {
           type: 'sticker' as const,
           sticker_name: rawMessage.metadata?.sticker_name || rawMessage.sticker_metadata?.sticker_name || 'unknown-sticker',
           sticker_url: rawMessage.metadata?.sticker_url || rawMessage.sticker_metadata?.sticker_url,
-          sticker_metadata: rawMessage.sticker_metadata
+          sticker_metadata: rawMessage.sticker_metadata,
+          metadata: rawMessage.metadata || {}
         }
       }
 
@@ -121,13 +141,27 @@ export const useRealtimeMessaging = () => {
           file_size: rawMessage.file_size || 0,
           file_type: rawMessage.file_type || 'audio/mp4',
           duration: rawMessage.metadata?.duration || 0,
-          expires_at: rawMessage.metadata?.expires_at || ''
+          expires_at: rawMessage.metadata?.expires_at || '',
+          metadata: rawMessage.metadata || {}
+        }
+      }
+      
+      if (rawMessage.message_type === 'image') {
+        return {
+          ...baseMessage,
+          type: 'image' as const,
+          file_url: rawMessage.file_url || '',
+          file_name: rawMessage.file_name || '',
+          file_size: rawMessage.file_size || 0,
+          file_type: rawMessage.file_type || '',
+          metadata: rawMessage.metadata || {}
         }
       }
       
       return {
         ...baseMessage,
-        type: rawMessage.message_type as 'text' | 'image' | 'file' | 'system'
+        type: rawMessage.message_type as 'text' | 'file' | 'system',
+        metadata: rawMessage.metadata || {}
       }
     }
 
@@ -180,7 +214,8 @@ export const useRealtimeMessaging = () => {
         type: 'sticker' as const,
         sticker_name: rawMessage.metadata?.sticker_name || rawMessage.sticker_metadata?.sticker_name || 'unknown-sticker',
         sticker_url: rawMessage.metadata?.sticker_url || rawMessage.sticker_metadata?.sticker_url,
-        sticker_metadata: rawMessage.sticker_metadata
+        sticker_metadata: rawMessage.sticker_metadata,
+        metadata: rawMessage.metadata || {}
       }
     }
 
@@ -193,13 +228,27 @@ export const useRealtimeMessaging = () => {
         file_size: rawMessage.file_size || 0,
         file_type: rawMessage.file_type || 'audio/mp4',
         duration: rawMessage.metadata?.duration || 0,
-        expires_at: rawMessage.metadata?.expires_at || ''
+        expires_at: rawMessage.metadata?.expires_at || '',
+        metadata: rawMessage.metadata || {}
+      }
+    }
+    
+    if (rawMessage.message_type === 'image') {
+      return {
+        ...baseMessage,
+        type: 'image' as const,
+        file_url: rawMessage.file_url || '',
+        file_name: rawMessage.file_name || '',
+        file_size: rawMessage.file_size || 0,
+        file_type: rawMessage.file_type || '',
+        metadata: rawMessage.metadata || {}
       }
     }
     
     return {
       ...baseMessage,
-      type: rawMessage.message_type as 'text' | 'image' | 'file' | 'system'
+      type: rawMessage.message_type as 'text' | 'file' | 'system',
+      metadata: rawMessage.metadata || {}
     }
   }, [decryptFromChat, checkIfEncrypted]) // Include encryption hook dependencies for proper functionality
 
@@ -774,6 +823,7 @@ export const useRealtimeMessaging = () => {
       throw new Error('Wallet not connected or not authenticated')
     }
 
+
     const walletAddress = publicKey.toString()
     const optimisticId = `optimistic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     
@@ -798,13 +848,40 @@ export const useRealtimeMessaging = () => {
       console.log('➕ Adding optimistic message to state:', {
         optimisticId,
         content: optimisticMessage.message_content.slice(0, 30) + '...',
-        currentMessageCount: prev.currentChatMessages.length
+        currentMessageCount: prev.currentChatMessages.length,
+        messageType: optimisticMessage.type,
+        metadata: optimisticMessage.metadata
       })
       return {
         ...prev,
         currentChatMessages: [...prev.currentChatMessages, optimisticMessage]
       }
     })
+
+    // Set up a timeout to clean up orphaned optimistic messages (fallback safety)
+    const cleanupTimeout = setTimeout(() => {
+      setState(prev => {
+        const stillOptimistic = prev.currentChatMessages.find(msg => 
+          msg.optimistic && msg.optimistic_id === optimisticId
+        )
+        
+        if (stillOptimistic) {
+          console.log('🧹 Cleaning up orphaned optimistic message:', {
+            optimisticId,
+            content: stillOptimistic.message_content.slice(0, 30) + '...',
+            reason: 'timeout after 30 seconds'
+          })
+          
+          return {
+            ...prev,
+            currentChatMessages: prev.currentChatMessages.filter(msg => 
+              !(msg.optimistic && msg.optimistic_id === optimisticId)
+            )
+          }
+        }
+        return prev
+      })
+    }, 30000) // 30 second timeout for cleanup
 
     try {
       let messageContent = params.content
@@ -843,6 +920,7 @@ export const useRealtimeMessaging = () => {
           recipient_wallet: params.recipientWallet,
           message_type: params.messageType || 'text',
           encrypt: shouldEncrypt,
+          optimistic_id: optimisticId, // Include optimistic_id for matching
           // Include file fields for voice/file messages
           file_url: params.file_url,
           file_name: params.file_name,
@@ -880,6 +958,9 @@ export const useRealtimeMessaging = () => {
       const result = await response.json()
       const confirmedMessage = result.data.message
 
+      // Clear the cleanup timeout since the message was sent successfully
+      clearTimeout(cleanupTimeout)
+
       // Don't replace optimistic message here - let the real-time subscription handle it
       // This prevents double updates and ensures consistent behavior
       console.log('✅ Message sent successfully, waiting for real-time confirmation:', {
@@ -892,6 +973,9 @@ export const useRealtimeMessaging = () => {
 
     } catch (error) {
       console.error('Failed to send message:', error)
+      
+      // Clear the cleanup timeout since we're handling the error
+      clearTimeout(cleanupTimeout)
       
       // On error, mark the optimistic message as failed
       setState(prev => ({
@@ -1134,6 +1218,12 @@ export const useRealtimeMessaging = () => {
                       const currentWallet = publicKey?.toString()
                       const isFromCurrentUser = !!(currentWallet && lastMessage.sender_wallet === currentWallet)
                       
+                      // Reset typing sound cooldown when someone sends a message (not from current user)
+                      if (!isFromCurrentUser) {
+                        console.log('🔄 Resetting typing sound cooldown due to conversation update message from other user')
+                        resetTypingSoundCooldown()
+                      }
+                      
                       console.log('🔔 Calling onNewMessage callback from conversation update with:', {
                         messageId: lastMessage.id,
                         chatId: lastMessage.chat_id,
@@ -1321,8 +1411,6 @@ export const useRealtimeMessaging = () => {
                   const isFromCurrentUser = !!(currentWallet && formattedMessage.sender_wallet === currentWallet)
                   
                   setState(prev => {
-                    // Check if this message should replace an optimistic message
-                    
                     // Check if this exact message already exists (prevent duplicates from multiple sources)
                     const existingMessageIndex = prev.currentChatMessages.findIndex(msg => msg.id === formattedMessage.id)
                     if (existingMessageIndex !== -1) {
@@ -1330,24 +1418,43 @@ export const useRealtimeMessaging = () => {
                       return prev
                     }
                     
-                    if (isFromCurrentUser) {
-                      // For messages from current user, check if we have a matching optimistic message
-                      const optimisticIndex = prev.currentChatMessages.findIndex(msg => 
-                        msg.optimistic && 
-                        msg.message_content === formattedMessage.message_content &&
-                        msg.sender_wallet === formattedMessage.sender_wallet &&
-                        Math.abs(new Date(msg.created_at).getTime() - new Date(formattedMessage.created_at).getTime()) < 30000 // Within 30 seconds
+                    // Check if this message should replace an optimistic message
+                    const optimisticId = formattedMessage.metadata?.optimistic_id
+                    
+                    // Debug logging for sticker messages
+                    if (formattedMessage.type === 'sticker') {
+                      console.log('🎪 Processing sticker message from real-time:', {
+                        messageId: formattedMessage.id,
+                        type: formattedMessage.type,
+                        hasOptimisticId: !!optimisticId,
+                        optimisticId,
+                        metadata: formattedMessage.metadata,
+                        isFromCurrentUser
+                      })
+                    }
+                    
+                    if (optimisticId && isFromCurrentUser) {
+                      // Look for matching optimistic message to replace
+                      const optimisticMessageIndex = prev.currentChatMessages.findIndex(msg => 
+                        msg.optimistic && msg.optimistic_id === optimisticId
                       )
                       
-                      if (optimisticIndex !== -1) {
-                        // Replace optimistic message with real message
-                        console.log('🔄 Replacing optimistic message with confirmed message:', {
-                          optimisticId: prev.currentChatMessages[optimisticIndex].id,
-                          realId: formattedMessage.id,
-                          content: formattedMessage.message_content.slice(0, 30) + '...'
+                      if (optimisticMessageIndex !== -1) {
+                        console.log('✅ Replacing optimistic message with confirmed database message:', {
+                          optimisticId,
+                          dbMessageId: formattedMessage.id,
+                          content: formattedMessage.message_content.slice(0, 30) + '...',
+                          messageType: formattedMessage.type
                         })
+                        
+                        // Replace optimistic message with confirmed database message
                         const updatedMessages = [...prev.currentChatMessages]
-                        updatedMessages[optimisticIndex] = formattedMessage
+                        updatedMessages[optimisticMessageIndex] = {
+                          ...formattedMessage,
+                          optimistic: false, // Mark as no longer optimistic
+                          optimistic_id: undefined // Remove optimistic_id since it's now confirmed
+                        }
+                        
                         return {
                           ...prev,
                           currentChatMessages: updatedMessages
@@ -1359,6 +1466,7 @@ export const useRealtimeMessaging = () => {
                     console.log('📨 Adding new message to chat:', {
                       id: formattedMessage.id,
                       isFromCurrentUser,
+                      hasOptimisticId: !!optimisticId,
                       content: formattedMessage.message_content.slice(0, 30) + '...'
                     })
                     return {
@@ -1389,6 +1497,12 @@ export const useRealtimeMessaging = () => {
                   // Determine if message is from current user with fresh wallet state
                   const currentWallet = publicKey?.toString()
                   const isFromCurrentUser = !!(currentWallet && formattedMessage.sender_wallet === currentWallet)
+                  
+                  // Reset typing sound cooldown when someone sends a message (not from current user)
+                  if (!isFromCurrentUser) {
+                    console.log('🔄 Resetting typing sound cooldown due to message from other user')
+                    resetTypingSoundCooldown()
+                  }
                   
                   console.log('🔔 Calling onNewMessage callback with:', {
                     messageId: formattedMessage.id,
@@ -1637,6 +1751,424 @@ export const useRealtimeMessaging = () => {
     }
   }, [connected, publicKey, isAuthenticated])
 
+  // Subscribe to presence updates for current chat
+  const subscribeToPresenceUpdates = useCallback(async (chatId: string) => {
+    console.log('👥 Attempting presence subscription for chat:', chatId, {
+      connected,
+      hasPublicKey: !!publicKey,
+      isAuthenticated,
+      hasExistingChannel: !!presenceChannelRef.current
+    })
+    
+    if (!connected || !publicKey || !isAuthenticated || presenceChannelRef.current) {
+      console.log('🚫 Presence subscription blocked:', {
+        connected,
+        hasPublicKey: !!publicKey,
+        isAuthenticated,
+        hasExistingChannel: !!presenceChannelRef.current,
+        chatId
+      })
+      return
+    }
+
+    const walletAddress = publicKey.toString()
+    console.log(`👥 Setting up presence subscription for chat: ${chatId}`)
+
+    try {
+      const client = getAuthenticatedClient()
+      
+      // Create channel with consistent naming
+      presenceChannelRef.current = client
+        .channel(`chat-presence-${chatId}`)
+        .on('presence', { event: 'sync' }, () => {
+          const presenceState = presenceChannelRef.current?.presenceState()
+          console.log('👥 Presence sync received - raw state:', presenceState)
+          
+          if (presenceState) {
+            const onlineUsers = new Set<string>()
+            const typingUsers = new Set<string>()
+            const presenceData: Record<string, PresenceUser> = {}
+            
+            // Parse presence state according to Supabase format
+            Object.entries(presenceState).forEach(([presenceKey, presences]: [string, any]) => {
+              console.log(`👥 Processing presence entry - key: ${presenceKey}, presences:`, presences)
+              
+              // presences is an array of presence objects
+              if (Array.isArray(presences) && presences.length > 0) {
+                presences.forEach((presence: any) => {
+                  console.log(`👥 Processing individual presence:`, presence)
+                  
+                  // The presence object itself contains the data, not in a metas array
+                  const userWallet = presence.wallet_address || presence.user_id
+                  
+                  if (userWallet) {
+                    const user: PresenceUser = {
+                      wallet_address: userWallet,
+                      online: presence.online === true,
+                      typing: presence.typing === true,
+                      last_seen: presence.last_seen || new Date().toISOString(),
+                      chat_id: chatId
+                    }
+                    
+                    console.log(`👥 Created user presence:`, user)
+                    
+                    presenceData[userWallet] = user
+                    if (user.online) onlineUsers.add(userWallet)
+                    if (user.typing && userWallet !== walletAddress) typingUsers.add(userWallet)
+                  } else {
+                    console.warn('👥 No wallet address found in presence:', presence)
+                  }
+                })
+              }
+            })
+            
+            console.log('👥 Final presence state:', {
+              onlineUsers: Array.from(onlineUsers),
+              typingUsers: Array.from(typingUsers),
+              presenceDataKeys: Object.keys(presenceData)
+            })
+            
+            setState(prev => {
+              // Check if someone new started typing (play sound effect)
+              const newTypingUsers = Array.from(typingUsers).filter(user => !prev.typingUsers.has(user))
+              if (newTypingUsers.length > 0) {
+                console.log('⌨️ New user(s) started typing:', newTypingUsers.map(u => u.slice(0, 8) + '...'))
+                playTypingSound()
+              }
+              
+              return {
+                ...prev,
+                onlineUsers,
+                typingUsers,
+                presenceData
+              }
+            })
+          }
+        })
+        .on('presence', { event: 'join' }, ({ newPresences }) => {
+          console.log('👥 User joined presence - raw data:', newPresences)
+          
+          newPresences.forEach((presenceItem: any) => {
+            console.log('👥 Processing joined presence item:', presenceItem)
+            
+            // The presence data is directly in the object, not in metas
+            const userWallet = presenceItem.wallet_address || presenceItem.user_id
+            
+            if (userWallet) {
+              const user: PresenceUser = {
+                wallet_address: userWallet,
+                online: presenceItem.online === true,
+                typing: presenceItem.typing === true,
+                last_seen: presenceItem.last_seen || new Date().toISOString(),
+                chat_id: chatId
+              }
+              
+              console.log('👥 User joined with data:', user)
+              
+              setState(prev => {
+                const newOnlineUsers = new Set(prev.onlineUsers)
+                const newTypingUsers = new Set(prev.typingUsers)
+                const newPresenceData = { ...prev.presenceData }
+                
+                newPresenceData[userWallet] = user
+                if (user.online) newOnlineUsers.add(userWallet)
+                if (user.typing && userWallet !== walletAddress) {
+                  // Check if this user wasn't previously typing (play sound effect)
+                  if (!prev.typingUsers.has(userWallet)) {
+                    console.log('⌨️ User started typing on join:', userWallet.slice(0, 8) + '...')
+                    playTypingSound()
+                  }
+                  newTypingUsers.add(userWallet)
+                }
+                
+                return {
+                  ...prev,
+                  onlineUsers: newOnlineUsers,
+                  typingUsers: newTypingUsers,
+                  presenceData: newPresenceData
+                }
+              })
+            } else {
+              console.warn('👥 No wallet address found in joined presence:', presenceItem)
+            }
+          })
+        })
+        .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+          console.log('👥 User left presence - raw data:', leftPresences)
+          
+          leftPresences.forEach((presenceItem: any) => {
+            console.log('👥 Processing left presence item:', presenceItem)
+            
+            // Extract wallet address consistently 
+            const userWallet = presenceItem.wallet_address || presenceItem.user_id
+            
+            if (userWallet) {
+              console.log('👥 User left:', userWallet)
+              
+              setState(prev => {
+                const newOnlineUsers = new Set(prev.onlineUsers)
+                const newTypingUsers = new Set(prev.typingUsers)
+                const newPresenceData = { ...prev.presenceData }
+                
+                newOnlineUsers.delete(userWallet)
+                newTypingUsers.delete(userWallet)
+                delete newPresenceData[userWallet]
+                
+                return {
+                  ...prev,
+                  onlineUsers: newOnlineUsers,
+                  typingUsers: newTypingUsers,
+                  presenceData: newPresenceData
+                }
+              })
+            } else {
+              console.warn('👥 No wallet address found in left presence:', presenceItem)
+            }
+          })
+        })
+        .subscribe(async (status, err) => {
+          console.log(`👥 Presence subscription status for ${chatId}:`, status, { 
+            error: err,
+            timestamp: new Date().toISOString(),
+            walletAddress: walletAddress.slice(0, 8) + '...'
+          })
+          
+          if (err) {
+            console.error('👥 Presence subscription error:', err)
+          } else if (status === 'SUBSCRIBED') {
+            console.log(`✅ Successfully subscribed to presence for chat ${chatId}`)
+            
+            // Update connection health
+            setConnectionHealthState(prev => ({
+              ...prev,
+              channels: { ...prev.channels, presence: 'healthy' as const }
+            }))
+            
+            // Track our initial presence directly on the channel
+            try {
+              console.log('👥 Attempting to track initial presence...')
+              const trackResult = await presenceChannelRef.current?.track({
+                wallet_address: walletAddress,
+                online: true,
+                typing: false,
+                last_seen: new Date().toISOString(),
+                user_id: walletAddress, // Add backup identifier
+                chat_id: chatId
+              })
+              console.log('👥 Initial presence track result:', trackResult)
+              
+              // Verify presence state after tracking
+              setTimeout(() => {
+                const currentState = presenceChannelRef.current?.presenceState()
+                console.log('👥 Presence state after initial track:', currentState)
+              }, 1000)
+            } catch (trackError) {
+              console.error('👥 Failed to track initial presence:', trackError)
+            }
+          } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+            console.error(`🚨 Presence subscription error: ${status} - will recreate subscription...`)
+            
+            // Update connection health
+            setConnectionHealthState(prev => ({
+              ...prev,
+              channels: { ...prev.channels, presence: 'unhealthy' as const }
+            }))
+            
+            if (presenceChannelRef.current) {
+              presenceChannelRef.current.unsubscribe()
+              presenceChannelRef.current = null
+            }
+            
+            setTimeout(() => {
+              if (currentChatIdRef.current === chatId && isReadyForSubscription) {
+                console.log('🔄 Recreating presence subscription...')
+                subscribeToPresenceUpdates(chatId)
+              }
+            }, 2000)
+          }
+        })
+      
+      console.log(`✅ Presence subscription created successfully for chat: ${chatId}`)
+    } catch (error) {
+      console.error('👥 Failed to create presence subscription:', error)
+    }
+  }, [connected, publicKey, isAuthenticated, isReadyForSubscription])
+
+  // Update presence state for current user
+  const updatePresenceState = useCallback(async (chatId: string, updates: { online?: boolean; typing?: boolean }) => {
+    if (!presenceChannelRef.current || !publicKey) {
+      console.log('🚫 Cannot update presence - no channel or wallet')
+      return false
+    }
+
+    const walletAddress = publicKey.toString()
+    
+    try {
+      console.log('👥 Updating presence state:', {
+        chatId,
+        walletAddress: walletAddress.slice(0, 8) + '...',
+        updates,
+        channelReady: !!presenceChannelRef.current
+      })
+      
+      // Create presence payload
+      const presencePayload = {
+        wallet_address: walletAddress,
+        online: updates.online !== undefined ? updates.online : true,
+        typing: updates.typing !== undefined ? updates.typing : false,
+        last_seen: new Date().toISOString()
+      }
+      
+      console.log('👥 Tracking presence with payload:', presencePayload)
+      
+      const trackResult = await presenceChannelRef.current.track(presencePayload)
+      console.log('👥 Presence track result:', trackResult)
+      
+      // Update local state immediately for responsive UI (but don't include self in typing users)
+      setState(prev => {
+        const newPresence: PresenceUser = {
+          wallet_address: walletAddress,
+          online: presencePayload.online,
+          typing: presencePayload.typing,
+          last_seen: presencePayload.last_seen,
+          chat_id: chatId
+        }
+        
+        const newPresenceData = { ...prev.presenceData }
+        newPresenceData[walletAddress] = newPresence
+        
+        const newOnlineUsers = new Set(prev.onlineUsers)
+        if (newPresence.online) {
+          newOnlineUsers.add(walletAddress)
+        } else {
+          newOnlineUsers.delete(walletAddress)
+        }
+        
+        // Note: Don't add self to typingUsers - this should be handled by sync events from other clients
+        
+        return {
+          ...prev,
+          presenceData: newPresenceData,
+          onlineUsers: newOnlineUsers
+        }
+      })
+      
+      return true
+    } catch (error) {
+      console.error('👥 Failed to update presence state:', error)
+      return false
+    }
+  }, [publicKey])
+
+  // Start typing indicator
+  const startTyping = useCallback(async (chatId: string) => {
+    if (isCurrentlyTypingRef.current) {
+      console.log('⌨️ Already typing, skipping start')
+      return
+    }
+    
+    console.log('⌨️ Starting typing indicator for chat:', chatId)
+    isCurrentlyTypingRef.current = true
+    
+    const success = await updatePresenceState(chatId, { typing: true })
+    if (!success) {
+      console.error('⌨️ Failed to start typing indicator')
+      isCurrentlyTypingRef.current = false
+      return
+    }
+    
+    console.log('⌨️ Typing indicator started successfully')
+  }, [updatePresenceState])
+
+  // Extend/refresh typing indicator (used when user continues typing)
+  const extendTyping = useCallback(async (chatId: string) => {
+    if (!isCurrentlyTypingRef.current) {
+      // If not currently typing, start it
+      return startTyping(chatId)
+    }
+    
+    console.log('⌨️ Extending typing indicator for chat:', chatId)
+    
+    // Refresh the typing state to keep it alive
+    const success = await updatePresenceState(chatId, { typing: true })
+    if (!success) {
+      console.error('⌨️ Failed to extend typing indicator')
+    }
+  }, [updatePresenceState, startTyping])
+
+  // Stop typing indicator
+  const stopTyping = useCallback(async (chatId: string) => {
+    if (!isCurrentlyTypingRef.current) {
+      console.log('⌨️ Not currently typing, skipping stop')
+      return
+    }
+    
+    console.log('⌨️ Stopping typing indicator for chat:', chatId)
+    isCurrentlyTypingRef.current = false
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    
+    const success = await updatePresenceState(chatId, { typing: false })
+    if (!success) {
+      console.error('⌨️ Failed to stop typing indicator')
+    }
+  }, [updatePresenceState])
+
+  // Set online status
+  const setOnlineStatus = useCallback(async (chatId: string, online: boolean = true) => {
+    console.log('🟢 Setting online status:', online, 'for chat:', chatId)
+    const success = await updatePresenceState(chatId, { online })
+    if (!success) {
+      console.error('🟢 Failed to set online status')
+    }
+    return success
+  }, [updatePresenceState])
+
+  // Test helper function - expose on window for debugging
+  const testPresence = useCallback(async () => {
+    if (!currentChatIdRef.current || !presenceChannelRef.current || !publicKey) {
+      console.error('👥 Cannot test presence - missing requirements')
+      return
+    }
+    
+    const chatId = currentChatIdRef.current
+    const walletAddress = publicKey.toString()
+    
+    console.log('👥 Testing presence manually...', { chatId, walletAddress: walletAddress.slice(0, 8) + '...' })
+    
+    try {
+      // Test manual track
+      const trackResult = await presenceChannelRef.current.track({
+        wallet_address: walletAddress,
+        online: true,
+        typing: true,
+        last_seen: new Date().toISOString(),
+        test: true
+      })
+      console.log('👥 Manual track result:', trackResult)
+      
+      // Check presence state
+      setTimeout(() => {
+        const state = presenceChannelRef.current?.presenceState()
+        console.log('👥 Current presence state:', state)
+      }, 500)
+      
+    } catch (error) {
+      console.error('👥 Manual presence test failed:', error)
+    }
+  }, [publicKey])
+
+  // Expose test function globally for debugging
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).testPresence = testPresence
+      console.log('👥 Test function exposed: window.testPresence()')
+    }
+  }, [testPresence])
+
   // Connection recovery callback
   const reconnectSubscription = useCallback(async () => {
     console.log('🔄 Attempting to reconnect subscription...')
@@ -1655,6 +2187,11 @@ export const useRealtimeMessaging = () => {
     if (readReceiptsChannelRef.current) {
       readReceiptsChannelRef.current.unsubscribe()
       readReceiptsChannelRef.current = null
+    }
+    
+    if (presenceChannelRef.current) {
+      presenceChannelRef.current.unsubscribe()
+      presenceChannelRef.current = null
     }
     
     // Increment retry count
@@ -1699,10 +2236,14 @@ export const useRealtimeMessaging = () => {
           subscribeToReadReceiptsUpdates(currentChatIdRef.current).catch(error => {
             console.error('Failed to reconnect read receipts subscription:', error)
           })
+          
+          subscribeToPresenceUpdates(currentChatIdRef.current).catch(error => {
+            console.error('Failed to reconnect presence subscription:', error)
+          })
         }
       }
     }, 2000)
-  }, [isReadyForSubscription, subscribeToConversationUpdates, subscribeToMessageUpdates, subscribeToReadReceiptsUpdates])
+  }, [isReadyForSubscription, subscribeToConversationUpdates, subscribeToMessageUpdates, subscribeToReadReceiptsUpdates, subscribeToPresenceUpdates])
 
   // Cleanup subscriptions
   const unsubscribeAll = useCallback(() => {
@@ -1721,7 +2262,26 @@ export const useRealtimeMessaging = () => {
       readReceiptsChannelRef.current = null
     }
 
-    setState(prev => ({ ...prev, connectionStatus: 'disconnected' }))
+    if (presenceChannelRef.current) {
+      presenceChannelRef.current.unsubscribe()
+      presenceChannelRef.current = null
+    }
+
+    // Clear typing timeouts
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    
+    isCurrentlyTypingRef.current = false
+
+    setState(prev => ({ 
+      ...prev, 
+      connectionStatus: 'disconnected',
+      onlineUsers: new Set(),
+      typingUsers: new Set(),
+      presenceData: {}
+    }))
   }, [])
 
   // Silent cleanup without state updates (for unmounting)
@@ -1740,6 +2300,19 @@ export const useRealtimeMessaging = () => {
       readReceiptsChannelRef.current.unsubscribe()
       readReceiptsChannelRef.current = null
     }
+
+    if (presenceChannelRef.current) {
+      presenceChannelRef.current.unsubscribe()
+      presenceChannelRef.current = null
+    }
+
+    // Clear typing timeouts
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    
+    isCurrentlyTypingRef.current = false
   }, [])
 
   // Load conversations when ready
@@ -1785,7 +2358,11 @@ export const useRealtimeMessaging = () => {
         isLoadingConversations: false,
         isLoadingMessages: false,
         error: null,
-        connectionStatus: 'disconnected'
+        connectionStatus: 'disconnected',
+        // Clear presence state
+        onlineUsers: new Set(),
+        typingUsers: new Set(),
+        presenceData: {}
       }))
     }
   }, [connected, publicKey, isAuthenticated])
@@ -1802,10 +2379,19 @@ export const useRealtimeMessaging = () => {
     console.log('🧹 clearCurrentChat called, clearing messages and unsubscribing...', {
       hadMessageChannel: !!messagesChannelRef.current,
       hadReadReceiptsChannel: !!readReceiptsChannelRef.current,
+      hadPresenceChannel: !!presenceChannelRef.current,
       currentChatId: currentChatIdRef.current
     })
     
-    setState(prev => ({ ...prev, currentChatMessages: [], readReceipts: {} }))
+    setState(prev => ({ 
+      ...prev, 
+      currentChatMessages: [], 
+      readReceipts: {},
+      onlineUsers: new Set(),
+      typingUsers: new Set(),
+      presenceData: {}
+    }))
+    
     currentChatIdRef.current = null
     
     if (messagesChannelRef.current) {
@@ -1821,6 +2407,20 @@ export const useRealtimeMessaging = () => {
       readReceiptsChannelRef.current = null
       console.log('✅ Read receipts channel cleared')
     }
+
+    if (presenceChannelRef.current) {
+      console.log('🔌 Unsubscribing from existing presence channel...')
+      presenceChannelRef.current.unsubscribe()
+      presenceChannelRef.current = null
+      console.log('✅ Presence channel cleared')
+    }
+
+    // Clear typing state
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    isCurrentlyTypingRef.current = false
   }, [])
 
   // onNewMessage callback setter with sender detection
@@ -1840,7 +2440,8 @@ export const useRealtimeMessaging = () => {
     channels: {
       conversations: 'disconnected' as 'healthy' | 'unhealthy' | 'disconnected',
       messages: 'disconnected' as 'healthy' | 'unhealthy' | 'disconnected',
-      readReceipts: 'disconnected' as 'healthy' | 'unhealthy' | 'disconnected'
+      readReceipts: 'disconnected' as 'healthy' | 'unhealthy' | 'disconnected',
+      presence: 'disconnected' as 'healthy' | 'unhealthy' | 'disconnected'
     },
     lastHeartbeat: null as Date | null,
     heartbeatsMissed: 0
@@ -1866,11 +2467,18 @@ export const useRealtimeMessaging = () => {
     markMessagesAsRead,
     subscribeToMessageUpdates,
     subscribeToReadReceiptsUpdates,
+    subscribeToPresenceUpdates,
     clearCurrentChat,
     refreshConversations: loadConversations,
     unsubscribeAll,
     onNewMessage,
     connectionHealth: connectionHealthState,
+    // Presence functions
+    startTyping,
+    extendTyping,
+    stopTyping,
+    setOnlineStatus,
+    updatePresenceState,
     // Helper functions for unread management
     clearUnreadStatus: useCallback((chatId: string) => {
       setState(prev => {
