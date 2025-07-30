@@ -276,16 +276,12 @@ export class NFTService {
       const merkleTree = umiPublicKey(merkleTreeAddress)
       const leafOwner = umiPublicKey(recipientWallet)
       
-      // Generate asset ID (this will be the "mint address" equivalent for cNFTs)
-      const assetId = generateSigner(umi)
-      
       console.log('🚀 Minting compressed NFT...')
       
       // Mint cNFT using Bubblegum V2
       const result = await mintV2(umi, {
         leafOwner,
         merkleTree,
-        assetId,
         metadata: {
           name: metadata.name,
           uri: metadataUri,
@@ -304,10 +300,11 @@ export class NFTService {
       console.log('✅ Compressed NFT minted successfully!')
       console.log('Transaction signature:', result.signature)
       
-      // For cNFTs, we return the asset ID as the "mint address"
-      // The actual asset ID will be derived from the transaction
+      // For cNFTs, the asset ID needs to be derived from the transaction
+      // For now, we'll use the transaction signature as a placeholder
+      // In a full implementation, this would derive the actual asset ID
       return {
-        mintAddress: assetId.publicKey.toString(), // This will be the asset ID for cNFTs
+        mintAddress: result.signature.toString(), // Placeholder: actual asset ID would be derived
         transactionSignature: result.signature.toString(),
         metadataUri
       }
