@@ -367,7 +367,18 @@ async function createNFT(
     console.log('Starting cNFT creation process...')
     
     // Get environment configuration
-    const isMainnet = process.env.NODE_ENV === 'production'
+    // Check for explicit SOLANA_NETWORK env var, otherwise check RPC URL
+    const isMainnet = process.env.SOLANA_NETWORK === 'mainnet' || 
+                     (process.env.NEXT_PUBLIC_SOLANA_RPC_URL && process.env.NEXT_PUBLIC_SOLANA_RPC_URL.includes('mainnet'))
+    
+    console.log('🔍 Network detection:', {
+      NODE_ENV: process.env.NODE_ENV,
+      SOLANA_NETWORK: process.env.SOLANA_NETWORK,
+      RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
+      isMainnet,
+      selectedNetwork: isMainnet ? 'mainnet' : 'devnet'
+    })
+    
     const merkleTreeAddress = isMainnet 
       ? process.env.MERKLE_TREE_ADDRESS_MAINNET 
       : process.env.MERKLE_TREE_ADDRESS_DEVNET

@@ -158,7 +158,7 @@ export default function ChatStickerPicker({
       
       {/* Vertical Scrolling Sticker Grid */}
       <div className="p-2 max-h-44 overflow-y-auto relative z-[2]">
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-1.5 md:gap-1">
           {CHAT_STICKER_OPTIONS.map((stickerName) => {
             const isLoading = loadingStickers.has(stickerName)
             const hasFailed = failedStickers.has(stickerName)
@@ -169,7 +169,7 @@ export default function ChatStickerPicker({
                 key={stickerName}
                 onClick={() => handleStickerClick(stickerName)}
                 className="
-                  relative aspect-square w-full border-2 p-1.5 rounded-md
+                  relative aspect-square w-full border-2 p-1.5 md:p-1 rounded-md
                   transition-all duration-200 hover:scale-105 
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
                   hover:shadow-md active:scale-95

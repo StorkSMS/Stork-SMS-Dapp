@@ -243,7 +243,7 @@ export const useNFTChatCreation = () => {
 
     // Create payment transaction for dual NFT creation (base cost + fee)
     const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com')
-    const companyWalletPubkey = new PublicKey(process.env.NEXT_PUBLIC_COMPANY_WALLET || 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
+    const companyWalletPubkey = new PublicKey(process.env.NEXT_PUBLIC_COMPANY_WALLET_PUB || process.env.COMPANY_WALLET_PUB || 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
     
     // Skip payment collection if the sender is the company wallet
     if (publicKey.equals(companyWalletPubkey)) {
