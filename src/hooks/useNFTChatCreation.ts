@@ -84,34 +84,16 @@ export const useNFTChatCreation = () => {
     const currentProgress = (currentStepWeight * stepProgress) / 100
     const newProgress = Math.min(100, completedWeight + currentProgress)
     
-    console.log('📊 Progress Update Debug:', {
-      stepIndex,
-      stepName: CREATION_STEPS[stepIndex]?.name,
-      stepProgress: `${stepProgress}%`,
-      completedWeight,
-      currentStepWeight,
-      currentProgress,
-      newProgress: `${newProgress}%`
-    })
+    // Progress update logic - removed verbose logging
     
-    setState(prev => {
-      console.log('📊 State Update:', { 
-        oldProgress: `${prev.progress}%`, 
-        newProgress: `${newProgress}%`,
-        isCreating: prev.isCreating,
-        isCreatingNFT: prev.isCreatingNFT 
-      })
-      return {
-        ...prev,
-        progress: newProgress
-      }
-    })
+    setState(prev => ({
+      ...prev,
+      progress: newProgress
+    }))
   }, [])
 
   // Smooth animation function that starts after fee collection
   const startSmoothAnimation = useCallback(() => {
-    console.log('🎬 Starting smooth 22-second animation')
-    
     // Clear any existing animation
     if (animationInterval) {
       clearInterval(animationInterval)
@@ -124,8 +106,6 @@ export const useNFTChatCreation = () => {
       const elapsed = Date.now() - startTime
       const progress = Math.min((elapsed / ANIMATION_CONFIG.duration) * ANIMATION_CONFIG.maxProgress, ANIMATION_CONFIG.maxProgress)
       
-      console.log('🎬 Animation progress:', `${progress.toFixed(1)}%`, `(${(elapsed/1000).toFixed(1)}s)`)
-      
       setState(prev => ({
         ...prev,
         progress: 40 + (progress * 0.59) // Start from 40% and animate to 98% (40 + 58% range)
@@ -133,7 +113,6 @@ export const useNFTChatCreation = () => {
       
       // Stop animation when we reach max progress or time limit
       if (progress >= ANIMATION_CONFIG.maxProgress || elapsed >= ANIMATION_CONFIG.duration) {
-        console.log('🎬 Animation completed at', `${progress.toFixed(1)}%`)
         clearInterval(interval)
         setAnimationInterval(null)
       }
@@ -636,23 +615,14 @@ export const useNFTChatCreation = () => {
   }, [])
 
   const getCurrentStep = useCallback(() => {
-    console.log('🎯 getCurrentStep called:', { 
-      isCreating: state.isCreating,
-      isGeneratingImage: state.isGeneratingImage, 
-      isCreatingNFT: state.isCreatingNFT,
-      progress: `${state.progress}%`,
-      animationActive: animationStartTime !== null
-    })
     
     if (!state.isCreating) return null
     
     if (state.isGeneratingImage) {
       // Step 0: 0-15%, Step 1: 15-30%
       if (state.progress < 15) {
-        console.log('🎯 Returning step 0:', CREATION_STEPS[0].name)
         return CREATION_STEPS[0].name // Generating sender NFT
       }
-      console.log('🎯 Returning step 1:', CREATION_STEPS[1].name)
       return CREATION_STEPS[1].name // Generating recipient NFT
     }
     
@@ -661,24 +631,19 @@ export const useNFTChatCreation = () => {
       if (animationStartTime !== null) {
         // Animation steps based on progress: 40-60%, 60-75%, 75-80%, 80-98%
         if (state.progress < 60) {
-          console.log('🎯 Animation step: Creating NFTs')
           return 'Creating NFTs on blockchain...'
         }
         if (state.progress < 75) {
-          console.log('🎯 Animation step: Verifying')
           return 'Verifying NFTs in collection...'
         }
         if (state.progress < 80) {
-          console.log('🎯 Animation step: Encrypting')
           return 'Encrypting message...'
         }
-        console.log('🎯 Animation step: Creating chat')
         return 'Creating chat...'
       }
       
       // Original logic for fee collection phase
       if (state.progress < 40) {
-        console.log('🎯 Returning step 2:', CREATION_STEPS[2].name)
         return CREATION_STEPS[2].name // Collecting fee
       }
       
