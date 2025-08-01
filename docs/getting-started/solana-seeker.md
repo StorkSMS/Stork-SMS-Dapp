@@ -1,5 +1,5 @@
 ---
-cover: ../.gitbook/assets/stork x solana seeker.png
+cover: ../.gitbook/assets/stork x solana seeker (2).png
 coverY: 0
 ---
 
