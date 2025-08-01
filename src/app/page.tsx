@@ -331,11 +331,11 @@ export default function ChatApp() {
     if (selectedChat && isActuallyAuthenticated) {
       console.log('🌐 Setting up presence subscriptions for chat:', selectedChat)
       subscribeToPresenceUpdates(selectedChat)
-      setOnlineStatus('online', selectedChat)
+      setOnlineStatus(selectedChat, true)
       
       return () => {
         console.log('🌐 Cleaning up presence subscriptions for chat:', selectedChat)
-        setOnlineStatus('offline', selectedChat)
+        setOnlineStatus(selectedChat, false)
       }
     }
   }, [selectedChat, isActuallyAuthenticated, subscribeToPresenceUpdates, setOnlineStatus])
