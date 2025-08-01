@@ -67,7 +67,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
           <>
             {(() => {
               const selectedConversation = conversations.find(c => c.id === selectedChat)
-              const otherParticipant = selectedConversation?.participants.find(p => p !== publicKey?.toString())
+              const otherParticipant = selectedConversation?.participants.find((p: string) => p !== publicKey?.toString())
               
               if (!otherParticipant) return (
                 <Image src="/stork-logo.svg" alt="Stork Logo" width={100} height={33} className="h-8 w-auto" />
