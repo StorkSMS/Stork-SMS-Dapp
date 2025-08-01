@@ -37,22 +37,25 @@ export const useNFTVerification = () => {
     try {
       setState(prev => ({ ...prev, isVerifying: true, error: null }))
 
-      // Create connection
-      const connection = new Connection(
-        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
-      )
-
-      // Get all token accounts for the wallet
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-        programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+      // Use API route for NFT verification (keeps RPC URL private)
+      const response = await fetch('/api/solana/nft-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          publicKey: publicKey.toString()
+        })
       })
 
+      if (!response.ok) {
+        throw new Error('Failed to fetch NFTs from API')
+      }
+
+      const { nfts } = await response.json()
+      
       // Check if user owns the specific NFT
-      const ownsNFT = tokenAccounts.value.some(account => {
-        const mint = account.account.data.parsed.info.mint
-        const amount = account.account.data.parsed.info.tokenAmount.uiAmount
-        return mint === nftMintAddress && amount > 0
-      })
+      const ownsNFT = nfts.some((nft: any) => nft.mint === nftMintAddress)
 
       setState(prev => {
         const newVerifiedNFTs = new Map(prev.verifiedNFTs)
@@ -89,21 +92,23 @@ export const useNFTVerification = () => {
     try {
       setState(prev => ({ ...prev, isVerifying: true, error: null }))
 
-      const connection = new Connection(
-        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
-      )
-
-      // Get all NFTs owned by the wallet
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-        programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+      // Use API route for NFT verification (keeps RPC URL private)
+      const response = await fetch('/api/solana/nft-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          publicKey: publicKey.toString()
+        })
       })
 
-      const ownedNFTs = tokenAccounts.value
-        .filter(account => {
-          const amount = account.account.data.parsed.info.tokenAmount.uiAmount
-          return amount > 0
-        })
-        .map(account => account.account.data.parsed.info.mint)
+      if (!response.ok) {
+        throw new Error('Failed to fetch NFTs from API')
+      }
+
+      const { nfts } = await response.json()
+      const ownedNFTs = nfts.map((nft: any) => nft.mint)
 
       setState(prev => {
         const newVerifiedNFTs = new Map(prev.verifiedNFTs)
