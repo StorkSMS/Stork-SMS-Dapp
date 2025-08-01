@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/New stork Site Favicon.png",
     shortcut: "/New stork Site Favicon.png",
-    apple: "/New stork Site Favicon.png",
+    apple: "/Stork Site Phone App icon.png", // Use the phone app icon for Apple home screen
   },
 }
 

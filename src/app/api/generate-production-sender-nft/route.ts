@@ -3,23 +3,34 @@ import { createCanvas, loadImage, CanvasRenderingContext2D, registerFont } from 
 import path from 'path'
 import fs from 'fs'
 
-// IMMEDIATELY OVERRIDE SelfWritten with our HelveticaNeue.ttc
+// IMMEDIATELY OVERRIDE SelfWritten with our Helvetica fonts
 try {
-  console.log('🚨 API ROUTE: Overriding SelfWritten with HelveticaNeue.ttc IMMEDIATELY')
+  console.log('🚨 API ROUTE: Overriding SelfWritten with Helvetica fonts IMMEDIATELY')
   
-  const helveticaFontPath = path.join(process.cwd(), 'public/HelveticaNeue.ttc')
+  // Try both font files
+  const fontPaths = [
+    path.join(process.cwd(), 'public/HelveticaNeue.ttc'),
+    path.join(process.cwd(), 'public/HelveticaNeueMedium.otf')
+  ]
   
-  if (fs.existsSync(helveticaFontPath)) {
-    console.log('✅ API ROUTE: Found HelveticaNeue.ttc, registering as SelfWritten override')
-    
-    // NUCLEAR OPTION: Override SelfWritten completely at module load time
-    registerFont(helveticaFontPath, { family: 'SelfWritten' })
-    registerFont(helveticaFontPath, { family: 'Helvetica Neue' })
-    registerFont(helveticaFontPath, { family: 'HelveticaNeue-Medium' })
-    
-    console.log('🎯 API ROUTE: SelfWritten has been HIJACKED with HelveticaNeue.ttc!')
-  } else {
-    console.error('❌ API ROUTE: HelveticaNeue.ttc not found - SelfWritten will interfere!')
+  let fontRegistered = false
+  for (const fontPath of fontPaths) {
+    if (fs.existsSync(fontPath)) {
+      console.log('✅ API ROUTE: Found font file, registering as SelfWritten override:', fontPath)
+      
+      // NUCLEAR OPTION: Override SelfWritten completely at module load time
+      registerFont(fontPath, { family: 'SelfWritten' })
+      registerFont(fontPath, { family: 'Helvetica Neue' })
+      registerFont(fontPath, { family: 'HelveticaNeue-Medium' })
+      
+      console.log('🎯 API ROUTE: SelfWritten has been HIJACKED with Helvetica font!')
+      fontRegistered = true
+      break
+    }
+  }
+  
+  if (!fontRegistered) {
+    console.error('❌ API ROUTE: No Helvetica fonts found - SelfWritten will interfere!')
   }
 } catch (error) {
   console.error('❌ API ROUTE: Error hijacking SelfWritten:', error)

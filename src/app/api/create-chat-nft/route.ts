@@ -239,6 +239,8 @@ async function generateProductionSenderNFTImage(
   recipientWallet: string
 ): Promise<{ imageUrl: string; r2Key: string }> {
   try {
+    console.log('🎯🎯🎯 PRODUCTION SENDER NFT FUNCTION CALLED! 🎯🎯🎯')
+    console.log('✅ We are using the PRODUCTION system, not the simple system!')
     console.log('Generating production sender NFT image directly...')
     
     // Import the production sender NFT generation function from lib
@@ -647,6 +649,8 @@ async function createChatNFTHandler(request: NextRequest) {
         console.log('🚨🚨🚨 SENDER NFT GENERATION DEBUG 🚨🚨🚨')
         console.log('USE_PRODUCTION_NFT_FOR_SENDER value:', USE_PRODUCTION_NFT_FOR_SENDER)
         console.log('Will use:', USE_PRODUCTION_NFT_FOR_SENDER ? 'PRODUCTION SENDER SYSTEM ✅' : 'SIMPLE SYSTEM ❌')
+        console.log('Environment variable type:', typeof process.env.USE_PRODUCTION_NFT_FOR_SENDER)
+        console.log('Environment variable raw value:', process.env.USE_PRODUCTION_NFT_FOR_SENDER)
         console.log('🚨🚨🚨 END DEBUG 🚨🚨🚨')
         
         const senderImageData = USE_PRODUCTION_NFT_FOR_SENDER

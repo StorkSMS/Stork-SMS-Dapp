@@ -81,31 +81,42 @@ function wrapText(
   return lines
 }
 
-// Use the HelveticaNeue.ttc file from public directory and OVERRIDE SelfWritten
+// Use the Helvetica font files from public directory and OVERRIDE SelfWritten
 try {
-  console.log('🚨 SENDER: Using project HelveticaNeue.ttc and overriding SelfWritten')
+  console.log('🚨 SENDER: Using project Helvetica fonts and overriding SelfWritten')
   
-  const helveticaFontPath = path.join(process.cwd(), 'public/HelveticaNeue.ttc')
+  // Try both font files - the .ttc collection and the specific medium .otf
+  const fontPaths = [
+    path.join(process.cwd(), 'public/HelveticaNeue.ttc'),
+    path.join(process.cwd(), 'public/HelveticaNeueMedium.otf')
+  ]
   
-  if (fs.existsSync(helveticaFontPath)) {
-    console.log('✅ SENDER: Found HelveticaNeue.ttc in public directory')
-    
-    // Register with ALL the family names to ensure it's used
-    registerFont(helveticaFontPath, { family: 'Helvetica Neue', weight: '500' })
-    registerFont(helveticaFontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
-    registerFont(helveticaFontPath, { family: 'Helvetica' })
-    registerFont(helveticaFontPath, { family: 'Arial' })
-    registerFont(helveticaFontPath, { family: 'sans-serif' })
-    
-    // NUCLEAR OPTION: Override SelfWritten completely
-    registerFont(helveticaFontPath, { family: 'SelfWritten' })
-    
-    console.log('🎯 SENDER: Successfully registered HelveticaNeue.ttc as ALL font families including SelfWritten override!')
-  } else {
-    console.error('❌ SENDER: HelveticaNeue.ttc not found in public directory!')
+  let fontRegistered = false
+  for (const fontPath of fontPaths) {
+    if (fs.existsSync(fontPath)) {
+      console.log('✅ SENDER: Found font file:', fontPath)
+      
+      // Register with ALL the family names to ensure it's used
+      registerFont(fontPath, { family: 'Helvetica Neue', weight: '500' })
+      registerFont(fontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
+      registerFont(fontPath, { family: 'Helvetica' })
+      registerFont(fontPath, { family: 'Arial' })
+      registerFont(fontPath, { family: 'sans-serif' })
+      
+      // NUCLEAR OPTION: Override SelfWritten completely
+      registerFont(fontPath, { family: 'SelfWritten' })
+      
+      console.log('🎯 SENDER: Successfully registered font as ALL families including SelfWritten override!')
+      fontRegistered = true
+      break // Use the first font file found
+    }
+  }
+  
+  if (!fontRegistered) {
+    console.error('❌ SENDER: No Helvetica font files found in public directory!')
   }
 } catch (error) {
-  console.error('❌ SENDER: Error registering HelveticaNeue.ttc:', error)
+  console.error('❌ SENDER: Error registering Helvetica fonts:', error)
 }
 
 export async function generateProductionSenderNFT(request: GenerateProductionSenderNFTRequest): Promise<Buffer> {
