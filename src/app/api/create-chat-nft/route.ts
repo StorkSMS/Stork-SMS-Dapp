@@ -369,12 +369,12 @@ async function createNFT(
     // Get environment configuration
     // Check for explicit SOLANA_NETWORK env var, otherwise check RPC URL
     const isMainnet = process.env.SOLANA_NETWORK === 'mainnet' || 
-                     (process.env.NEXT_PUBLIC_SOLANA_RPC_URL && process.env.NEXT_PUBLIC_SOLANA_RPC_URL.includes('mainnet'))
+                     (process.env.SOLANA_RPC_URL && process.env.SOLANA_RPC_URL.includes('mainnet'))
     
     console.log('🔍 Network detection:', {
       NODE_ENV: process.env.NODE_ENV,
       SOLANA_NETWORK: process.env.SOLANA_NETWORK,
-      RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
+      RPC_URL: process.env.SOLANA_RPC_URL,
       isMainnet,
       selectedNetwork: isMainnet ? 'mainnet' : 'devnet'
     })

@@ -42,9 +42,9 @@ if (derivedPublicKey !== COMPANY_WALLET_PUBLIC_KEY) {
 export const companyWallet = companyWalletKeypair
 export const companyWalletPublicKey = new PublicKey(COMPANY_WALLET_PUBLIC_KEY)
 
-// Solana connection (using devnet for now, as per CLAUDE.md)
+// Solana connection (using private RPC for server-side operations)
 export const connection = new Connection(
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+  process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
   'confirmed'
 )
 
