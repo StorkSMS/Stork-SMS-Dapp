@@ -1408,7 +1408,7 @@ export default function ChatApp() {
         selectedSticker={stickerState.selectedSticker}
         isOpen={isStickerPickerOpen}
         onClose={() => setIsStickerPickerOpen(false)}
-        onSelect={stickerState.handleStickerSelect}
+        onStickerSelect={stickerState.handleStickerSelect}
         colors={colors}
       />
 
