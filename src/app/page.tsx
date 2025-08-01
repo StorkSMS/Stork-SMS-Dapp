@@ -545,8 +545,18 @@ export default function ChatApp() {
   const handleSendInvitation = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate form
-    if (!newChatData.to || !newChatData.message) {
+    console.log('🔍 Form validation:', {
+      to: newChatData.to,
+      message: newChatData.message,
+      effectiveMessage: stickerState.getEffectiveMessage(),
+      connected,
+      publicKey: !!publicKey,
+      isAuthenticated
+    })
+    
+    // Validate form - use effective message which includes sticker logic
+    const effectiveMessage = stickerState.getEffectiveMessage()
+    if (!newChatData.to || !effectiveMessage) {
       alert('Please fill in all required fields')
       return
     }
@@ -556,74 +566,104 @@ export default function ChatApp() {
       return
     }
     
-    setIsWaitingForSignature(true)
-    
-    // Create a new pending chat entry
-    const pendingChatId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const newPendingChat: PendingChat = {
-      id: pendingChatId,
-      status: 'processing',
-      recipient: newChatData.to,
-      message: stickerState.getEffectiveMessage(),
-      theme: 'light',
+    if (!isAuthenticated) {
+      alert('Please wait for wallet authentication to complete')
+      return
     }
     
-    setPendingChats(prev => [...prev, newPendingChat])
-    
-    // Process the request
-    createNFTChatWithImmediateSignature({
-      recipientWallet: newChatData.to,
-      theme: 'light',
-      message: stickerState.getEffectiveMessage(),
-      selectedSticker: stickerState.selectedSticker
-    }).then((chatId) => {
-      console.log('NFT Chat created successfully with ID:', chatId)
+    // Go straight to NFT creation with immediate signature
+    handleCreateNFTDirectly()
+  }
+  
+  const handleCreateNFTDirectly = useCallback(async () => {
+    try {
+      setIsWaitingForSignature(true) // Start signature waiting state
       
-      // Update pending chat to completed
-      setPendingChats(prev => 
-        prev.map(chat => 
-          chat.id === pendingChatId 
-            ? { ...chat, status: 'completed', result: { chatId } }
-            : chat
-        )
+      // Use effective message (original message if sticker selected, current message otherwise)
+      const effectiveMessage = stickerState.getEffectiveMessage()
+      
+      console.log('🚀 Creating NFT chat with:', {
+        recipientWallet: newChatData.to,
+        messageContent: effectiveMessage,
+        selectedSticker: stickerState.selectedSticker
+      })
+      
+      // Use new immediate signature flow - wallet signature will popup immediately
+      const { pendingChat, backgroundProcess } = await createNFTChatWithImmediateSignature(
+        {
+          recipientWallet: newChatData.to,
+          messageContent: effectiveMessage,
+          selectedSticker: stickerState.selectedSticker,
+          theme: 'default'
+        },
+        (pendingChat) => {
+          // Add pending chat to sidebar immediately
+          setPendingChats(prev => [pendingChat, ...prev])
+        }
       )
       
-      // Add to newly created set for animation
-      setNewlyCreatedChats(prev => new Set(prev).add(chatId))
-      
-      // Refresh conversations to include the new chat
-      refreshConversations()
-      
-      // Close modal and reset form
-      setIsCreatingNewChat(false)
+      // Signature was successful, close modal and reset state
       setIsWaitingForSignature(false)
-      setNewChatData({ to: "", from: connected && publicKey ? publicKey.toString() : "", message: "", selectedSticker: null })
+      setIsCreatingNewChat(false)
+      
+      // Clear form data and reset sticker state
+      setNewChatData({ to: "", from: publicKey?.toString() || "", message: "", selectedSticker: null })
       stickerState.handleStickerSelect(null)
       stickerState.setCurrentMessage("")
       
-      // Select the new chat after a short delay to ensure it's loaded
-      setTimeout(() => {
-        setSelectedChat(chatId)
-        loadChatMessages(chatId)
-        subscribeToMessageUpdates(chatId)
-        subscribeToReadReceiptsUpdates(chatId)
-        clearUnreadStatus(chatId)
-      }, 1000)
-    }).catch((error) => {
-      console.error('Error creating NFT chat:', error)
-      
-      // Update pending chat to failed
-      setPendingChats(prev => 
-        prev.map(chat => 
-          chat.id === pendingChatId 
-            ? { ...chat, status: 'failed', error: error.message || 'Failed to create chat' }
-            : chat
+      // Handle background processing result
+      backgroundProcess.then((finalResult) => {
+        setPendingChats(prev => 
+          prev.map(chat => 
+            chat.id === pendingChat.id 
+              ? finalResult 
+              : chat
+          )
         )
-      )
+        
+        // If successful, refresh conversations and auto-select the new chat
+        if (finalResult.status === 'completed' && finalResult.result?.chatId) {
+          // Mark as newly created for success indicator
+          setNewlyCreatedChats(prev => new Set(prev).add(finalResult.result.chatId))
+          
+          // Conversations should update automatically via real-time subscription
+          
+          // The new chat should automatically appear via realtime subscription
+          // Auto-select the newly created chat after a brief delay to ensure it's in the conversations list
+          setTimeout(() => {
+            setSelectedChat(finalResult.result.chatId)
+            loadChatMessages(finalResult.result.chatId)
+            subscribeToMessageUpdates(finalResult.result.chatId)
+          }, 100) // Small delay to ensure realtime subscription has processed the new chat
+        }
+      }).catch((error) => {
+        console.error('Background NFT creation failed:', error)
+        setPendingChats(prev => 
+          prev.map(chat => 
+            chat.id === pendingChat.id 
+              ? { ...chat, status: 'failed', error: error.message }
+              : chat
+          )
+        )
+      })
       
+    } catch (error) {
+      console.error('NFT chat creation failed:', error)
       setIsWaitingForSignature(false)
-    })
-  }
+      
+      // Show user-friendly error message
+      if (error instanceof Error) {
+        if (error.message.includes('User rejected')) {
+          alert('Transaction was cancelled. Please try again when ready to sign.')
+        } else {
+          alert(`Failed to create NFT chat: ${error.message}`)
+        }
+      } else {
+        alert('Failed to create NFT chat. Please try again.')
+      }
+    }
+  }, [newChatData.to, stickerState, createNFTChatWithImmediateSignature, publicKey, setPendingChats, setNewlyCreatedChats, setSelectedChat, loadChatMessages, subscribeToMessageUpdates])
+
   
   // Use the callback to call async createNFT operation
   const handleRetryPendingChat = useCallback(async (pendingChatId: string) => {
@@ -1338,7 +1378,11 @@ export default function ChatApp() {
         stickerState={stickerState}
         onClose={handleCancelNewChat}
         onSubmit={handleSendInvitation}
-        onChatDataChange={setNewChatData}
+        onChatDataChange={(data) => {
+          setNewChatData(data)
+          // Sync message with sticker state
+          stickerState.setCurrentMessage(data.message)
+        }}
         onStickerPickerOpen={() => setIsStickerPickerOpen(true)}
         onCanvasReady={setPreviewCanvasData}
       />

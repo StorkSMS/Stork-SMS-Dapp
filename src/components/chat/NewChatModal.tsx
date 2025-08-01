@@ -218,7 +218,12 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                     >
                       <Input
                         value={stickerState.currentMessage}
-                        onChange={(e) => stickerState.handleMessageChange(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          stickerState.handleMessageChange(value)
+                          // Also update newChatData to keep them in sync
+                          onChatDataChange({ ...newChatData, message: value })
+                        }}
                         placeholder="Type your invitation message..."
                         className="border-none rounded-none focus:ring-0 focus:border-none h-12"
                         style={{ 
@@ -381,7 +386,12 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                     >
                       <Input
                         value={stickerState.currentMessage}
-                        onChange={(e) => stickerState.handleMessageChange(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          stickerState.handleMessageChange(value)
+                          // Also update newChatData to keep them in sync
+                          onChatDataChange({ ...newChatData, message: value })
+                        }}
                         placeholder="Type your invitation message..."
                         className="border-none rounded-none focus:ring-0 focus:border-none h-12"
                         style={{ 
