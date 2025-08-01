@@ -113,7 +113,7 @@ export const useNFTVerification = () => {
       setState(prev => {
         const newVerifiedNFTs = new Map(prev.verifiedNFTs)
         // Update cache with ownership status for all found NFTs
-        ownedNFTs.forEach(nft => newVerifiedNFTs.set(nft, true))
+        ownedNFTs.forEach((nft: string) => newVerifiedNFTs.set(nft, true))
         
         return {
           ...prev, 
