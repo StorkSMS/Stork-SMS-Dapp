@@ -4,7 +4,15 @@ Get started with Stork SMS in just a few minutes!
 
 ## Step 1: Visit the App
 
+### Desktop
 Navigate to [app.stork-sms.net](https://app.stork-sms.net) in your web browser.
+
+### Mobile
+For the best mobile experience:
+1. Open the **Phantom** or **Solflare** mobile app
+2. Use the built-in browser/dApp browser
+3. Navigate to **app.stork-sms.net**
+4. This ensures seamless wallet integration
 
 ## Step 2: Connect Your Wallet
 
@@ -71,6 +79,12 @@ This usually happens due to network congestion. Try again in a few moments.
 
 ### "Cannot view chat"
 Ensure you own the NFT for this conversation. Check your wallet's NFT collection.
+
+### "Wallet not connecting on mobile"
+1. Use Phantom or Solflare mobile app's built-in browser
+2. Make sure you're on app.stork-sms.net (not a copycat site)
+3. Try refreshing the page within the wallet app
+4. Ensure your wallet app is updated to the latest version
 
 ## Next Steps
 
