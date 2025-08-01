@@ -1221,7 +1221,7 @@ export default function ChatApp() {
             fadingChats={fadingChats}
             progress={progress}
             getCurrentStep={getCurrentStep}
-            canCreate={canCreate}
+            canCreate={!!canCreate}
             connected={connected}
             onChatSelect={handleChatSelect}
             onNewChat={handleNewChat}
