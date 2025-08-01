@@ -54,10 +54,10 @@
 * [Phase 2: Gamification](roadmap/phase-2-gamification/README.md)
   * [Achievement System](roadmap/phase-2-gamification/README.md#achievement-system)
   * [Airdrop Qualification](roadmap/phase-2-gamification/README.md#airdrop-qualification)
-* [Phase 3: Advanced Features](roadmap/phase-3-advanced-features.md)
-* [Phase 4: Mobile & Integration](roadmap/phase-4-mobile-and-integration.md)
+* [Phase 3: SolAI Chat Bot](roadmap/phase-3-solai-chatbot.md)
+* [Phase 4: Solana Seeker Integration](roadmap/phase-4-solana-seeker.md)
 * [Phase 5: Enterprise](roadmap/phase-5-enterprise.md)
-* [Community Governance](roadmap/community-governance.md)
+* [And So Much More...](roadmap/feature-requests.md)
 
 ## Resources
 
