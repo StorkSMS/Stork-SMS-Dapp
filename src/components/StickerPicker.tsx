@@ -301,15 +301,9 @@ export function useStickerState(initialMessage: string = '') {
   const handleMessageChange = (message: string) => {
     setCurrentMessage(message)
     
-    // If user types text, hide sticker (mutual exclusivity)
-    if (message.trim() && selectedSticker) {
-      setIsStickerHidden(true)
-      setIsTextFaded(false) // Un-fade text when typing
-    } else if (!message.trim() && selectedSticker) {
-      // If user clears text and sticker is selected, show sticker again
-      setIsStickerHidden(false)
-      setIsTextFaded(true)
-    }
+    // Allow users to type while sticker is selected
+    // The message will be stored but remain visually hidden (faded) until sticker is deselected
+    // No longer auto-deselect sticker when typing
     
     // If user types while sticker is selected, store as original
     if (selectedSticker && message && !originalMessage) {
