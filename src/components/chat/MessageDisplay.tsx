@@ -231,7 +231,7 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
                     
                     // Determine if message has been read by recipient via read receipts
                     const currentConversation = conversations.find(c => c.id === selectedChat)
-                    const recipientWallet = currentConversation?.participants.find(p => p !== publicKey?.toString())
+                    const recipientWallet = currentConversation?.participants.find((p: string) => p !== publicKey?.toString())
                     const isReadByRecipient = !!(isOwnMessage && recipientWallet && readReceipts[msg.id] === recipientWallet)
                     
                     // Skip displaying the first NFT message in normal format since it's pinned above
