@@ -250,8 +250,12 @@ export const useNFTChatCreation = () => {
       })
     )
 
-    // Get recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash()
+    // Get recent blockhash from API route (uses private RPC)
+    const blockhashResponse = await fetch('/api/solana/blockhash')
+    if (!blockhashResponse.ok) {
+      throw new Error('Failed to get recent blockhash')
+    }
+    const { blockhash } = await blockhashResponse.json()
     transaction.recentBlockhash = blockhash
     transaction.feePayer = publicKey
 
@@ -260,10 +264,24 @@ export const useNFTChatCreation = () => {
     const signature = await sendTransaction(transaction, connection)
     console.log('📝 Transaction sent, signature:', signature)
 
-    // Wait for confirmation with timeout
+    // Wait for confirmation with timeout using API route
     console.log('⏳ Waiting for transaction confirmation...')
     try {
-      await connection.confirmTransaction(signature, 'confirmed')
+      const confirmResponse = await fetch('/api/solana/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'confirm',
+          signature
+        })
+      })
+      
+      if (!confirmResponse.ok) {
+        throw new Error('Failed to confirm transaction via API')
+      }
+      
       console.log('✅ Transaction confirmed successfully')
     } catch (confirmError) {
       console.error('❌ Transaction confirmation failed:', confirmError)
