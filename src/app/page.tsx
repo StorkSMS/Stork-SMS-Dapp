@@ -681,37 +681,50 @@ export default function ChatApp() {
       )
 
       // Retry the NFT creation
-      const chatId = await createNFTChatWithImmediateSignature({
-        recipientWallet: pendingChat.recipient,
-        theme: pendingChat.theme,
-        message: pendingChat.message
-      })
-
-      console.log('NFT Chat retry successful with ID:', chatId)
-      
-      // Update pending chat to completed
-      setPendingChats(prev => 
-        prev.map(chat => 
-          chat.id === pendingChatId 
-            ? { ...chat, status: 'completed', result: { chatId } }
-            : chat
-        )
+      const { pendingChat: newPendingChat, backgroundProcess } = await createNFTChatWithImmediateSignature(
+        {
+          recipientWallet: pendingChat.recipient,
+          messageContent: pendingChat.message,
+          theme: pendingChat.theme
+        },
+        (updatedPendingChat) => {
+          // Update callback - not needed for retry
+        }
       )
+
+      // Wait for the background process to complete
+      const finalResult = await backgroundProcess
       
-      // Add to newly created set for animation
-      setNewlyCreatedChats(prev => new Set(prev).add(chatId))
-      
-      // Refresh conversations to include the new chat
-      refreshConversations()
-      
-      // Select the new chat after a short delay
-      setTimeout(() => {
-        setSelectedChat(chatId)
-        loadChatMessages(chatId)
-        subscribeToMessageUpdates(chatId)
-        subscribeToReadReceiptsUpdates(chatId)
-        clearUnreadStatus(chatId)
-      }, 1000)
+      if (finalResult.status === 'completed' && finalResult.result?.chatId) {
+        const chatId = finalResult.result.chatId
+        console.log('NFT Chat retry successful with ID:', chatId)
+        
+        // Update pending chat to completed
+        setPendingChats(prev => 
+          prev.map(chat => 
+            chat.id === pendingChatId 
+              ? { ...chat, status: 'completed', result: { chatId } }
+              : chat
+          )
+        )
+        
+        // Add to newly created set for animation
+        setNewlyCreatedChats(prev => new Set(prev).add(chatId))
+        
+        // Refresh conversations to include the new chat
+        refreshConversations()
+        
+        // Select the new chat after a short delay
+        setTimeout(() => {
+          setSelectedChat(chatId)
+          loadChatMessages(chatId)
+          subscribeToMessageUpdates(chatId)
+          subscribeToReadReceiptsUpdates(chatId)
+          clearUnreadStatus(chatId)
+        }, 1000)
+      } else {
+        throw new Error(finalResult.error || 'Failed to create chat')
+      }
     } catch (error) {
       console.error('Error retrying NFT chat:', error)
       
