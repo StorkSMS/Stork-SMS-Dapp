@@ -40,7 +40,7 @@ interface NewChatModalProps {
   onSubmit: (e: React.FormEvent) => void
   onChatDataChange: (data: NewChatData) => void
   onStickerPickerOpen: () => void
-  onCanvasReady: (canvas: HTMLCanvasElement | null) => void
+  onCanvasReady: (canvasDataUrl: string) => void
 }
 
 const NewChatModal: React.FC<NewChatModalProps> = ({
