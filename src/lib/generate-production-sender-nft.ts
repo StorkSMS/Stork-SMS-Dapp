@@ -110,7 +110,7 @@ try {
         fontRegistered = true
         break // Use the first font file that works
       } catch (fontError) {
-        console.error(`❌ SENDER: Failed to register font ${fontPath}:`, fontError.message)
+        console.error(`❌ SENDER: Failed to register font ${fontPath}:`, fontError instanceof Error ? fontError.message : fontError)
         console.log('Trying next font file...')
         continue
       }

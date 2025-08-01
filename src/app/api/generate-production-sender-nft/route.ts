@@ -27,7 +27,7 @@ try {
         fontRegistered = true
         break
       } catch (fontError) {
-        console.error(`❌ API ROUTE: Failed to register font ${fontPath}:`, fontError.message)
+        console.error(`❌ API ROUTE: Failed to register font ${fontPath}:`, fontError instanceof Error ? fontError.message : fontError)
         console.log('Trying next font file...')
         continue
       }
