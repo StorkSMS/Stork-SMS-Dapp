@@ -85,30 +85,35 @@ function wrapText(
 try {
   console.log('🚨 SENDER: Using project Helvetica fonts and overriding SelfWritten')
   
-  // Try both font files - the .ttc collection and the specific medium .otf
+  // ONLY use the .otf file - the .ttc is corrupted
   const fontPaths = [
-    path.join(process.cwd(), 'public/HelveticaNeue.ttc'),
     path.join(process.cwd(), 'public/HelveticaNeueMedium.otf')
   ]
   
   let fontRegistered = false
   for (const fontPath of fontPaths) {
     if (fs.existsSync(fontPath)) {
-      console.log('✅ SENDER: Found font file:', fontPath)
+      console.log('✅ SENDER: Found font file, attempting to register:', fontPath)
       
-      // Register with ALL the family names to ensure it's used
-      registerFont(fontPath, { family: 'Helvetica Neue', weight: '500' })
-      registerFont(fontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
-      registerFont(fontPath, { family: 'Helvetica' })
-      registerFont(fontPath, { family: 'Arial' })
-      registerFont(fontPath, { family: 'sans-serif' })
-      
-      // NUCLEAR OPTION: Override SelfWritten completely
-      registerFont(fontPath, { family: 'SelfWritten' })
-      
-      console.log('🎯 SENDER: Successfully registered font as ALL families including SelfWritten override!')
-      fontRegistered = true
-      break // Use the first font file found
+      try {
+        // Register with ALL the family names to ensure it's used
+        registerFont(fontPath, { family: 'Helvetica Neue', weight: '500' })
+        registerFont(fontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
+        registerFont(fontPath, { family: 'Helvetica' })
+        registerFont(fontPath, { family: 'Arial' })
+        registerFont(fontPath, { family: 'sans-serif' })
+        
+        // NUCLEAR OPTION: Override SelfWritten completely
+        registerFont(fontPath, { family: 'SelfWritten' })
+        
+        console.log('🎯 SENDER: SUCCESS! Font registered as ALL families including SelfWritten override!')
+        fontRegistered = true
+        break // Use the first font file that works
+      } catch (fontError) {
+        console.error(`❌ SENDER: Failed to register font ${fontPath}:`, fontError.message)
+        console.log('Trying next font file...')
+        continue
+      }
     }
   }
   

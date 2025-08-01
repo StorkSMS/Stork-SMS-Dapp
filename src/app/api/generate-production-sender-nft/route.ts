@@ -7,25 +7,30 @@ import fs from 'fs'
 try {
   console.log('🚨 API ROUTE: Overriding SelfWritten with Helvetica fonts IMMEDIATELY')
   
-  // Try both font files
+  // ONLY use the .otf file - the .ttc is corrupted
   const fontPaths = [
-    path.join(process.cwd(), 'public/HelveticaNeue.ttc'),
     path.join(process.cwd(), 'public/HelveticaNeueMedium.otf')
   ]
   
   let fontRegistered = false
   for (const fontPath of fontPaths) {
     if (fs.existsSync(fontPath)) {
-      console.log('✅ API ROUTE: Found font file, registering as SelfWritten override:', fontPath)
+      console.log('✅ API ROUTE: Found font file, attempting to register:', fontPath)
       
-      // NUCLEAR OPTION: Override SelfWritten completely at module load time
-      registerFont(fontPath, { family: 'SelfWritten' })
-      registerFont(fontPath, { family: 'Helvetica Neue' })
-      registerFont(fontPath, { family: 'HelveticaNeue-Medium' })
-      
-      console.log('🎯 API ROUTE: SelfWritten has been HIJACKED with Helvetica font!')
-      fontRegistered = true
-      break
+      try {
+        // NUCLEAR OPTION: Override SelfWritten completely at module load time
+        registerFont(fontPath, { family: 'SelfWritten' })
+        registerFont(fontPath, { family: 'Helvetica Neue' })
+        registerFont(fontPath, { family: 'HelveticaNeue-Medium' })
+        
+        console.log('🎯 API ROUTE: SUCCESS! SelfWritten has been HIJACKED with:', fontPath)
+        fontRegistered = true
+        break
+      } catch (fontError) {
+        console.error(`❌ API ROUTE: Failed to register font ${fontPath}:`, fontError.message)
+        console.log('Trying next font file...')
+        continue
+      }
     }
   }
   
