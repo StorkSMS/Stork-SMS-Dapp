@@ -289,7 +289,7 @@ export function WalletButton() {
       </Button>
 
       {showWalletList && (
-        <div className="absolute top-full right-0 mt-2 bg-[#FFF] border-2 border-black min-w-[200px] z-50">
+        <div className="absolute top-full right-0 mt-2 bg-[#FFF] border-2 border-black min-w-[200px] z-50" style={{ zIndex: 999 }}>
           <div
             className="p-2 border-b-2 border-black text-sm font-medium"
             style={{ fontFamily: "Helvetica Neue, sans-serif" }}
