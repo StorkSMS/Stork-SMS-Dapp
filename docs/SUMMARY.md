@@ -7,6 +7,7 @@
 * [Prerequisites](getting-started/prerequisites.md)
 * [Quick Start Guide](getting-started/quick-start.md)
 * [Interface Guide](getting-started/interface-guide.md)
+* [Solana Seeker Integration](getting-started/solana-seeker.md)
 
 ## Features
 
