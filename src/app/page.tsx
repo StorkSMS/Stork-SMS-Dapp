@@ -436,18 +436,20 @@ export default function ChatApp() {
     return () => window.removeEventListener('resize', checkIsMobile)
   }, [])
 
-  // Handle OS theme detection
+  // Handle OS theme detection - DISABLED (force light mode)
   useEffect(() => {
-    const checkTheme = () => {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setIsDarkMode(isDark)
-    }
-
-    checkTheme()
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', checkTheme)
+    // Force light mode - disable OS theme detection
+    setIsDarkMode(false)
     
-    return () => mediaQuery.removeEventListener('change', checkTheme)
+    // Commented out OS theme detection:
+    // const checkTheme = () => {
+    //   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    //   setIsDarkMode(isDark)
+    // }
+    // checkTheme()
+    // const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    // mediaQuery.addEventListener('change', checkTheme)
+    // return () => mediaQuery.removeEventListener('change', checkTheme)
   }, [])
 
   // Track loading state for scroll animation

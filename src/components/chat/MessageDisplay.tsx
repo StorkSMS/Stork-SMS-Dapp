@@ -77,7 +77,7 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
         }}
       />
       {/* Messages Area */}
-      <div ref={messagesContainerRef} className="flex-1 p-6 overflow-y-auto relative" style={{ overflowX: 'visible', paddingLeft: isMobile ? '16px' : '50px', paddingRight: isMobile ? '16px' : '50px', paddingBottom: isMobile ? '100px' : '24px', minHeight: 0 }}>
+      <div ref={messagesContainerRef} className="flex-1 p-6 overflow-y-auto relative" style={{ overflowX: 'visible', paddingLeft: isMobile ? '16px' : '50px', paddingRight: isMobile ? '16px' : '50px', paddingBottom: isMobile ? '20px' : '24px', minHeight: 0 }}>
             {isLoadingMessages ? (
               <div className="text-center mt-20">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: colors.border }}></div>
