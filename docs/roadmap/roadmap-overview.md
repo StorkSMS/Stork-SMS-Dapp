@@ -13,15 +13,15 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ## Roadmap Phases
 
-### 🚀 **Phase 1: Enhanced Messaging** (Q1 2024)
+### 🚀 **Phase 1: Enhanced Messaging** (Q1-Q2 2024)
 **Foundation Building**
 - SOL & USDC transfers directly in chat
 - Group messaging for multiple participants  
 - Enhanced security and performance
-- Mobile wallet browser optimization
+- **Solana Seeker Integration** (available days after launch)
 
 **Status**: In Development
-**Impact**: Core messaging platform with financial capabilities
+**Impact**: Core messaging platform with financial capabilities and hardware security
 
 ---
 
@@ -49,19 +49,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ---
 
-### 📱 **Phase 4: Solana Seeker Integration** (Q2 2025)
-**Native Mobile Web3**
-- Deep integration with Solana Seeker device (post April 8, 2025)
-- Hardware seed vault security
-- SMS fallback messaging system
-- Mobile carrier billing integration
-
-**Status**: Planning Phase
-**Impact**: First-class mobile Web3 messaging experience
-
----
-
-### 🏢 **Phase 5: Enterprise & Scale** (Q3 2025)
+### 🏢 **Phase 4: Enterprise & Scale** (Q4 2024)
 **Business Adoption**
 - Enterprise accounts and features
 - Advanced analytics and reporting
