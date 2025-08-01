@@ -39,7 +39,7 @@ interface MessageInputProps {
   onStickerSend: (stickerName: string) => void
   onFileSelect: (file: File) => void
   onRemoveImage: (index: number) => void
-  onSendVoice: (audioBlob: Blob, duration: number) => void
+  onSendVoice: (audioBlob: Blob, duration: number) => Promise<void>
   
   // Helper
   handleNewChat: () => void
