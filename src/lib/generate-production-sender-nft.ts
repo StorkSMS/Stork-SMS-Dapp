@@ -81,41 +81,31 @@ function wrapText(
   return lines
 }
 
-// Ensure proper font loading to prevent handwritten font fallback
+// Use the HelveticaNeue.ttc file from public directory and OVERRIDE SelfWritten
 try {
-  // Try to register Helvetica fonts from system paths
-  const helveticaFontPaths = [
-    '/System/Library/Fonts/Helvetica.ttc', // macOS - main Helvetica
-    '/System/Library/Fonts/Supplemental/Helvetica.ttc', // macOS - supplemental
-    '/System/Library/Fonts/HelveticaNeue.ttc', // macOS - Helvetica Neue
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', // Linux fallback
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', // Another Linux fallback
-  ]
+  console.log('🚨 SENDER: Using project HelveticaNeue.ttc and overriding SelfWritten')
   
-  let fontRegistered = false
-  for (const fontPath of helveticaFontPaths) {
-    if (fs.existsSync(fontPath)) {
-      if (fontPath.includes('HelveticaNeue')) {
-        registerFont(fontPath, { family: 'Helvetica Neue', weight: '500' })
-        registerFont(fontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
-        // Also register as backup names to override any interfering fonts
-        registerFont(fontPath, { family: 'SenderFont' })
-        console.log('✅ Sender: Registered Helvetica Neue font:', fontPath)
-      } else {
-        registerFont(fontPath, { family: 'Helvetica' })
-        registerFont(fontPath, { family: 'SenderFont' })
-        console.log('✅ Sender: Registered Helvetica font:', fontPath)
-      }
-      fontRegistered = true
-      break
-    }
-  }
+  const helveticaFontPath = path.join(process.cwd(), 'public/HelveticaNeue.ttc')
   
-  if (!fontRegistered) {
-    console.warn('⚠️ Sender: No Helvetica fonts found on system')
+  if (fs.existsSync(helveticaFontPath)) {
+    console.log('✅ SENDER: Found HelveticaNeue.ttc in public directory')
+    
+    // Register with ALL the family names to ensure it's used
+    registerFont(helveticaFontPath, { family: 'Helvetica Neue', weight: '500' })
+    registerFont(helveticaFontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
+    registerFont(helveticaFontPath, { family: 'Helvetica' })
+    registerFont(helveticaFontPath, { family: 'Arial' })
+    registerFont(helveticaFontPath, { family: 'sans-serif' })
+    
+    // NUCLEAR OPTION: Override SelfWritten completely
+    registerFont(helveticaFontPath, { family: 'SelfWritten' })
+    
+    console.log('🎯 SENDER: Successfully registered HelveticaNeue.ttc as ALL font families including SelfWritten override!')
+  } else {
+    console.error('❌ SENDER: HelveticaNeue.ttc not found in public directory!')
   }
 } catch (error) {
-  console.warn('⚠️ Sender: Could not register Helvetica fonts:', error)
+  console.error('❌ SENDER: Error registering HelveticaNeue.ttc:', error)
 }
 
 export async function generateProductionSenderNFT(request: GenerateProductionSenderNFTRequest): Promise<Buffer> {
@@ -163,10 +153,10 @@ export async function generateProductionSenderNFT(request: GenerateProductionSen
   console.log('🔤 Calculated font size:', fontSize, 'px (from base', SENDER_TEXT_AREA.baseFontSize + 'px)')
   console.log('📐 Letter spacing:', letterSpacing, 'px')
   
-  // Set font - using Helvetica Neue medium weight (now properly registered)
-  // Include SenderFont as backup to ensure we use our registered font
-  const fontString = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "SenderFont", "Helvetica", Arial, sans-serif`
-  console.log('🔤 Sender: Setting font to:', fontString)
+  // Set font - using our registered HelveticaNeue.ttc (which has overridden SelfWritten)
+  const fontString = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", Helvetica, Arial, sans-serif`
+  console.log('🎯 SENDER: Setting font to:', fontString)
+  console.log('🎯 SENDER: Using project HelveticaNeue.ttc - SelfWritten is OVERRIDDEN!')
   ctx.font = fontString
   ctx.fillStyle = '#000000'
   ctx.textAlign = 'left'
