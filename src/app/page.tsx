@@ -723,7 +723,9 @@ export default function ChatApp() {
           clearUnreadStatus(chatId)
         }, 1000)
       } else {
-        throw new Error(finalResult.error || 'Failed to create chat')
+        // Type guard: if status is not 'completed', it must be 'failed' which has an error property
+        const errorMessage = finalResult.status === 'failed' ? finalResult.error : 'Failed to create chat'
+        throw new Error(errorMessage || 'Failed to create chat')
       }
     } catch (error) {
       console.error('Error retrying NFT chat:', error)
