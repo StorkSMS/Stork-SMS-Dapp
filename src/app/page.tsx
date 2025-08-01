@@ -1084,7 +1084,8 @@ export default function ChatApp() {
         await sendMessage({
           chatId: selectedChat,
           content: message.trim(),
-          type: 'text'
+          recipientWallet,
+          messageType: 'text'
         })
         
         setMessage("")
