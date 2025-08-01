@@ -10,7 +10,7 @@ import { MessageStatus } from "@/components/MessageStatus"
 
 interface Message {
   id: string
-  type: 'text' | 'nft' | 'sticker' | 'voice' | 'image' | 'file'
+  type: 'text' | 'nft' | 'sticker' | 'voice' | 'image' | 'file' | 'system'
   sender_wallet: string
   message_content: string
   created_at: string
