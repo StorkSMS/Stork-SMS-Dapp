@@ -221,7 +221,7 @@ export const useNFTChatCreation = () => {
     }
 
     // Create payment transaction for dual NFT creation (base cost + fee)
-    const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com')
+    const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com')
     const companyWalletPubkey = new PublicKey(process.env.NEXT_PUBLIC_COMPANY_WALLET_PUB || process.env.COMPANY_WALLET_PUB || 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
     
     // Skip payment collection if the sender is the company wallet
@@ -234,7 +234,7 @@ export const useNFTChatCreation = () => {
     const totalAmount = 0.0033 // SOL for both NFTs
     
     console.log('💰 Payment collection details:', {
-      rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+      rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
       companyWallet: companyWalletPubkey.toBase58(),
       totalAmount: `${totalAmount} SOL`,
       description: 'Dual NFT creation (sender + recipient)'

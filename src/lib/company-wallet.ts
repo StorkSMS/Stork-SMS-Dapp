@@ -44,7 +44,7 @@ export const companyWalletPublicKey = new PublicKey(COMPANY_WALLET_PUBLIC_KEY)
 
 // Solana connection (using private RPC for server-side operations)
 export const connection = new Connection(
-  process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+  process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
   'confirmed'
 )
 

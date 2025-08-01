@@ -39,7 +39,7 @@ export const useNFTVerification = () => {
 
       // Create connection
       const connection = new Connection(
-        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com'
+        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
       )
 
       // Get all token accounts for the wallet
@@ -90,7 +90,7 @@ export const useNFTVerification = () => {
       setState(prev => ({ ...prev, isVerifying: true, error: null }))
 
       const connection = new Connection(
-        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com'
+        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
       )
 
       // Get all NFTs owned by the wallet
