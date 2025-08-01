@@ -13,11 +13,11 @@ Stork SMS is a decentralized messaging application built on the Solana blockchai
 
 ## Key Benefits
 
-* **True Ownership**: Every message creates an NFT that you own forever
-* **Privacy First**: End-to-end encryption with wallet-based authentication
-* **No Central Authority**: Fully decentralized with no single point of failure
-* **Cross-Platform**: Works on any device with a web browser
-* **Fast & Affordable**: Leveraging Solana's high speed and low transaction costs
+- **True Ownership**: Each conversation creates unique NFTs that serve as access tokens
+- **Privacy First**: End-to-end encryption with wallet-based authentication
+- **No Central Authority**: Fully decentralized with no single point of failure
+- **Cross-Platform**: Works on any device with a web browser
+- **Fast & Affordable**: Leveraging Solana's high speed and low transaction costs
 
 ## Why Blockchain Messaging?
 

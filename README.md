@@ -11,7 +11,7 @@ Stork SMS is a revolutionary decentralized messaging platform that combines the 
 - **Real-Time Messaging**: Instant message delivery with typing indicators and read receipts
 - **Multi-Media Support**: Send text, images, voice messages, and stickers
 - **Wallet Authentication**: No passwords - authenticate with your Solana wallet
-- **True Ownership**: Own your conversations forever through blockchain technology
+- **True Ownership**: Each conversation creates unique access NFTs that you own
 
 ## Quick Start
 

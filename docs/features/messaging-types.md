@@ -103,24 +103,26 @@ Our custom Stork-themed sticker collection includes:
 ## NFT Messages
 
 ### What Makes Them Special
-- **First Message**: Creates the conversation NFT
-- **Visual Design**: Custom generated artwork
-- **Permanent Record**: Stored on blockchain
-- **Collectible**: Can be valuable for memorable conversations
+- **Chat Initiation**: Creates the conversation and access NFTs
+- **Visual Design**: Custom generated artwork featuring your message
+- **Permanent Record**: Your first message is immortalized on blockchain
+- **Access Tokens**: NFTs serve as keys to access the conversation
+- **Collectible**: Memorable conversations become valuable NFTs
 
-### NFT Message Components
-1. **Message Text**: Your actual message content
-2. **Wallet Addresses**: Sender and recipient identifiers
-3. **Timestamp**: When the conversation started
+### NFT Creation Components
+1. **Your Message**: The text that will be featured on the NFT artwork
+2. **Wallet Addresses**: Sender and recipient identifiers in the design
+3. **Timestamp**: When the conversation was created
 4. **Theme**: Visual style (5 themes available)
 5. **Sticker**: Optional sticker overlay
 
-### Creating NFT Messages
+### Creating Conversation NFTs
 1. Start a new chat
-2. Write your message (keep it memorable!)
-3. Optionally add a sticker
-4. Confirm transaction in wallet
-5. NFT is minted for both participants
+2. Write your first message (this will be featured on the NFT!)
+3. Optionally add a sticker to the design
+4. Confirm transaction in wallet (0.0033 SOL)
+5. Two NFTs are minted: one for you, one for the recipient
+6. Both people now have access to continue the conversation with unlimited free messages
 
 ## Message Status Indicators
 
@@ -154,8 +156,9 @@ Our custom Stork-themed sticker collection includes:
 - Use voice messages for longer communications
 - Preview media before sending
 
-### For NFT Messages
-- Make first messages memorable
-- Consider the permanent nature
-- Choose appropriate themes
-- Add stickers for personality
+### For Conversation-Starting NFT Messages
+- Make your first message memorable - it becomes the NFT artwork!
+- Consider the permanent nature - this message will be immortalized
+- Choose appropriate themes for the visual design
+- Add stickers for personality and uniqueness
+- Remember: Only the first message creates NFTs, all subsequent messages are free

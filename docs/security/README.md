@@ -65,8 +65,7 @@ Discover how we protect your privacy and minimize data collection.
 ## Reporting Security Issues
 
 Found a vulnerability? Please report it to:
-- Email: security@stork-sms.net
-- PGP Key: [Download](https://stork-sms.net/pgp-key.asc)
+- Email: info@stork-sms.net
 - Bug Bounty: Coming soon
 
 We take security seriously and will respond to all reports within 48 hours.
