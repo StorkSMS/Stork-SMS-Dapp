@@ -83,21 +83,39 @@ function wrapText(
 
 // Ensure proper font loading to prevent handwritten font fallback
 try {
-  // Try to register a standard system font to ensure proper fallback
-  const systemFontPaths = [
-    '/System/Library/Fonts/Helvetica.ttc', // macOS
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', // Linux
+  // Try to register Helvetica fonts from system paths
+  const helveticaFontPaths = [
+    '/System/Library/Fonts/Helvetica.ttc', // macOS - main Helvetica
+    '/System/Library/Fonts/Supplemental/Helvetica.ttc', // macOS - supplemental
+    '/System/Library/Fonts/HelveticaNeue.ttc', // macOS - Helvetica Neue
+    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', // Linux fallback
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', // Another Linux fallback
   ]
   
-  for (const fontPath of systemFontPaths) {
+  let fontRegistered = false
+  for (const fontPath of helveticaFontPaths) {
     if (fs.existsSync(fontPath)) {
-      registerFont(fontPath, { family: 'Helvetica' })
-      console.log('✅ Sender: Registered system font:', fontPath)
+      if (fontPath.includes('HelveticaNeue')) {
+        registerFont(fontPath, { family: 'Helvetica Neue', weight: '500' })
+        registerFont(fontPath, { family: 'HelveticaNeue-Medium', weight: '500' })
+        // Also register as backup names to override any interfering fonts
+        registerFont(fontPath, { family: 'SenderFont' })
+        console.log('✅ Sender: Registered Helvetica Neue font:', fontPath)
+      } else {
+        registerFont(fontPath, { family: 'Helvetica' })
+        registerFont(fontPath, { family: 'SenderFont' })
+        console.log('✅ Sender: Registered Helvetica font:', fontPath)
+      }
+      fontRegistered = true
       break
     }
   }
+  
+  if (!fontRegistered) {
+    console.warn('⚠️ Sender: No Helvetica fonts found on system')
+  }
 } catch (error) {
-  console.warn('⚠️ Sender: Could not register system font, using defaults:', error)
+  console.warn('⚠️ Sender: Could not register Helvetica fonts:', error)
 }
 
 export async function generateProductionSenderNFT(request: GenerateProductionSenderNFTRequest): Promise<Buffer> {
@@ -145,11 +163,10 @@ export async function generateProductionSenderNFT(request: GenerateProductionSen
   console.log('🔤 Calculated font size:', fontSize, 'px (from base', SENDER_TEXT_AREA.baseFontSize + 'px)')
   console.log('📐 Letter spacing:', letterSpacing, 'px')
   
-  // Set font - using Helvetica Neue medium weight with more specific name
-  // Use a more explicit approach to avoid SelfWritten font interference
-  const fontString = `500 ${fontSize}px Arial, sans-serif`
+  // Set font - using Helvetica Neue medium weight (now properly registered)
+  // Include SenderFont as backup to ensure we use our registered font
+  const fontString = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "SenderFont", "Helvetica", Arial, sans-serif`
   console.log('🔤 Sender: Setting font to:', fontString)
-  console.log('🔤 Sender: Available fonts on system:', ctx.canvas)
   ctx.font = fontString
   ctx.fillStyle = '#000000'
   ctx.textAlign = 'left'
