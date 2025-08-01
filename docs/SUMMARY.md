@@ -44,15 +44,6 @@
 * [Database Schema](technical/database-schema.md)
 * [Performance](technical/performance.md)
 
-## API Reference
-
-* [API Overview](api-reference/api-overview.md)
-* [Authentication](api-reference/authentication.md)
-* [Chat Endpoints](api-reference/chat-endpoints.md)
-* [Message Endpoints](api-reference/message-endpoints.md)
-* [NFT Endpoints](api-reference/nft-endpoints.md)
-* [Media Endpoints](api-reference/media-endpoints.md)
-* [Rate Limits](api-reference/rate-limits.md)
 
 ## Roadmap
 
