@@ -366,6 +366,11 @@ export default function ChatApp() {
       
       // Remove from sets after animation completes (allow 0.5s for fade transition)
       const removeTimer = setTimeout(() => {
+        // Remove completed pending chats that match newly created chats
+        setPendingChats(prev => prev.filter(pendingChat => 
+          !(pendingChat.status === 'completed' && newlyCreatedChats.has(pendingChat.result?.chatId || ''))
+        ))
+        
         setNewlyCreatedChats(new Set())
         setFadingChats(new Set())
       }, 5500)

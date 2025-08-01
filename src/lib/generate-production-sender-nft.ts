@@ -146,8 +146,10 @@ export async function generateProductionSenderNFT(request: GenerateProductionSen
   console.log('📐 Letter spacing:', letterSpacing, 'px')
   
   // Set font - using Helvetica Neue medium weight with more specific name
-  const fontString = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "Helvetica", Arial, sans-serif`
+  // Use a more explicit approach to avoid SelfWritten font interference
+  const fontString = `500 ${fontSize}px Arial, sans-serif`
   console.log('🔤 Sender: Setting font to:', fontString)
+  console.log('🔤 Sender: Available fonts on system:', ctx.canvas)
   ctx.font = fontString
   ctx.fillStyle = '#000000'
   ctx.textAlign = 'left'
