@@ -5,33 +5,17 @@ import type React from "react"
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Plus, Menu, X, Send, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useNFTChatCreation } from "@/hooks/useNFTChatCreation"
 import { useRealtimeMessaging } from "@/hooks/useRealtimeMessaging"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNFTVerification } from "@/hooks/useNFTVerification"
-import { MessageStatus, useMessageStatus } from "@/components/MessageStatus"
+import { useMessageStatus } from "@/components/MessageStatus"
 import StickerPicker, { useStickerState } from "@/components/StickerPicker"
 import { WalletButton } from "@/components/wallet-button"
-import NFTPreviewCanvas from "@/components/NFTPreviewCanvas"
-import ChatStickerButton from "@/components/ChatStickerButton"
-import ChatStickerPicker from "@/components/ChatStickerPicker"
-import ExpandingVoiceRecorder from "@/components/ExpandingVoiceRecorder"
-import VoiceMessageBubble from "@/components/VoiceMessageBubble"
-import ImageMessageBubble from "@/components/ImageMessageBubble"
 import OnlineStatus from "@/components/OnlineStatus"
-import FileUploadButton from "@/components/FileUploadButton"
-import ImagePreview from "@/components/ImagePreview"
-// WebP conversion now handled server-side only
-// import type { } from "@/types/messaging"
 import "@/lib/debug-auth" // Import debug functions for testing
-import LinkPreview from "@/components/LinkPreview"
-import { detectUrls, calculateSkeletonDimensions } from "@/lib/url-utils"
-import { PRIORITY_LEVELS } from "@/lib/link-loading-queue"
-import { getSimpleImageDimensions, calculateSimpleResize } from "@/lib/simple-image-processing"
 
 // Import new components
 import ChatSidebar from "@/components/chat/ChatSidebar"
@@ -100,7 +84,6 @@ export default function ChatApp() {
   })
   const [isStickerPickerOpen, setIsStickerPickerOpen] = useState(false)
   const [isAppLoaded, setIsAppLoaded] = useState(false)
-  const [hideWelcomeScreen, setHideWelcomeScreen] = useState(false)
   
   // Typing detection refs
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -175,38 +158,14 @@ export default function ChatApp() {
     setPreviewCanvasData
   } = useNFTChatCreation()
 
-  // Trigger app drop-down animation on mount (desktop) or after wallet connection (mobile)
+  // Trigger app drop-down animation on mount
   useEffect(() => {
-    // Wait for mobile detection to complete first
     const timer = setTimeout(() => {
-      if (!isMobile) {
-        // Desktop: immediate animation
-        setIsAppLoaded(true)
-      }
-      // Mobile: wait for wallet connection (don't set isAppLoaded)
-    }, 100) // Small delay to ensure mobile detection is complete
+      setIsAppLoaded(true)
+    }, 100) // Small delay to ensure DOM is ready
     
     return () => clearTimeout(timer)
-  }, [isMobile])
-
-  // Trigger mobile animation after wallet connects AND authenticates
-  useEffect(() => {
-    if (isMobile && connected && isActuallyAuthenticated) {
-      const animationTimer = setTimeout(() => {
-        setIsAppLoaded(true)
-      }, 300) // Small delay after wallet connection for smooth transition
-      
-      // Hide welcome screen elements 5 seconds after animation starts
-      const hideWelcomeTimer = setTimeout(() => {
-        setHideWelcomeScreen(true)
-      }, 5300) // 300ms animation delay + 5000ms display time
-      
-      return () => {
-        clearTimeout(animationTimer)
-        clearTimeout(hideWelcomeTimer)
-      }
-    }
-  }, [isMobile, connected, isActuallyAuthenticated])
+  }, [])
 
   // Initialize audio on mount with better error handling
   useEffect(() => {
@@ -256,65 +215,36 @@ export default function ChatApp() {
   useEffect(() => {
     selectedChatRef.current = selectedChat
     console.log('📍 Selected chat updated:', selectedChat || 'none')
-    console.log('🔍 RENDER DEBUG - selectedChat state:', { 
-      selectedChat, 
-      hasSelectedChat: !!selectedChat,
-      type: typeof selectedChat,
-      length: selectedChat?.length 
-    })
   }, [selectedChat])
   
   // Subscribe to new message events
   useEffect(() => {
-    if (!onNewMessage) {
-      console.log('⚠️ onNewMessage callback not available')
-      return
-    }
-    
-    console.log('🔔 Setting up new message notification handler')
-    
-    const unsubscribe = onNewMessage((message: any, isFromCurrentUser: boolean) => {
-      console.log('🚨 NOTIFICATION HANDLER CALLED! Message received:', message)
-      console.log('📨 Sender detection from hook:', { isFromCurrentUser })
+    const cleanup = onNewMessage((chatId: string, message: any) => {
+      console.log('📬 New message event:', { chatId, message, selectedChat: selectedChatRef.current })
       
-      const currentSelectedChat = selectedChatRef.current
-      
-      console.log('📨 New message received:', {
-        messageId: message.id,
-        chatId: message.chat_id,
-        currentlySelected: currentSelectedChat,
-        isFromCurrentUser,
-        shouldNotify: !isFromCurrentUser, // Always notify if not the sender
-        shouldMarkUnread: message.chat_id !== currentSelectedChat && !isFromCurrentUser
-      })
-      
-      // Only notify if the user is NOT the sender (regardless of which chat is open)
-      if (!isFromCurrentUser) {
-        // If message is for a different chat, mark it as unread
-        if (message.chat_id !== currentSelectedChat) {
-          console.log('🔴 New message in different chat - marking as unread')
-          addUnreadStatus(message.chat_id)
-        } else {
-          console.log('📍 New message in current chat from other user')
-          // Mark as read immediately since user is viewing the chat
-          if (unreadThreads.has(message.chat_id)) {
-            clearUnreadStatus(message.chat_id)
-          }
+      // If the message is for the currently selected chat and user isn't sender
+      if (selectedChatRef.current === chatId && message.sender_wallet !== publicKey?.toString()) {
+        console.log('📍 New message in current chat from other user')
+        // Mark as read immediately since user is viewing the chat
+        if (unreadThreads.has(chatId)) {
+          clearUnreadStatus(chatId)
         }
+      } else if (selectedChatRef.current !== chatId && message.sender_wallet !== publicKey?.toString()) {
+        // If message is for a different chat, mark it as unread
+        console.log('🔴 New message in different chat - marking as unread')
+        addUnreadStatus(chatId)
         
         // Play notification sound if audio is initialized and user has interacted
         if (audioInitialized && userInteracted && audioRef.current) {
-          console.log('🔔 Playing notification sound for message from other user')
+          console.log('🔔 Playing notification sound for message in background chat')
           audioRef.current.play()
             .then(() => console.log('✅ Notification sound played'))
             .catch(err => console.error('❌ Failed to play notification sound:', err))
         }
-      } else {
-        console.log('🔇 No notification - message is from current user')
       }
     })
     
-    return unsubscribe
+    return cleanup
   }, [onNewMessage, publicKey, unreadThreads, clearUnreadStatus, addUnreadStatus, audioInitialized, userInteracted])
   
   // Update from field when wallet connects/disconnects
@@ -331,11 +261,11 @@ export default function ChatApp() {
     if (selectedChat && isActuallyAuthenticated) {
       console.log('🌐 Setting up presence subscriptions for chat:', selectedChat)
       subscribeToPresenceUpdates(selectedChat)
-      setOnlineStatus(selectedChat, true)
+      setOnlineStatus('online', selectedChat)
       
       return () => {
         console.log('🌐 Cleaning up presence subscriptions for chat:', selectedChat)
-        setOnlineStatus(selectedChat, false)
+        setOnlineStatus('offline', selectedChat)
       }
     }
   }, [selectedChat, isActuallyAuthenticated, subscribeToPresenceUpdates, setOnlineStatus])
@@ -453,39 +383,66 @@ export default function ChatApp() {
     // Check if loading just finished (transition from true to false)
     const loadingJustFinished = prevIsLoadingMessages.current && !isLoadingMessages
     
-    // Update the ref for next render
-    prevIsLoadingMessages.current = isLoadingMessages
+    if (loadingJustFinished && messagesContainerRef.current) {
+      console.log('📜 Messages loaded, initiating scroll animation')
+      
+      // Immediately hide all messages
+      const messageElements = messagesContainerRef.current.querySelectorAll('.space-y-4 > div')
+      messageElements.forEach((el) => {
+        (el as HTMLElement).style.opacity = '0'
+        ;(el as HTMLElement).style.transform = 'translateY(20px)'
+      })
+      
+      // Use flushSync to ensure DOM updates are applied immediately
+      flushSync(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+        }
+      })
+      
+      // Then animate them in sequence
+      messageElements.forEach((el, index) => {
+        setTimeout(() => {
+          (el as HTMLElement).style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out'
+          ;(el as HTMLElement).style.opacity = '1'
+          ;(el as HTMLElement).style.transform = 'translateY(0)'
+        }, index * 50) // 50ms delay between each message
+      })
+    }
     
+    // Update the previous state
+    prevIsLoadingMessages.current = isLoadingMessages
+  }, [isLoadingMessages])
+  
+  // Auto-scroll when new messages arrive (only if already at bottom)
+  useEffect(() => {
     if (messagesContainerRef.current && currentChatMessages.length > 0) {
-      if (loadingJustFinished) {
-        // Chat just finished loading - do the animation
+      const container = messagesContainerRef.current
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100
+      
+      if (isNearBottom) {
+        // Only animate the newest message (last one)
+        const messageElements = container.querySelectorAll('.space-y-4 > div')
+        const newestMessage = messageElements[messageElements.length - 1] as HTMLElement
         
-        // Wait for DOM to render the messages
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (messagesContainerRef.current) {
-              // Set scroll to top
-              messagesContainerRef.current.scrollTop = 0
-              
-              // Pause at top for 550ms to allow LinkPreview animations to complete
-              setTimeout(() => {
-                if (messagesContainerRef.current) {
-                  messagesContainerRef.current.scrollTo({
-                    top: messagesContainerRef.current.scrollHeight,
-                    behavior: 'smooth'
-                  })
-                }
-              }, 550)
-            }
-          })
-        })
-      } else {
-        // Not a fresh load - just scroll to bottom instantly (for new messages)
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+        if (newestMessage && !newestMessage.style.transition) {
+          // Set initial state
+          newestMessage.style.opacity = '0'
+          newestMessage.style.transform = 'translateY(20px)'
+          
+          // Scroll to bottom
+          container.scrollTop = container.scrollHeight
+          
+          // Animate in
+          setTimeout(() => {
+            newestMessage.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out'
+            newestMessage.style.opacity = '1'
+            newestMessage.style.transform = 'translateY(0)'
+          }, 50)
+        }
       }
     }
-  }, [isLoadingMessages, currentChatMessages])
-  
+  }, [currentChatMessages])
   
   // Theme colors helper
   const colors = getThemeColors(isDarkMode)
@@ -524,18 +481,13 @@ export default function ChatApp() {
         const dateB = new Date(b.last_activity)
         return dateB.getTime() - dateA.getTime()
       })
-      .map(conv => {
-        const otherParticipant = conv.participants.find(p => p !== (publicKey?.toString() || ''))
-        const title = otherParticipant ? `${otherParticipant.slice(0, 8)}...${otherParticipant.slice(-4)}` : 'Unknown'
-        const lastMessage = conv.last_message?.message_content || 'No messages yet'
-        
-        return {
-          id: conv.id,
-          title,
-          lastMessage: lastMessage.length > 50 ? `${lastMessage.slice(0, 50)}...` : lastMessage,
-          lastActivity: conv.last_activity
-        }
-      })
+      .map(chat => ({
+        id: chat.id,
+        title: chat.participants.find(p => p !== publicKey?.toString())?.slice(0, 8) + '...' + 
+               chat.participants.find(p => p !== publicKey?.toString())?.slice(-4) || 'Unknown',
+        lastMessage: chat.last_message_preview || 'No messages yet',
+        lastActivity: chat.last_activity || new Date().toISOString()
+      }))
   }, [conversations, publicKey, timestampUpdate])
 
   const handleNewChat = () => {
@@ -545,18 +497,8 @@ export default function ChatApp() {
   const handleSendInvitation = (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔍 Form validation:', {
-      to: newChatData.to,
-      message: newChatData.message,
-      effectiveMessage: stickerState.getEffectiveMessage(),
-      connected,
-      publicKey: !!publicKey,
-      isAuthenticated
-    })
-    
-    // Validate form - use effective message which includes sticker logic
-    const effectiveMessage = stickerState.getEffectiveMessage()
-    if (!newChatData.to || !effectiveMessage) {
+    // Validate form
+    if (!newChatData.to || !newChatData.message) {
       alert('Please fill in all required fields')
       return
     }
@@ -566,104 +508,74 @@ export default function ChatApp() {
       return
     }
     
-    if (!isAuthenticated) {
-      alert('Please wait for wallet authentication to complete')
-      return
+    setIsWaitingForSignature(true)
+    
+    // Create a new pending chat entry
+    const pendingChatId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const newPendingChat: PendingChat = {
+      id: pendingChatId,
+      status: 'processing',
+      recipient: newChatData.to,
+      message: stickerState.getEffectiveMessage(),
+      theme: 'light',
     }
     
-    // Go straight to NFT creation with immediate signature
-    handleCreateNFTDirectly()
-  }
-  
-  const handleCreateNFTDirectly = useCallback(async () => {
-    try {
-      setIsWaitingForSignature(true) // Start signature waiting state
+    setPendingChats(prev => [...prev, newPendingChat])
+    
+    // Process the request
+    createNFTChatWithImmediateSignature({
+      recipientWallet: newChatData.to,
+      theme: 'light',
+      message: stickerState.getEffectiveMessage(),
+      selectedSticker: stickerState.selectedSticker
+    }).then((chatId) => {
+      console.log('NFT Chat created successfully with ID:', chatId)
       
-      // Use effective message (original message if sticker selected, current message otherwise)
-      const effectiveMessage = stickerState.getEffectiveMessage()
-      
-      console.log('🚀 Creating NFT chat with:', {
-        recipientWallet: newChatData.to,
-        messageContent: effectiveMessage,
-        selectedSticker: stickerState.selectedSticker
-      })
-      
-      // Use new immediate signature flow - wallet signature will popup immediately
-      const { pendingChat, backgroundProcess } = await createNFTChatWithImmediateSignature(
-        {
-          recipientWallet: newChatData.to,
-          messageContent: effectiveMessage,
-          selectedSticker: stickerState.selectedSticker,
-          theme: 'default'
-        },
-        (pendingChat) => {
-          // Add pending chat to sidebar immediately
-          setPendingChats(prev => [pendingChat, ...prev])
-        }
+      // Update pending chat to completed
+      setPendingChats(prev => 
+        prev.map(chat => 
+          chat.id === pendingChatId 
+            ? { ...chat, status: 'completed', result: { chatId } }
+            : chat
+        )
       )
       
-      // Signature was successful, close modal and reset state
-      setIsWaitingForSignature(false)
-      setIsCreatingNewChat(false)
+      // Add to newly created set for animation
+      setNewlyCreatedChats(prev => new Set(prev).add(chatId))
       
-      // Clear form data and reset sticker state
-      setNewChatData({ to: "", from: publicKey?.toString() || "", message: "", selectedSticker: null })
+      // Refresh conversations to include the new chat
+      refreshConversations()
+      
+      // Close modal and reset form
+      setIsCreatingNewChat(false)
+      setIsWaitingForSignature(false)
+      setNewChatData({ to: "", from: connected && publicKey ? publicKey.toString() : "", message: "", selectedSticker: null })
       stickerState.handleStickerSelect(null)
       stickerState.setCurrentMessage("")
       
-      // Handle background processing result
-      backgroundProcess.then((finalResult) => {
-        setPendingChats(prev => 
-          prev.map(chat => 
-            chat.id === pendingChat.id 
-              ? finalResult 
-              : chat
-          )
-        )
-        
-        // If successful, refresh conversations and auto-select the new chat
-        if (finalResult.status === 'completed' && finalResult.result?.chatId) {
-          // Mark as newly created for success indicator
-          setNewlyCreatedChats(prev => new Set(prev).add(finalResult.result.chatId))
-          
-          // Conversations should update automatically via real-time subscription
-          
-          // The new chat should automatically appear via realtime subscription
-          // Auto-select the newly created chat after a brief delay to ensure it's in the conversations list
-          setTimeout(() => {
-            setSelectedChat(finalResult.result.chatId)
-            loadChatMessages(finalResult.result.chatId)
-            subscribeToMessageUpdates(finalResult.result.chatId)
-          }, 100) // Small delay to ensure realtime subscription has processed the new chat
-        }
-      }).catch((error) => {
-        console.error('Background NFT creation failed:', error)
-        setPendingChats(prev => 
-          prev.map(chat => 
-            chat.id === pendingChat.id 
-              ? { ...chat, status: 'failed', error: error.message }
-              : chat
-          )
-        )
-      })
+      // Select the new chat after a short delay to ensure it's loaded
+      setTimeout(() => {
+        setSelectedChat(chatId)
+        loadChatMessages(chatId)
+        subscribeToMessageUpdates(chatId)
+        subscribeToReadReceiptsUpdates(chatId)
+        clearUnreadStatus(chatId)
+      }, 1000)
+    }).catch((error) => {
+      console.error('Error creating NFT chat:', error)
       
-    } catch (error) {
-      console.error('NFT chat creation failed:', error)
+      // Update pending chat to failed
+      setPendingChats(prev => 
+        prev.map(chat => 
+          chat.id === pendingChatId 
+            ? { ...chat, status: 'failed', error: error.message || 'Failed to create chat' }
+            : chat
+        )
+      )
+      
       setIsWaitingForSignature(false)
-      
-      // Show user-friendly error message
-      if (error instanceof Error) {
-        if (error.message.includes('User rejected')) {
-          alert('Transaction was cancelled. Please try again when ready to sign.')
-        } else {
-          alert(`Failed to create NFT chat: ${error.message}`)
-        }
-      } else {
-        alert('Failed to create NFT chat. Please try again.')
-      }
-    }
-  }, [newChatData.to, stickerState, createNFTChatWithImmediateSignature, publicKey, setPendingChats, setNewlyCreatedChats, setSelectedChat, loadChatMessages, subscribeToMessageUpdates])
-
+    })
+  }
   
   // Use the callback to call async createNFT operation
   const handleRetryPendingChat = useCallback(async (pendingChatId: string) => {
@@ -681,52 +593,37 @@ export default function ChatApp() {
       )
 
       // Retry the NFT creation
-      const { pendingChat: newPendingChat, backgroundProcess } = await createNFTChatWithImmediateSignature(
-        {
-          recipientWallet: pendingChat.recipient,
-          messageContent: pendingChat.message,
-          theme: pendingChat.theme
-        },
-        (updatedPendingChat) => {
-          // Update callback - not needed for retry
-        }
-      )
+      const chatId = await createNFTChatWithImmediateSignature({
+        recipientWallet: pendingChat.recipient,
+        theme: pendingChat.theme,
+        message: pendingChat.message
+      })
 
-      // Wait for the background process to complete
-      const finalResult = await backgroundProcess
+      console.log('NFT Chat retry successful with ID:', chatId)
       
-      if (finalResult.status === 'completed' && finalResult.result?.chatId) {
-        const chatId = finalResult.result.chatId
-        console.log('NFT Chat retry successful with ID:', chatId)
-        
-        // Update pending chat to completed
-        setPendingChats(prev => 
-          prev.map(chat => 
-            chat.id === pendingChatId 
-              ? { ...chat, status: 'completed', result: { chatId } }
-              : chat
-          )
+      // Update pending chat to completed
+      setPendingChats(prev => 
+        prev.map(chat => 
+          chat.id === pendingChatId 
+            ? { ...chat, status: 'completed', result: { chatId } }
+            : chat
         )
-        
-        // Add to newly created set for animation
-        setNewlyCreatedChats(prev => new Set(prev).add(chatId))
-        
-        // Refresh conversations to include the new chat
-        refreshConversations()
-        
-        // Select the new chat after a short delay
-        setTimeout(() => {
-          setSelectedChat(chatId)
-          loadChatMessages(chatId)
-          subscribeToMessageUpdates(chatId)
-          subscribeToReadReceiptsUpdates(chatId)
-          clearUnreadStatus(chatId)
-        }, 1000)
-      } else {
-        // Type guard: if status is not 'completed', it must be 'failed' which has an error property
-        const errorMessage = finalResult.status === 'failed' ? finalResult.error : 'Failed to create chat'
-        throw new Error(errorMessage || 'Failed to create chat')
-      }
+      )
+      
+      // Add to newly created set for animation
+      setNewlyCreatedChats(prev => new Set(prev).add(chatId))
+      
+      // Refresh conversations to include the new chat
+      refreshConversations()
+      
+      // Select the new chat after a short delay
+      setTimeout(() => {
+        setSelectedChat(chatId)
+        loadChatMessages(chatId)
+        subscribeToMessageUpdates(chatId)
+        subscribeToReadReceiptsUpdates(chatId)
+        clearUnreadStatus(chatId)
+      }, 1000)
     } catch (error) {
       console.error('Error retrying NFT chat:', error)
       
@@ -753,7 +650,7 @@ export default function ChatApp() {
     subscribeToMessageUpdates(chatId)
     subscribeToReadReceiptsUpdates(chatId)
     subscribeToPresenceUpdates(chatId)
-    setOnlineStatus(chatId, true)
+    setOnlineStatus('online', chatId)
     
     // Clear unread status for this chat
     clearUnreadStatus(chatId)
@@ -783,11 +680,10 @@ export default function ChatApp() {
       await sendMessage({
         chatId: selectedChat,
         content: "Sent a sticker",
-        messageType: 'sticker',
+        type: 'sticker',
         metadata: {
           sticker_name: stickerName
-        },
-        recipientWallet
+        }
       })
       
       console.log('✅ Sticker sent successfully')
@@ -802,8 +698,8 @@ export default function ChatApp() {
     
     console.log('🎤 handleSendVoice called:', {
       duration,
-      selectedChat,
-      blobSize: audioBlob.size
+      size: audioBlob.size,
+      selectedChat
     })
     
     try {
@@ -812,26 +708,32 @@ export default function ChatApp() {
       
       const recipientWallet = selectedConversation.participants.find(p => p !== publicKey?.toString())
       if (!recipientWallet) return
+
+      // Generate unique message ID for this voice message
+      const messageId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       
-      // For now, send voice message with placeholder until upload is fixed
-      await sendMessage({
-        chatId: selectedChat,
-        content: `Voice message (${Math.round(duration)}s)`,
-        messageType: 'voice',
-        metadata: {
-          duration: Math.round(duration),
-          file_type: 'audio/webm',
-          // Store blob as base64 for now (temporary solution)
-          audio_data: await new Promise<string>((resolve) => {
-            const reader = new FileReader()
-            reader.onloadend = () => resolve(reader.result as string)
-            reader.readAsDataURL(audioBlob)
-          })
-        },
-        recipientWallet
-      })
+      // Convert blob to base64
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64Audio = reader.result as string
+        
+        // Send voice message with audio data
+        await sendMessage({
+          chatId: selectedChat,
+          content: `Voice message (${Math.round(duration)}s)`,
+          type: 'voice',
+          file_data: base64Audio,
+          metadata: {
+            message_id: messageId,
+            duration: Math.round(duration),
+            mime_type: audioBlob.type || 'audio/webm'
+          }
+        })
+        
+        console.log('✅ Voice message sent successfully')
+      }
       
-      console.log('✅ Voice message sent successfully')
+      reader.readAsDataURL(audioBlob)
     } catch (error) {
       console.error('❌ Error sending voice message:', error)
     }
@@ -916,20 +818,19 @@ export default function ChatApp() {
           return newMap
         })
         
-        // Send the image with metadata - only use custom text, no default text
-        const messageContent = textContent.trim() || ""
+        // Send the image with metadata
+        const messageContent = textContent || `Sent an image: ${file.name}`
         await sendMessage({
           chatId,
           content: messageContent,
-          messageType: 'image',
+          type: 'image',
+          file_data: base64Data,
           metadata: {
             file_name: file.name,
             file_size: file.size,
             mime_type: file.type,
-            upload_id: uploadId,
-            file_data: base64Data
-          },
-          recipientWallet
+            upload_id: uploadId
+          }
         })
         
         console.log(`✅ Image ${uploadId} sent successfully`)
@@ -1025,15 +926,13 @@ export default function ChatApp() {
         clearTimeout(typingTimeoutRef.current)
       }
       
-      // Set new timeout - typing stops after 3 seconds of inactivity
+      // Set a new timeout to stop typing after 3 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
         handleStopTyping()
       }, 3000)
     } else {
-      // Stop typing when message is cleared
-      if (isCurrentlyTypingRef.current) {
-        handleStopTyping()
-      }
+      // If input is empty, stop typing immediately
+      handleStopTyping()
     }
   }, [handleStartTyping, handleExtendTyping, handleStopTyping])
 
@@ -1130,37 +1029,12 @@ export default function ChatApp() {
         }}
       />
 
-      {/* Mobile Welcome Screen - Logo (behind main app) */}
-      {isMobile && !hideWelcomeScreen && (
-        <div className="fixed inset-0 z-[8] flex flex-col items-center justify-center px-6 pointer-events-none">
-          {/* Logo - bigger size */}
-          <div className="mb-8">
-            <Image src="/stork-logo.svg" alt="Stork Logo" width={200} height={67} className="h-16 w-auto" />
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Welcome Screen - Connect wallet button (high z-index before auth, behind main app after) */}
-      {isMobile && !hideWelcomeScreen && (
-        <div className={`fixed inset-0 ${isActuallyAuthenticated ? 'z-[8]' : 'z-[150]'} flex flex-col items-center justify-center px-6 pointer-events-none`}>
-          <div className="mb-8 invisible">
-            {/* Invisible spacer to match logo position */}
-            <div className="h-16 w-auto"></div>
-          </div>
-          
-          {/* Connect wallet button */}
-          <div className="pointer-events-auto">
-            <WalletButton />
-          </div>
-        </div>
-      )}
-
       {/* Mobile Header */}
       <div 
-        className="relative z-[100]"
         style={{
-          transform: isAppLoaded ? 'translateY(0)' : `translateY(${isMobile ? '-100vh' : '-50vh'})`,
-          transition: 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+          transform: isAppLoaded ? 'translateY(0)' : 'translateY(-100%)',
+          opacity: isAppLoaded ? 1 : 0,
+          transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease-out'
         }}
       >
         <MobileHeader
@@ -1180,12 +1054,13 @@ export default function ChatApp() {
       {/* Main Container */}
       <div className="relative z-10 h-screen w-full md:p-8 md:flex md:justify-center">
         <div 
-          className={`h-full w-full max-w-[2000px] md:border-4 flex relative ${isMobile ? '' : ''}`}
+          className={`border-0 md:border-4 h-full relative flex ${isMobile ? 'w-full' : 'w-full max-w-6xl'}`}
           style={{ 
             backgroundColor: colors.bg, 
             borderColor: colors.border,
-            transform: isAppLoaded ? 'translateY(0)' : `translateY(${isMobile ? '-120vh' : '-60vh'})`,
-            transition: 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            transform: isAppLoaded ? 'translateY(0)' : 'translateY(-100vh)',
+            opacity: isAppLoaded ? 1 : 0,
+            transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease-out'
           }}
         >
           {/* Paper Texture Over App Window */}
@@ -1200,7 +1075,6 @@ export default function ChatApp() {
               opacity: isDarkMode ? 0.8 : 0.4
             }}
           />
-          
           
           {/* Left Sidebar */}
           <ChatSidebar
@@ -1234,7 +1108,8 @@ export default function ChatApp() {
             <div 
               className="hidden md:flex items-center justify-between p-6 relative"
               style={{ 
-                background: `linear-gradient(to bottom, ${colors.bg}, transparent)` 
+                backgroundColor: colors.bg,
+                borderBottom: `4px solid ${colors.border}`
               }}
             >
               {/* Chat Info - Left Side */}
@@ -1283,7 +1158,7 @@ export default function ChatApp() {
 
             {/* Chat Content */}
             {selectedChat ? (
-              <div className="flex-1 flex flex-col relative" style={{ overflow: 'visible', maxHeight: isMobile ? 'calc(100vh - 73px - 80px)' : 'calc(100vh - 168px)', gap: 0 }}>
+              <>
                 <MessageDisplay
                   selectedChat={selectedChat}
                   currentChatMessages={currentChatMessages}
@@ -1302,33 +1177,29 @@ export default function ChatApp() {
                   retryMessage={retryMessage}
                 />
                 
-                {/* MessageInput - Desktop only when chat selected */}
-                {!isMobile && (
-                  <MessageInput
-                    message={message}
-                    isInputFocused={isInputFocused}
-                    isChatStickerPickerOpen={isChatStickerPickerOpen}
-                    selectedImages={selectedImages}
-                    isMobile={isMobile}
-                    isDarkMode={isDarkMode}
-                    connected={connected}
-                    publicKey={publicKey ? publicKey.toString() : null}
-                    isAuthenticated={isAuthenticated}
-                    chatStickerButtonRef={chatStickerButtonRef}
-                    onMessageChange={handleMessageInputChange}
-                    onSendMessage={handleSendMessage}
-                    onInputFocus={() => setIsInputFocused(true)}
-                    onInputBlur={() => setIsInputFocused(false)}
-                    onStickerPickerToggle={() => setIsChatStickerPickerOpen(!isChatStickerPickerOpen)}
-                    onStickerPickerClose={() => setIsChatStickerPickerOpen(false)}
-                    onStickerSend={handleSendSticker}
-                    onFileSelect={handleFileSelect}
-                    onRemoveImage={handleRemoveImage}
-                    onSendVoice={handleSendVoice}
-                    handleNewChat={handleNewChat}
-                  />
-                )}
-              </div>
+                <MessageInput
+                  message={message}
+                  isInputFocused={isInputFocused}
+                  isChatStickerPickerOpen={isChatStickerPickerOpen}
+                  selectedImages={selectedImages}
+                  isMobile={isMobile}
+                  isDarkMode={isDarkMode}
+                  connected={connected}
+                  publicKey={publicKey ? publicKey.toString() : null}
+                  isAuthenticated={isAuthenticated}
+                  chatStickerButtonRef={chatStickerButtonRef}
+                  onMessageChange={handleMessageInputChange}
+                  onSendMessage={handleSendMessage}
+                  onInputFocus={() => setIsInputFocused(true)}
+                  onInputBlur={() => setIsInputFocused(false)}
+                  onStickerPickerToggle={() => setIsChatStickerPickerOpen(!isChatStickerPickerOpen)}
+                  onStickerSend={handleSendSticker}
+                  onFileSelect={handleFileSelect}
+                  onRemoveImage={handleRemoveImage}
+                  onSendVoice={handleSendVoice}
+                  handleNewChat={handleNewChat}
+                />
+              </>
             ) : (
               /* Empty State */
               <div className="flex-1 flex items-center justify-center">
@@ -1351,34 +1222,6 @@ export default function ChatApp() {
         </div>
       </div>
 
-      {/* Mobile MessageInput - Only when chat selected, not loading, and sidebar closed */}
-      {isMobile && selectedChat && !isLoadingMessages && !isMobileMenuOpen && (
-        <MessageInput
-          message={message}
-          isInputFocused={isInputFocused}
-          isChatStickerPickerOpen={isChatStickerPickerOpen}
-          selectedImages={selectedImages}
-          isMobile={isMobile}
-          isDarkMode={isDarkMode}
-          connected={connected}
-          publicKey={publicKey ? publicKey.toString() : null}
-          isAuthenticated={isAuthenticated}
-          chatStickerButtonRef={chatStickerButtonRef}
-          onMessageChange={handleMessageInputChange}
-          onSendMessage={handleSendMessage}
-          onInputFocus={() => setIsInputFocused(true)}
-          onInputBlur={() => setIsInputFocused(false)}
-          onStickerPickerToggle={() => setIsChatStickerPickerOpen(!isChatStickerPickerOpen)}
-          onStickerPickerClose={() => setIsChatStickerPickerOpen(false)}
-          onStickerSend={handleSendSticker}
-          onFileSelect={handleFileSelect}
-          onRemoveImage={handleRemoveImage}
-          onSendVoice={handleSendVoice}
-          handleNewChat={handleNewChat}
-        />
-      )}
-
-
       {/* New Chat Modal */}
       <NewChatModal
         isOpen={isCreatingNewChat}
@@ -1393,11 +1236,7 @@ export default function ChatApp() {
         stickerState={stickerState}
         onClose={handleCancelNewChat}
         onSubmit={handleSendInvitation}
-        onChatDataChange={(data) => {
-          setNewChatData(data)
-          // Sync message with sticker state
-          stickerState.setCurrentMessage(data.message)
-        }}
+        onChatDataChange={setNewChatData}
         onStickerPickerOpen={() => setIsStickerPickerOpen(true)}
         onCanvasReady={setPreviewCanvasData}
       />

@@ -99,7 +99,14 @@ export default function VoiceMessageBubble({ message, isOwnMessage, colors, isDa
       
       if (!audioRef.current) {
         setIsLoading(true)
-        const audio = new Audio(message.file_url)
+        // Use file_url if available, otherwise use base64 audio data from metadata
+        const audioSource = message.file_url || (message.metadata as any)?.audio_data
+        if (!audioSource) {
+          setError('Voice message not available')
+          setIsLoading(false)
+          return
+        }
+        const audio = new Audio(audioSource)
         
         audio.onloadeddata = () => {
           setIsLoading(false)
@@ -157,14 +164,26 @@ export default function VoiceMessageBubble({ message, isOwnMessage, colors, isDa
       setError(null)
       setIsDownloading(true)
       
-      // Fetch the audio file
-      const response = await fetch(message.file_url)
-      if (!response.ok) {
-        throw new Error('Voice message not found. It may have expired.')
-      }
+      let blob: Blob
+      let filename: string
       
-      const blob = await response.blob()
-      const filename = message.file_name || 'voice_message.mp4'
+      if (message.file_url) {
+        // Fetch from URL
+        const response = await fetch(message.file_url)
+        if (!response.ok) {
+          throw new Error('Voice message not found. It may have expired.')
+        }
+        blob = await response.blob()
+        filename = message.file_name || 'voice_message.mp4'
+      } else if ((message.metadata as any)?.audio_data) {
+        // Convert base64 to blob
+        const base64Data = (message.metadata as any).audio_data
+        const response = await fetch(base64Data)
+        blob = await response.blob()
+        filename = `voice_message_${Date.now()}.webm`
+      } else {
+        throw new Error('No audio data available')
+      }
       
       // Convert and download as MP3 with progress callback
       await convertToMp3Download(blob, filename, (progress) => {
