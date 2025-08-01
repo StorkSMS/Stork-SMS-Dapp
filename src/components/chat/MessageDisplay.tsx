@@ -34,7 +34,7 @@ interface MessageDisplayProps {
   readReceipts: Record<string, string>
   
   // Message status functions
-  getStatusFromMessage: (message: any) => 'sent' | 'delivered' | 'read' | 'failed' | 'sending' | 'received'
+  getStatusFromMessage: (message: any) => 'sending' | 'optimistic' | 'sent' | 'delivered' | 'read' | 'failed' | 'encrypted' | 'retrying' | 'received'
   isMessageEncrypted: (message: any) => boolean
   getMessageTimestamp: (message: any) => string
   retryMessage: (message: any) => void
