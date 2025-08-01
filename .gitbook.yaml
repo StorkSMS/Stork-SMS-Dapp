@@ -1,24 +1,25 @@
-root: ./
+root: ./docs
 
 structure:
-  readme: GITBOOK.md
+  readme: README.md
   summary: SUMMARY.md
 
-# Only sync documentation files
-includes:
-  - GITBOOK.md
-  - SUMMARY.md
-  - README.md
+# Only include documentation files
+include:
+  - docs/**
 
-# Exclude development files
-excludes:
+# Explicitly exclude everything else
+exclude:
+  - src/**
+  - public/**
+  - scripts/**
+  - supabase/**
+  - netlify-env/**
+  - node_modules/**
+  - dev-docs/**
+  - "*.json"
+  - "*.js"
+  - "*.mjs"
+  - "*.ts"
   - "*.log"
-  - "*.md"
-  - "!GITBOOK.md"
-  - "!SUMMARY.md"
-  - "!README.md"
-  - node_modules
-  - .git
-  - src
-  - public
-  - scripts
+  - "*.toml"

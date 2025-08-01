@@ -1,0 +1,26 @@
+{
+  "title": "Stork SMS Documentation",
+  "description": "Decentralized Messaging on Solana",
+  "author": "Stork SMS Team",
+  "language": "en",
+  "structure": {
+    "readme": "GITBOOK.md"
+  },
+  "plugins": [
+    "expandable-chapters",
+    "copy-code-button",
+    "search-pro",
+    "anchors"
+  ],
+  "pluginsConfig": {
+    "theme-default": {
+      "showLevel": true
+    }
+  },
+  "links": {
+    "sidebar": {
+      "Stork SMS App": "https://app.stork-sms.net",
+      "GitHub": "https://github.com/StorkSMS/Browser-App"
+    }
+  }
+}

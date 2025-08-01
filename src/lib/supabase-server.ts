@@ -26,7 +26,7 @@ export const createWalletSession = async (walletAddress: string, signature?: str
     console.log(`Creating Supabase session for wallet: ${walletAddress.slice(0, 8)}...`)
     
     // Create a unique email for this wallet
-    const email = `${walletAddress.toLowerCase()}@wallet.stork-sms.app`
+    const email = `${walletAddress.toLowerCase()}@wallet.stork-sms.net`
     
     // Check if user already exists
     const { data: existingUser, error: userError } = await supabaseServer.auth.admin.listUsers()
@@ -211,7 +211,7 @@ export const getUserByWalletAddress = async (walletAddress: string) => {
   
   return {
     id: formattedUuid,
-    email: `${walletAddress.toLowerCase()}@wallet.stork-sms.app`,
+    email: `${walletAddress.toLowerCase()}@wallet.stork-sms.net`,
     user_metadata: {
       wallet_address: walletAddress,
       auth_method: 'wallet'

@@ -15,7 +15,7 @@ Stork SMS is a revolutionary decentralized messaging platform that combines the 
 
 ## Quick Start
 
-1. Visit [stork-sms.app](https://stork-sms.app)
+1. Visit [app.stork-sms.net](https://app.stork-sms.net)
 2. Connect your Solana wallet (Phantom, Solflare, etc.)
 3. Click "New Chat" and enter recipient's wallet address
 4. Send your first message and approve the NFT creation
@@ -61,4 +61,4 @@ MIT License - see LICENSE file for details
 
 - Discord: [discord.gg/storksms](https://discord.gg/storksms)
 - Twitter: [@StorkSMS](https://twitter.com/storksms)
-- Email: hello@stork-sms.app
+- Email: info@stork-sms.net

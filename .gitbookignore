@@ -1,0 +1,43 @@
+# Development documentation (exclude from GitBook)
+CLAUDE.md
+COLLECTION_SETUP_GUIDE.md
+GITBOOK.md
+NFT_SYSTEM_SUMMARY.md
+SECURITY_ARCHITECTURE.md
+SECURITY_IMPLEMENTATION_SUMMARY.md
+SUMMARY.md
+test-webp-fix.md
+
+# Configuration files
+book.json
+netlify.toml
+next.config.js
+next.config.mjs
+components.json
+postcss.config.mjs
+tailwind.config.ts
+tsconfig.json
+tsconfig.tsbuildinfo
+
+# Package files
+package.json
+package-lock.json
+
+# Data files
+collection-nft-info-*.json
+
+# Development files
+dev-server.log
+next-env.d.ts
+
+# Test files
+test-sender-nft*
+
+# Directories
+src/
+public/
+scripts/
+supabase/
+netlify-env/
+node_modules/
+.git/

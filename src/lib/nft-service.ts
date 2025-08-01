@@ -144,7 +144,7 @@ export class NFTService {
       name: `Stork Message #${messageId.substring(0, 8)}`,
       description: `A message NFT created on Stork SMS - "${truncatedContent}"`,
       image: imageUrl,
-      external_url: `https://stork-sms.app/message/${messageId}`,
+      external_url: `https://app.stork-sms.net/message/${messageId}`,
       attributes,
       properties: {
         files: [

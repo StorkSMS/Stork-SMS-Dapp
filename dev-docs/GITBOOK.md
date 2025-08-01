@@ -52,7 +52,7 @@ To use Stork SMS, you'll need:
 
 ### Quick Start Guide
 
-1. **Visit the App**: Navigate to [stork-sms.app](https://stork-sms.app)
+1. **Visit the App**: Navigate to [app.stork-sms.net](https://app.stork-sms.net)
 2. **Connect Your Wallet**: Click "Connect Wallet" and select your preferred wallet
 3. **Start a New Chat**: Click "New Chat" and enter the recipient's wallet address
 4. **Send Your First Message**: Type your message and optionally add a sticker
@@ -246,7 +246,7 @@ When you start a new conversation on Stork SMS:
   "name": "Stork Message #abc123",
   "symbol": "STORK",
   "description": "Verified message NFT from Stork SMS",
-  "image": "https://r2.stork-sms.app/nft-images/...",
+  "image": "https://r2.stork-sms.net/nft-images/...",
   "attributes": [
     {
       "trait_type": "Message Type",
@@ -546,11 +546,11 @@ Stork SMS represents the future of messaging - where users truly own their conve
 - **Discord**: [discord.gg/storksms](https://discord.gg/storksms)
 - **Twitter**: [@StorkSMS](https://twitter.com/storksms)
 - **GitHub**: [github.com/StorkSMS](https://github.com/StorkSMS)
-- **Email**: hello@stork-sms.app
+- **Email**: info@stork-sms.net
 
 ### Start Messaging Today
 
-Visit [stork-sms.app](https://stork-sms.app) to begin your journey into decentralized messaging.
+Visit [app.stork-sms.net](https://app.stork-sms.net) to begin your journey into decentralized messaging.
 
 ---
 

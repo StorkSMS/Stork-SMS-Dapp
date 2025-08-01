@@ -1,0 +1,49 @@
+# Prerequisites
+
+To use Stork SMS, you'll need:
+
+## 1. A Solana Wallet
+
+We support the following wallets:
+- **Phantom** (Recommended)
+- **Solflare**
+- **Torus**
+- **Ledger**
+
+### Installing Phantom Wallet
+
+1. Visit [phantom.app](https://phantom.app)
+2. Download the browser extension for Chrome, Firefox, or Edge
+3. Create a new wallet or import an existing one
+4. Securely store your recovery phrase
+
+## 2. SOL for Transaction Fees
+
+You'll need a small amount of SOL to:
+- Create new conversations (0.0033 SOL per chat)
+- Pay for network transaction fees
+
+### Getting SOL
+
+- **Buy SOL**: Purchase from exchanges like Coinbase, Binance, or FTX
+- **Swap tokens**: Use Jupiter or Raydium to swap other tokens for SOL
+- **Faucet (Devnet)**: For testing, use the [Solana Faucet](https://solfaucet.com)
+
+## 3. Supported Browsers
+
+Stork SMS works best on:
+- Google Chrome (version 90+)
+- Mozilla Firefox (version 88+)
+- Safari (version 14+)
+- Microsoft Edge (version 90+)
+
+## 4. Internet Connection
+
+A stable internet connection is required for:
+- Real-time messaging
+- NFT creation
+- Blockchain transactions
+
+## Next Steps
+
+Once you have these prerequisites ready, proceed to the [Quick Start Guide](quick-start.md) to begin using Stork SMS.
