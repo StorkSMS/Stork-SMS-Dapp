@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createCanvas, loadImage, CanvasRenderingContext2D } from 'canvas'
+import { createCanvas, loadImage, CanvasRenderingContext2D, registerFont } from 'canvas'
 import path from 'path'
+import fs from 'fs'
+
+// IMMEDIATELY OVERRIDE SelfWritten with our HelveticaNeue.ttc
+try {
+  console.log('🚨 API ROUTE: Overriding SelfWritten with HelveticaNeue.ttc IMMEDIATELY')
+  
+  const helveticaFontPath = path.join(process.cwd(), 'public/HelveticaNeue.ttc')
+  
+  if (fs.existsSync(helveticaFontPath)) {
+    console.log('✅ API ROUTE: Found HelveticaNeue.ttc, registering as SelfWritten override')
+    
+    // NUCLEAR OPTION: Override SelfWritten completely at module load time
+    registerFont(helveticaFontPath, { family: 'SelfWritten' })
+    registerFont(helveticaFontPath, { family: 'Helvetica Neue' })
+    registerFont(helveticaFontPath, { family: 'HelveticaNeue-Medium' })
+    
+    console.log('🎯 API ROUTE: SelfWritten has been HIJACKED with HelveticaNeue.ttc!')
+  } else {
+    console.error('❌ API ROUTE: HelveticaNeue.ttc not found - SelfWritten will interfere!')
+  }
+} catch (error) {
+  console.error('❌ API ROUTE: Error hijacking SelfWritten:', error)
+}
 
 interface GenerateProductionSenderNFTRequest {
   messageContent: string
