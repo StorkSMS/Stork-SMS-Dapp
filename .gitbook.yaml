@@ -1,0 +1,24 @@
+root: ./
+
+structure:
+  readme: GITBOOK.md
+  summary: SUMMARY.md
+
+# Only sync documentation files
+includes:
+  - GITBOOK.md
+  - SUMMARY.md
+  - README.md
+
+# Exclude development files
+excludes:
+  - "*.log"
+  - "*.md"
+  - "!GITBOOK.md"
+  - "!SUMMARY.md"
+  - "!README.md"
+  - node_modules
+  - .git
+  - src
+  - public
+  - scripts
