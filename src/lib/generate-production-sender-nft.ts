@@ -1,5 +1,6 @@
-import { createCanvas, loadImage, CanvasRenderingContext2D } from 'canvas'
+import { createCanvas, loadImage, CanvasRenderingContext2D, registerFont } from 'canvas'
 import path from 'path'
+import fs from 'fs'
 
 interface GenerateProductionSenderNFTRequest {
   messageContent: string
@@ -80,6 +81,25 @@ function wrapText(
   return lines
 }
 
+// Ensure proper font loading to prevent handwritten font fallback
+try {
+  // Try to register a standard system font to ensure proper fallback
+  const systemFontPaths = [
+    '/System/Library/Fonts/Helvetica.ttc', // macOS
+    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', // Linux
+  ]
+  
+  for (const fontPath of systemFontPaths) {
+    if (fs.existsSync(fontPath)) {
+      registerFont(fontPath, { family: 'Helvetica' })
+      console.log('✅ Sender: Registered system font:', fontPath)
+      break
+    }
+  }
+} catch (error) {
+  console.warn('⚠️ Sender: Could not register system font, using defaults:', error)
+}
+
 export async function generateProductionSenderNFT(request: GenerateProductionSenderNFTRequest): Promise<Buffer> {
   const { recipientWallet } = request
   
@@ -126,7 +146,9 @@ export async function generateProductionSenderNFT(request: GenerateProductionSen
   console.log('📐 Letter spacing:', letterSpacing, 'px')
   
   // Set font - using Helvetica Neue medium weight with more specific name
-  ctx.font = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "Helvetica", Arial, sans-serif`
+  const fontString = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "Helvetica", Arial, sans-serif`
+  console.log('🔤 Sender: Setting font to:', fontString)
+  ctx.font = fontString
   ctx.fillStyle = '#000000'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
