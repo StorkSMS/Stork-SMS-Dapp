@@ -157,8 +157,8 @@ export default function SenderNFTPreviewCanvas({
     console.log('🔤 Sender: Calculated font size:', fontSize, 'px')
     console.log('📐 Sender: Letter spacing:', letterSpacing, 'px')
 
-    // Set font - using the same font stack as recipient NFT to ensure consistency
-    ctx.font = `500 ${fontSize}px "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
+    // Set font - using Helvetica Neue medium weight with more specific name
+    ctx.font = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "Helvetica", Arial, sans-serif`
     ctx.fillStyle = '#000000'
     ctx.textAlign = 'left'
     ctx.textBaseline = 'top'

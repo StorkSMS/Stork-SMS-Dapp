@@ -306,6 +306,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         {formattedChats.map((chat) => {
           const isNewlyCreated = newlyCreatedChats.has(chat.id)
           const isFading = fadingChats.has(chat.id)
+          
+          // Hide server version when showing "Complete" version in pending chats
+          if (isNewlyCreated && !isFading) {
+            return null
+          }
+          
           return (
             <div
               key={chat.id}

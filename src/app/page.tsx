@@ -359,16 +359,16 @@ export default function ChatApp() {
   // Start fade animation and remove chats from newly created set
   useEffect(() => {
     if (newlyCreatedChats.size > 0) {
-      // Start fade animation after 2.5 seconds
+      // Start fade animation after 5 seconds (show "Complete" for 5 seconds)
       const fadeTimer = setTimeout(() => {
         setFadingChats(new Set(newlyCreatedChats))
-      }, 2500)
+      }, 5000)
       
-      // Remove from sets after animation completes
+      // Remove from sets after animation completes (allow 0.5s for fade transition)
       const removeTimer = setTimeout(() => {
         setNewlyCreatedChats(new Set())
         setFadingChats(new Set())
-      }, 3000)
+      }, 5500)
       
       return () => {
         clearTimeout(fadeTimer)
