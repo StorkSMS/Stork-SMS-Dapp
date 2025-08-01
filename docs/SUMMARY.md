@@ -26,50 +26,50 @@
 * [Security Overview](security/README.md)
 * [Wallet Authentication](security/wallet-authentication.md)
 * [NFT Access Control](security/nft-access-control.md)
-* [End-to-End Encryption](security/encryption.md)
+* [End-to-End Encryption](security/end-to-end-encryption.md)
 * [Security Measures](security/security-measures.md)
-* [Privacy Features](security/privacy.md)
+* [Privacy Features](security/privacy-features.md)
 
 ## NFT System
 
-* [How NFT Creation Works](nft-system/how-it-works.md)
-* [NFT Specifications](nft-system/specifications.md)
-* [NFT Benefits](nft-system/benefits.md)
-* [Cost Structure](nft-system/costs.md)
+* [How NFT Creation Works](nft-system/how-nft-creation-works.md)
+* [NFT Specifications](nft-system/nft-specifications.md)
+* [NFT Benefits](nft-system/nft-benefits.md)
+* [Cost Structure](nft-system/cost-structure.md)
 
 ## Technical
 
-* [Architecture Overview](technical/architecture.md)
-* [Technology Stack](technical/stack.md)
-* [Database Schema](technical/database.md)
+* [Architecture Overview](technical/architecture-overview.md)
+* [Technology Stack](technical/technology-stack.md)
+* [Database Schema](technical/database-schema.md)
 * [Performance](technical/performance.md)
 
 ## API Reference
 
-* [API Overview](api/README.md)
-* [Authentication](api/authentication.md)
-* [Chat Endpoints](api/chats.md)
-* [Message Endpoints](api/messages.md)
-* [NFT Endpoints](api/nfts.md)
-* [Media Endpoints](api/media.md)
-* [Rate Limits](api/rate-limits.md)
+* [API Overview](api-reference/api-overview.md)
+* [Authentication](api-reference/authentication.md)
+* [Chat Endpoints](api-reference/chat-endpoints.md)
+* [Message Endpoints](api-reference/message-endpoints.md)
+* [NFT Endpoints](api-reference/nft-endpoints.md)
+* [Media Endpoints](api-reference/media-endpoints.md)
+* [Rate Limits](api-reference/rate-limits.md)
 
 ## Roadmap
 
-* [Roadmap Overview](roadmap/README.md)
-* [Phase 1: Enhanced Messaging](roadmap/phase-1.md)
-  * [SOL & USDC Transfers](roadmap/phase-1.md#sol--usdc-transfers)
-  * [Group Messaging](roadmap/phase-1.md#group-messaging)
-* [Phase 2: Gamification](roadmap/phase-2.md)
-  * [Achievement System](roadmap/phase-2.md#achievement-system)
-  * [Airdrop Qualification](roadmap/phase-2.md#airdrop-qualification)
-* [Phase 3: Advanced Features](roadmap/phase-3.md)
-* [Phase 4: Mobile & Integration](roadmap/phase-4.md)
-* [Phase 5: Enterprise](roadmap/phase-5.md)
-* [Community Governance](roadmap/governance.md)
+* [Roadmap Overview](roadmap/roadmap-overview.md)
+* [Phase 1: Enhanced Messaging](roadmap/phase-1-enhanced-messaging/README.md)
+  * [SOL & USDC Transfers](roadmap/phase-1-enhanced-messaging/README.md#sol--usdc-transfers)
+  * [Group Messaging](roadmap/phase-1-enhanced-messaging/README.md#group-messaging)
+* [Phase 2: Gamification](roadmap/phase-2-gamification/README.md)
+  * [Achievement System](roadmap/phase-2-gamification/README.md#achievement-system)
+  * [Airdrop Qualification](roadmap/phase-2-gamification/README.md#airdrop-qualification)
+* [Phase 3: Advanced Features](roadmap/phase-3-advanced-features.md)
+* [Phase 4: Mobile & Integration](roadmap/phase-4-mobile-and-integration.md)
+* [Phase 5: Enterprise](roadmap/phase-5-enterprise.md)
+* [Community Governance](roadmap/community-governance.md)
 
 ## Resources
 
 * [FAQ](resources/faq.md)
 * [Troubleshooting](resources/troubleshooting.md)
-* [Contact & Support](resources/support.md)
+* [Contact & Support](resources/contact-and-support.md)
