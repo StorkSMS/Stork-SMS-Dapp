@@ -6,6 +6,74 @@ Transform Stork SMS into an engaging community platform with achievements, rewar
 
 Phase 2 introduces gamification elements that make messaging more engaging while rewarding users for platform adoption and community building. This phase focuses on building a strong, active user base through social incentives and achievement systems.
 
+## User Identities & Profiles
+
+### Personal Identity System
+
+Transform your Stork SMS experience with personalized user identities that showcase your achievements and build community recognition while maintaining the security of wallet-based authentication.
+
+#### Profile Features
+
+**Display Names**:
+- Set custom display names that appear across the platform
+- Wallet addresses remain visible for transparency and verification
+- Names are unique and reserved once claimed
+- Support for Unicode characters and emojis
+- Maximum 25 characters for optimal display
+
+**Achievement Display**:
+- Showcase your earned achievements on your profile
+- "Wear" up to 3 active achievements as profile badges
+- Achievements appear in chats, leaderboards, and community features
+- Special animations for rare and high-tier achievements
+- Achievement history and progress tracking
+
+**Profile Customization**:
+- Choose from unlocked profile themes based on achievements
+- Custom profile colors for different tier levels
+- Achievement-based profile frames and decorations
+- Animated elements for Diamond tier and special achievements
+
+#### Identity Integration
+
+**Chat Interface**:
+- Display names appear alongside wallet addresses in chat headers
+- Achievement badges shown in message headers
+- Quick profile preview on hover/tap
+- Status indicators for online/offline and current achievements
+
+**Community Features**:
+- Leaderboards show both display names and achievements
+- Community challenges display participant achievements
+- Referral system includes identity-based recognition
+- Social features enhanced with personal branding
+
+**Achievement Synergy**:
+- Identity unlocks are tied to achievement progress
+- Special profile customizations for milestone achievements
+- Achievement-based identity perks and benefits
+- Community recognition through visible accomplishments
+
+#### Privacy & Security
+
+**Blockchain Verification**:
+- All identity claims verified on-chain
+- Wallet ownership always remains the source of truth
+- Identity changes logged for transparency
+- Anti-impersonation protection through wallet verification
+
+**Privacy Controls**:
+- Option to hide achievements from public view
+- Selective achievement display (choose which to show)
+- Wallet address visibility controls
+- Profile privacy settings for different contexts
+
+**Community Safety**:
+- Moderation tools for inappropriate display names
+- Reporting system for identity abuse
+- Automatic restrictions for verified bad actors
+- Community voting on disputed identity issues
+
 ## Achievement System
 
 ### Core Achievements
@@ -29,6 +97,13 @@ Phase 2 introduces gamification elements that make messaging more engaging while
 - **Network Navigator**: Use both Mainnet and Devnet (for testing)
 - **NFT Collector**: Own 10+ Stork SMS chat NFTs
 - **Transaction Pro**: Complete 50+ successful blockchain transactions
+
+#### Identity Achievements
+- **Profile Creator**: Set up your first custom display name
+- **Achievement Displayer**: Showcase your first achievement badge
+- **Profile Customizer**: Unlock and apply your first profile theme
+- **Community Face**: Earn recognition through profile views and interactions
+- **Identity Veteran**: Maintain the same display name for 6+ months
 
 #### Community Achievements
 - **Early Adopter**: Join during the first month of launch
@@ -66,11 +141,13 @@ Phase 2 introduces gamification elements that make messaging more engaging while
 - 10+ messages sent
 - 2+ active chats
 - 1+ week of platform usage
+- Set up custom display name
 
 **Rewards**:
 - Bronze achievement NFT
 - 10% bonus on future airdrops
 - Access to Bronze-only Discord channels
+- Basic profile customization options
 
 #### Silver Tier (Active User)
 **Requirements**:
@@ -79,12 +156,14 @@ Phase 2 introduces gamification elements that make messaging more engaging while
 - 4+ weeks of platform usage
 - 1+ voice message sent
 - 3+ images shared
+- Display at least 1 achievement badge
 
 **Rewards**:
 - Silver achievement NFT
 - 25% bonus on future airdrops
 - Early access to new features
 - Silver Discord role and channels
+- Enhanced profile themes and customization
 
 #### Gold Tier (Power User)
 **Requirements**:
@@ -94,6 +173,7 @@ Phase 2 introduces gamification elements that make messaging more engaging while
 - 10+ voice messages sent
 - 20+ images shared
 - Created chats with 5+ different people
+- Display at least 2 achievement badges
 
 **Rewards**:
 - Gold achievement NFT
@@ -101,6 +181,7 @@ Phase 2 introduces gamification elements that make messaging more engaging while
 - Beta testing priority
 - Gold Discord role and exclusive channels
 - Direct feedback channel with development team
+- Advanced profile features and animated elements
 
 #### Platinum Tier (Community Leader)
 **Requirements**:
@@ -297,22 +378,25 @@ Phase 2 introduces gamification elements that make messaging more engaging while
 ### Q2 2024 - Foundation
 
 **Month 1**:
+- User identity system implementation
+- Custom display name functionality
 - Basic achievement system implementation
 - Core tier structure (Bronze, Silver, Gold)
 - Achievement NFT minting system
-- Discord integration for tier roles
 
 **Month 2**:
-- Leaderboard implementation
+- Achievement badge display system
+- Profile customization features
+- Leaderboard implementation with identity integration
 - Monthly challenge system
-- Referral program launch
 - Achievement tracking dashboard
 
 **Month 3**:
 - Advanced tier implementation (Platinum, Diamond)
+- Advanced profile themes and animations
 - Airdrop qualification system
 - Community challenge events
-- Social features integration
+- Social features integration with identity display
 
 ### Q3 2024 - Enhancement
 

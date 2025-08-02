@@ -54,6 +54,7 @@
   * [Group Messaging](roadmap/phase-1-enhanced-messaging/README.md#group-messaging)
   * [Solana Seeker Integration](roadmap/phase-1-enhanced-messaging/README.md#solana-seeker-integration)
 * [Phase 2: Gamification](roadmap/phase-2-gamification/README.md)
+  * [User Identities & Profiles](roadmap/phase-2-gamification/README.md#user-identities--profiles)
   * [Achievement System](roadmap/phase-2-gamification/README.md#achievement-system)
   * [Airdrop Qualification](roadmap/phase-2-gamification/README.md#airdrop-qualification)
 * [Phase 3: SolAI Bot](roadmap/phase-3-solai-chatbot.md)
