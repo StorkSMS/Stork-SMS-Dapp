@@ -94,7 +94,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     >
       <div
         className={`border-4 relative ${
-          isMobile ? 'w-[320px] h-[480px] flex flex-col' : 'w-[850px] h-[400px] flex'
+          isMobile ? 'w-full h-full flex flex-col' : 'w-[850px] h-[400px] flex'
         }`}
         style={{
           backgroundColor: colors.bg,
@@ -116,9 +116,24 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
         />
         {isMobile ? (
           <>
+            {/* Mobile: X Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-[10] w-10 h-10 flex items-center justify-center"
+              style={{
+                fontFamily: "SelfWritten-Regular, cursive",
+                fontSize: "28px",
+                color: colors.text,
+                backgroundColor: colors.bg,
+                border: `2px solid ${colors.border}`,
+              }}
+            >
+              ×
+            </button>
+            
             {/* Mobile: Chat Preview on Top - Perfect Square */}
             <div 
-              className="w-[200px] h-[200px] mx-auto border-b-4 flex items-center justify-center flex-shrink-0 relative z-[2]"
+              className="w-[200px] h-[200px] mx-auto border-b-4 flex items-center justify-center flex-shrink-0 relative z-[2] mt-16"
               style={{
                 backgroundColor: colors.bg,
                 borderBottomColor: colors.border
@@ -137,7 +152,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             </div>
 
             {/* Mobile: Form Section Below */}
-            <div className="flex-1 p-3 flex flex-col relative z-[2]">
+            <div className="flex-1 p-6 flex flex-col relative z-[2]">
               <form onSubmit={onSubmit} className="flex flex-col gap-2 h-full">
                 {/* To Field */}
                 <div>
@@ -255,29 +270,15 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-1 mt-auto">
+                {/* Action Button - Only Submit on Mobile */}
+                <div className="pt-1 mt-auto">
                   <Button
                     type="submit"
-                    className="flex-1 bg-[#3388FF] text-[#FFF] border-2 border-[#38F] hover:bg-[#2277EE] rounded-none h-10 disabled:opacity-50"
+                    className="w-full bg-[#3388FF] text-[#FFF] border-2 border-[#38F] hover:bg-[#2277EE] rounded-none h-10 disabled:opacity-50"
                     style={{ fontFamily: "Helvetica Neue, sans-serif", fontWeight: 500 }}
                     disabled={!canSubmit}
                   >
                     {getSubmitButtonText()}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={onClose}
-                    className="flex-1 rounded-none h-10 hover:opacity-80"
-                    style={{ 
-                      fontFamily: "Helvetica Neue, sans-serif", 
-                      fontWeight: 500,
-                      backgroundColor: colors.bg,
-                      color: colors.text,
-                      border: `2px solid ${colors.border}`
-                    }}
-                  >
-                    Cancel
                   </Button>
                 </div>
               </form>

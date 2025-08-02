@@ -1120,7 +1120,7 @@ export default function ChatApp() {
           src={isDarkMode ? "/Dark-1-min.png?v=2" : "/Light-1-min.webp?v=2"}
           alt="Background"
           fill
-          className="object-cover"
+          className="object-cover md:object-cover object-left-bottom"
           priority
         />
       </div>
@@ -1143,7 +1143,7 @@ export default function ChatApp() {
         <div className="fixed inset-0 z-[8] flex flex-col items-center justify-center px-6 pointer-events-none">
           {/* Logo - bigger size */}
           <div className="mb-8">
-            <Image src="/stork-logo.svg" alt="Stork Logo" width={200} height={67} className="h-16 w-auto" />
+            <Image src="/stork-logo.svg" alt="Stork Logo" width={240} height={80} className="h-24 w-auto" />
           </div>
         </div>
       )}
@@ -1153,7 +1153,7 @@ export default function ChatApp() {
         <div className={`fixed inset-0 ${isActuallyAuthenticated ? 'z-[8]' : 'z-[150]'} flex flex-col items-center justify-center px-6 pointer-events-none`}>
           <div className="mb-8 invisible">
             {/* Invisible spacer to match logo position */}
-            <div className="h-16 w-auto"></div>
+            <div className="h-24 w-auto"></div>
           </div>
           
           {/* Connect wallet button */}
