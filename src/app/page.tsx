@@ -1167,7 +1167,7 @@ export default function ChatApp() {
       <div 
         className="relative z-[100]"
         style={{
-          transform: isAppLoaded ? 'translateY(0)' : `translateY(${isMobile ? '-100vh' : '-50vh'})`,
+          transform: isAppLoaded ? 'translateY(0)' : `translateY(${isMobile ? '-100vh' : '-100vh'})`,
           transition: 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         }}
       >

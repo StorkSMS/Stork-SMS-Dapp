@@ -134,7 +134,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             
             {/* Mobile: Chat Preview on Top - Perfect Square */}
             <div 
-              className="w-[280px] h-[280px] mx-auto flex items-center justify-center flex-shrink-0 relative z-[2] mt-12"
+              className="w-[280px] h-[280px] ml-6 flex items-center justify-center flex-shrink-0 relative z-[2] mt-12"
             >
               <NFTPreviewCanvas
                 messageContent={stickerState.getEffectiveMessage()}
