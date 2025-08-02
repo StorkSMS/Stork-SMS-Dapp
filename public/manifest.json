@@ -4,19 +4,20 @@
   "description": "Decentralized messaging on Solana",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
+  "background_color": "#ffffff",
   "theme_color": "#3388FF",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/stork-app-icon.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "sizes": "180x180",
+      "type": "image/png"
     },
     {
-      "src": "/New stork Site Favicon.png",
+      "src": "/stork-app-icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

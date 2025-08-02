@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { WalletContextProvider } from "@/components/wallet-provider"
 import { AuthProvider } from "@/contexts/AuthContext"
+import ServiceWorkerProvider from "@/components/ServiceWorkerProvider"
+import PushNotificationManager from "@/components/PushNotificationManager"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -51,11 +53,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <WalletContextProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </WalletContextProvider>
+        <ServiceWorkerProvider>
+          <WalletContextProvider>
+            <AuthProvider>
+              <PushNotificationManager />
+              {children}
+            </AuthProvider>
+          </WalletContextProvider>
+        </ServiceWorkerProvider>
       </body>
     </html>
   )

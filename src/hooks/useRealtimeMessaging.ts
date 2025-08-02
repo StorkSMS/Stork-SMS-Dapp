@@ -1502,6 +1502,31 @@ export const useRealtimeMessaging = () => {
                   if (!isFromCurrentUser) {
                     console.log('🔄 Resetting typing sound cooldown due to message from other user')
                     resetTypingSoundCooldown()
+                    
+                    // Trigger push notification for incoming messages
+                    // Only send if not viewing the chat or tab is not focused
+                    if (currentChatIdRef.current !== chatId || !document.hasFocus()) {
+                      console.log('🔔 Triggering push notification for incoming message')
+                      
+                      // Extract message preview (limit to 100 chars)
+                      const messagePreview = formattedMessage.message_content.length > 100 
+                        ? formattedMessage.message_content.substring(0, 97) + '...'
+                        : formattedMessage.message_content
+                      
+                      // Send push notification request to backend
+                      fetch('/api/send-push-notification', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          recipientWallet: currentWallet,
+                          senderWallet: formattedMessage.sender_wallet,
+                          messagePreview,
+                          chatId
+                        })
+                      }).catch(error => {
+                        console.error('Failed to send push notification:', error)
+                      })
+                    }
                   }
                   
                   console.log('🔔 Calling onNewMessage callback with:', {

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
 
 interface MobileHeaderProps {
   isMobileMenuOpen: boolean
@@ -33,6 +34,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   onMenuToggle,
   onCopyWalletAddress,
 }) => {
+  const { sendTestNotification, subscription, permission } = usePushNotifications()
+  
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
     text: isDarkMode ? '#FFF' : '#000',
@@ -107,7 +110,26 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         )}
       </div>
 
-      <WalletButton />
+      <div className="flex items-center gap-2">
+        <WalletButton />
+        
+        {/* Development Test Button */}
+        {(process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') && (
+          <Button
+            onClick={sendTestNotification}
+            className="rounded-none h-10 px-3 hover:opacity-80"
+            style={{ 
+              backgroundColor: '#3388FF', 
+              color: '#FFF', 
+              border: `2px solid #3388FF`,
+              fontFamily: "Helvetica Neue, sans-serif",
+              fontSize: "12px"
+            }}
+          >
+            Test Push
+          </Button>
+        )}
+      </div>
       
     </div>
   )

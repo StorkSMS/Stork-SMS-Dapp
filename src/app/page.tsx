@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useNFTVerification } from "@/hooks/useNFTVerification"
 import { MessageStatus, useMessageStatus } from "@/components/MessageStatus"
 import StickerPicker, { useStickerState } from "@/components/StickerPicker"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
 import { WalletButton } from "@/components/wallet-button"
 import NFTPreviewCanvas from "@/components/NFTPreviewCanvas"
 import ChatStickerButton from "@/components/ChatStickerButton"
@@ -120,6 +121,7 @@ export default function ChatApp() {
   
   // Use the new AuthContext - single source of truth!
   const authState = useAuth()
+  const { sendTestNotification, subscription, permission } = usePushNotifications()
   
   // Access properties directly from the context
   const isAuthenticated = authState.isAuthenticated
@@ -1418,6 +1420,17 @@ export default function ChatApp() {
         onStickerSelect={stickerState.handleStickerSelect}
         colors={colors}
       />
+
+      {/* Development Test Button */}
+      {process.env.NODE_ENV === 'development' && subscription && permission === 'granted' && (
+        <button
+          onClick={sendTestNotification}
+          className="fixed bottom-4 right-4 z-[200] px-4 py-2 bg-blue-500 text-white rounded border-2 border-white"
+          style={{ fontFamily: "Helvetica Neue, sans-serif" }}
+        >
+          Test Push
+        </button>
+      )}
 
     </div>
   )
