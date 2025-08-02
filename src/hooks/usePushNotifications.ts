@@ -172,14 +172,13 @@ export function usePushNotifications() {
         body: 'This is a test notification from Stork SMS',
         icon: '/stork-app-icon.png',
         badge: '/stork-app-icon.png',
-        vibrate: [200, 100, 200],
         tag: 'test-notification',
         renotify: true,
         data: {
           url: '/',
           timestamp: Date.now()
         }
-      })
+      } as NotificationOptions)
     } catch (error) {
       console.error('Error sending test notification:', error)
     }
