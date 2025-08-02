@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 export default function PushNotificationManager() {
-  const { publicKey, isAuthenticated } = useAuth()
+  const { walletAddress, isAuthenticated } = useAuth()
   const { isSupported, permission, subscribe, subscription } = usePushNotifications()
   const hasAttemptedSubscription = useRef(false)
 
@@ -13,7 +13,7 @@ export default function PushNotificationManager() {
     // Auto-subscribe when user is authenticated and hasn't subscribed yet
     if (
       isAuthenticated && 
-      publicKey && 
+      walletAddress && 
       isSupported && 
       !subscription && 
       !hasAttemptedSubscription.current &&
@@ -36,9 +36,9 @@ export default function PushNotificationManager() {
           if (currentPermission === 'granted') {
             const sub = await subscribe()
             
-            if (sub && publicKey) {
+            if (sub && walletAddress) {
               // Send subscription to backend
-              await savePushSubscription(publicKey, sub)
+              await savePushSubscription(walletAddress, sub)
             }
           }
         } catch (error) {
@@ -49,14 +49,14 @@ export default function PushNotificationManager() {
       // Small delay to ensure service worker is ready
       setTimeout(setupPushNotifications, 1000)
     }
-  }, [isAuthenticated, publicKey, isSupported, subscription, permission, subscribe])
+  }, [isAuthenticated, walletAddress, isSupported, subscription, permission, subscribe])
 
   // Save subscription when it changes
   useEffect(() => {
-    if (subscription && publicKey) {
-      savePushSubscription(publicKey, subscription)
+    if (subscription && walletAddress) {
+      savePushSubscription(walletAddress, subscription)
     }
-  }, [subscription, publicKey])
+  }, [subscription, walletAddress])
 
   return null // This component doesn't render anything
 }
