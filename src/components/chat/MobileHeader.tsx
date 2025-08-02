@@ -114,7 +114,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         <WalletButton />
         
         {/* Development Test Button */}
-        {(process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') && (
+        {(process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) && (
           <Button
             onClick={sendTestNotification}
             className="rounded-none h-10 px-3 hover:opacity-80"
