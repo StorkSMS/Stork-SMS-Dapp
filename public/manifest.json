@@ -8,13 +8,14 @@
   "theme_color": "#3388FF",
   "icons": [
     {
-      "src": "/New stork Site Favicon.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/stork-app-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/Stork Site Phone App icon.png",
-      "sizes": "1024x1024",
+      "src": "/New stork Site Favicon.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]

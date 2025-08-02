@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   metadataBase: new URL("https://dapp.stork-sms.net"),
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/New stork Site Favicon.png",
-    apple: "/Stork Site Phone App icon.png", // Use the phone app icon for Apple home screen
+    icon: "/favicon.ico", // Browser tab favicon
+    shortcut: "/stork-app-icon.png", // App shortcut icon
+    apple: "/stork-app-icon.png", // Apple home screen icon
   },
   openGraph: {
     title: "Stork SMS - Web3 Chat",

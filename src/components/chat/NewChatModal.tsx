@@ -94,7 +94,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     >
       <div
         className={`border-4 relative ${
-          isMobile ? 'w-full h-full flex flex-col' : 'w-[850px] h-[400px] flex'
+          isMobile ? 'w-full h-full flex flex-col overflow-y-auto' : 'w-[850px] h-[400px] flex'
         }`}
         style={{
           backgroundColor: colors.bg,
@@ -119,13 +119,14 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             {/* Mobile: X Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-[10] w-10 h-10 flex items-center justify-center"
+              className="absolute top-4 right-4 z-[10] w-8 h-8 flex items-center justify-center"
               style={{
-                fontFamily: "SelfWritten-Regular, cursive",
-                fontSize: "28px",
+                fontFamily: "Helvetica Neue, sans-serif",
+                fontSize: "24px",
+                fontWeight: "300",
                 color: colors.text,
-                backgroundColor: colors.bg,
-                border: `2px solid ${colors.border}`,
+                backgroundColor: "transparent",
+                border: "none",
               }}
             >
               ×
@@ -133,7 +134,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             
             {/* Mobile: Chat Preview on Top - Perfect Square */}
             <div 
-              className="w-[280px] h-[280px] mx-auto flex items-center justify-center flex-shrink-0 relative z-[2] mt-16"
+              className="w-[280px] h-[280px] mx-auto flex items-center justify-center flex-shrink-0 relative z-[2] mt-12"
             >
               <NFTPreviewCanvas
                 messageContent={stickerState.getEffectiveMessage()}
@@ -210,15 +211,29 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
 
                 {/* Message Input */}
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-1"
-                    style={{ 
-                      fontFamily: "Helvetica Neue, sans-serif",
-                      color: colors.text
-                    }}
-                  >
-                    Message
-                  </label>
+                  <div className="flex items-center gap-2 mb-1">
+                    <label
+                      className="text-sm font-medium"
+                      style={{ 
+                        fontFamily: "Helvetica Neue, sans-serif",
+                        color: colors.text
+                      }}
+                    >
+                      Message
+                    </label>
+                    {stickerState.selectedSticker && stickerState.currentMessage && (
+                      <span
+                        className="text-xs"
+                        style={{
+                          fontFamily: "Helvetica Neue, sans-serif",
+                          color: colors.textSecondary,
+                          opacity: 0.7
+                        }}
+                      >
+                        *Message included in metadata
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3">
                     <div 
                       className="flex-1 transition-opacity duration-300"
@@ -364,15 +379,29 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
 
                 {/* Message Input */}
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-1"
-                    style={{ 
-                      fontFamily: "Helvetica Neue, sans-serif",
-                      color: colors.text
-                    }}
-                  >
-                    Message
-                  </label>
+                  <div className="flex items-center gap-2 mb-1">
+                    <label
+                      className="text-sm font-medium"
+                      style={{ 
+                        fontFamily: "Helvetica Neue, sans-serif",
+                        color: colors.text
+                      }}
+                    >
+                      Message
+                    </label>
+                    {stickerState.selectedSticker && stickerState.currentMessage && (
+                      <span
+                        className="text-xs"
+                        style={{
+                          fontFamily: "Helvetica Neue, sans-serif",
+                          color: colors.textSecondary,
+                          opacity: 0.7
+                        }}
+                      >
+                        *Message included in metadata
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3">
                     <div 
                       className="flex-1 transition-opacity duration-300"

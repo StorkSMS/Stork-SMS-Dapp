@@ -111,12 +111,12 @@ export default function StickerPicker({
     <div className={`sticker-picker ${className}`}>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black bg-opacity-50 z-[120]"
         onClick={onClose}
       />
       
       {/* Sticker Grid Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-center justify-center z-[130] p-4">
         <div 
           className="bg-white border-4 border-black relative max-w-md w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
