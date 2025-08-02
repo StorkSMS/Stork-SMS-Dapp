@@ -38,6 +38,16 @@ netlify-env/
 android-build/android.keystore
 android-build/*.keystore
 *.keystore
+android-build/local.properties
+android-build/.gradle/
+android-build/.idea/
+android-build/build/
+android-build/app/build/
+android-build/*.apk
+android-build/*.aab
+android-build/*.idsig
+android-build/*-aligned.apk
+android-build/manifest-checksum.txt
 
 # vercel
 .vercel

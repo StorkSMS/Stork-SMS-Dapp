@@ -1,12 +1,8 @@
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "net.stork_sms.dapp",
-      "sha256_cert_fingerprints": [
-        "PLACEHOLDER:SHA256:FINGERPRINT:WILL:BE:GENERATED:BY:BUBBLEWRAP"
-      ]
-    }
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "net.stork_sms.dapp",
+    "sha256_cert_fingerprints": ["5E:66:DF:1F:42:A8:85:F0:27:B6:5B:6D:CE:71:2A:78:A5:46:40:CC:C3:1E:06:0A:1E:00:66:35:12:C3:61:22"]
   }
-]
+}]
