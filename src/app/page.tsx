@@ -1117,7 +1117,7 @@ export default function ChatApp() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={isDarkMode ? "/Dark-1-min.png?v=2" : "/Light-1-min.png?v=2"}
+          src={isDarkMode ? "/Dark-1-min.png?v=2" : "/Light-1-min.webp?v=2"}
           alt="Background"
           fill
           className="object-cover"
