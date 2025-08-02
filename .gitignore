@@ -34,6 +34,11 @@ CLAUDE.md
 # Environment variable documentation (contains sensitive data)
 netlify-env/
 
+# Android build secrets
+android-build/android.keystore
+android-build/*.keystore
+*.keystore
+
 # vercel
 .vercel
 
