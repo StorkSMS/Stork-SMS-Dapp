@@ -89,7 +89,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
   
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[110]"
       onClick={handleOverlayClick}
     >
       <div
@@ -133,19 +133,15 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             
             {/* Mobile: Chat Preview on Top - Perfect Square */}
             <div 
-              className="w-[200px] h-[200px] mx-auto border-b-4 flex items-center justify-center flex-shrink-0 relative z-[2] mt-16"
-              style={{
-                backgroundColor: colors.bg,
-                borderBottomColor: colors.border
-              }}
+              className="w-[280px] h-[280px] mx-auto flex items-center justify-center flex-shrink-0 relative z-[2] mt-16"
             >
               <NFTPreviewCanvas
                 messageContent={stickerState.getEffectiveMessage()}
                 selectedSticker={stickerState.selectedSticker}
                 isStickerHidden={stickerState.isStickerHidden}
                 isTextFaded={stickerState.isTextFaded}
-                width={180}
-                height={180}
+                width={280}
+                height={280}
                 className="rounded-sm"
                 onCanvasReady={onCanvasReady}
               />

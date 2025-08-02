@@ -1,0 +1,21 @@
+{
+  "name": "Stork SMS",
+  "short_name": "Stork",
+  "description": "Decentralized messaging on Solana",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#3388FF",
+  "icons": [
+    {
+      "src": "/New stork Site Favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/Stork Site Phone App icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
