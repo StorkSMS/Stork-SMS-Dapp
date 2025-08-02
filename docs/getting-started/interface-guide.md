@@ -106,7 +106,7 @@ Located in the top-right corner (desktop) or header (mobile):
 #### Visual Indicators
 
 * **Unread Badge**: Number of unread messages
-* **Desktop Notification**: Browser push (coming soon)
+* **Push Notifications**: Available on Solana Seeker devices, browser push coming soon
 * **Sound Alert**: Optional notification sound
 
 ### Media Handling

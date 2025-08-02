@@ -51,6 +51,14 @@ The same Stork SMS app you know and love, enhanced by Seeker's unique hardware c
 - **Secure Display**: Transaction details verified on tamper-proof screen
 - **Hardware Attestation**: Proof of genuine device for added security
 
+#### Native Push Notifications
+- **Instant Message Alerts**: Receive notifications immediately when new messages arrive
+- **Chat Invitations**: Get notified when someone starts a conversation with you
+- **Transaction Updates**: Alerts for NFT creation confirmations and completions
+- **Background Processing**: Notifications work even when Stork SMS isn't open
+- **Privacy-First**: Notifications don't reveal message content for security
+- **Customizable**: Control which notifications you want to receive
+
 ## Getting Started with Seeker
 
 ### Setup Process
@@ -82,8 +90,9 @@ Your Stork SMS experience on Seeker includes:
 1. **Secure Message Creation**: Write messages with hardware-backed security
 2. **Hardware Transaction Signing**: All NFT creation uses secure enclave
 3. **Biometric Confirmation**: Confirm transactions with fingerprint/face unlock
-4. **Enhanced Performance**: Optimized specifically for Seeker hardware
-5. **Seamless Integration**: Same familiar interface with better security
+4. **Push Notifications**: Native notifications for new messages and activity
+5. **Enhanced Performance**: Optimized specifically for Seeker hardware
+6. **Seamless Integration**: Same familiar interface with better security
 
 ## Seeker Benefits
 
@@ -101,6 +110,7 @@ Your Stork SMS experience on Seeker includes:
 
 ### Seamless Integration
 - **No Learning Curve**: Same Stork SMS interface you already know
+- **Push Notifications**: Native notifications for new messages and chat invitations
 - **Enhanced Features**: Hardware capabilities enhance existing features
 - **Cross-Device Compatibility**: Your conversations sync across all devices
 - **Instant Access**: Faster wallet connections and operations
@@ -129,6 +139,7 @@ Your Stork SMS experience on Seeker includes:
 
 ### Optimized Experience
 - **Better Performance**: Hardware optimization for faster, smoother operations
+- **Push Notifications**: Instant alerts for new messages, even when app is closed
 - **Extended Battery**: Efficient power usage for longer messaging sessions
 - **Instant Access**: Faster wallet connections and transaction confirmations
 - **Seamless Integration**: Enhanced features without complexity
@@ -151,7 +162,10 @@ Yes! Your NFTs and chat history are blockchain-based and work across all devices
 No additional cost for Seeker optimization. Same 0.0033 SOL for conversation creation.
 
 ### What makes Seeker different from regular phones?
-Seeker provides hardware-level wallet security, biometric authentication, and Web3-optimized performance that regular phones can't match.
+Seeker provides hardware-level wallet security, biometric authentication, native push notifications, and Web3-optimized performance that regular phones can't match.
+
+### Will I get push notifications on Seeker?
+Yes! Seeker supports native push notifications for new messages, chat invitations, and transaction updates - a feature not available on other devices.
 
 ***
 
