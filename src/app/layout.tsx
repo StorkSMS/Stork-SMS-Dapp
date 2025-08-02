@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: "Stork SMS",
     images: [
       {
-        url: "/Stork dapp webpreview.png",
+        url: "https://dapp.stork-sms.net/stork-dapp-webpreview.png",
         width: 1200,
         height: 630,
         alt: "Stork SMS - Decentralized Web3 Chat",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Stork SMS - Web3 Chat",
     description: "Decentralized messaging on Solana",
-    images: ["/Stork dapp webpreview.png"],
+    images: ["https://dapp.stork-sms.net/stork-dapp-webpreview.png"],
     creator: "@StorkSMS",
   },
 }
