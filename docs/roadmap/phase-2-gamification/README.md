@@ -21,6 +21,22 @@ Transform your Stork SMS experience with personalized user identities that showc
 - Support for Unicode characters and emojis
 - Maximum 25 characters for optimal display
 
+**Profile Pictures**:
+- Upload custom profile pictures (JPG, PNG, GIF, WebP support)
+- Automatic image optimization and circular cropping
+- Default avatar generation based on wallet address
+- Profile picture history and change tracking
+- Moderation system for inappropriate content
+
+**Verified NFT Profile Pictures**:
+- Use NFTs from your wallet as verified profile pictures
+- Real-time ownership verification on-chain
+- Support for all major NFT standards (SPL, Metaplex, etc.)
+- Automatic updates when NFT ownership changes
+- Special verification badge for NFT profile pictures
+- Priority display for blue-chip and verified collections
+- Animated NFT support for premium collections
+
 **Achievement Display**:
 - Showcase your earned achievements on your profile
 - "Wear" up to 3 active achievements as profile badges
@@ -34,19 +50,55 @@ Transform your Stork SMS experience with personalized user identities that showc
 - Achievement-based profile frames and decorations
 - Animated elements for Diamond tier and special achievements
 
+#### NFT Integration & Verification
+
+**Supported Collections**:
+- All Solana-based NFT standards (SPL-Token, Metaplex)
+- Verified collections receive special badges and priority
+- Blue-chip collections (DeGods, y00ts, SMB, etc.) get premium treatment
+- Cross-chain support planned for Ethereum collections
+- Community voting for collection verification status
+
+**Verification Process**:
+- Real-time blockchain ownership verification
+- Automatic verification refreshing every 24 hours
+- Instant updates when NFTs are transferred or sold
+- Collection metadata validation and authenticity checks
+- Rarity scoring integration for rare NFT recognition
+
+**Enhanced Features for NFT Holders**:
+- Collection-based profile frames and effects
+- Exclusive chat themes matching NFT art style
+- Access to collection-holder Discord channels
+- Special voting rights for collection-related features
+- Cross-collection collaboration opportunities
+
+**NFT Profile Picture Benefits**:
+- Verification badge in all community features
+- Higher visibility in leaderboards and social features
+- Access to NFT-holder exclusive events and airdrops
+- Collection floor price display (optional)
+- Rarity rank display for verified collections
+- Animated support for premium collections
+
 #### Identity Integration
 
 **Chat Interface**:
+- Profile pictures displayed in chat headers and message bubbles
 - Display names appear alongside wallet addresses in chat headers
 - Achievement badges shown in message headers
-- Quick profile preview on hover/tap
+- Verification badges for NFT profile pictures
+- Quick profile preview on hover/tap showing full profile
 - Status indicators for online/offline and current achievements
+- Animated profile pictures for verified NFT collections
 
 **Community Features**:
-- Leaderboards show both display names and achievements
-- Community challenges display participant achievements
-- Referral system includes identity-based recognition
-- Social features enhanced with personal branding
+- Leaderboards show profile pictures, display names and achievements
+- Community challenges display participant profiles and achievements
+- Referral system includes identity-based recognition with profile previews
+- Social features enhanced with personal branding and NFT verification
+- Gallery view of community members with verified NFT collections
+- Collection-based community groups and channels
 
 **Achievement Synergy**:
 - Identity unlocks are tied to achievement progress
@@ -67,6 +119,9 @@ Transform your Stork SMS experience with personalized user identities that showc
 - Selective achievement display (choose which to show)
 - Wallet address visibility controls
 - Profile privacy settings for different contexts
+- NFT collection privacy settings (hide specific collections)
+- Profile picture visibility controls (public, friends, private)
+- Automatic privacy for high-value NFT collections
 
 **Community Safety**:
 - Moderation tools for inappropriate display names
@@ -100,10 +155,15 @@ Transform your Stork SMS experience with personalized user identities that showc
 
 #### Identity Achievements
 - **Profile Creator**: Set up your first custom display name
+- **Picture Perfect**: Upload your first custom profile picture
+- **NFT Verified**: Use a verified NFT as your profile picture
+- **Blue Chip Holder**: Verify ownership of a top-tier NFT collection
+- **Collection Curator**: Own and display NFTs from 5+ different collections
 - **Achievement Displayer**: Showcase your first achievement badge
 - **Profile Customizer**: Unlock and apply your first profile theme
 - **Community Face**: Earn recognition through profile views and interactions
 - **Identity Veteran**: Maintain the same display name for 6+ months
+- **Animated Avatar**: Use an animated NFT as your profile picture
 
 #### Community Achievements
 - **Early Adopter**: Join during the first month of launch
@@ -132,138 +192,91 @@ Transform your Stork SMS experience with personalized user identities that showc
 - **Network Upgrade Participant**: Active during major network upgrades
 - **Community Milestone**: Participate when platform hits user milestones
 
-## Airdrop Qualification System
+## The Point System & Future Rewards
 
-### Tier-Based Rewards
+### 🎯 Achievement Points - Your Key to Something Big
 
-#### Bronze Tier (Entry Level)
-**Requirements**:
-- 10+ messages sent
-- 2+ active chats
-- 1+ week of platform usage
-- Set up custom display name
+Every achievement you unlock isn't just a badge—it's **points** accumulating in your favor. Each achievement carries a different point value based on its difficulty, rarity, and the dedication required to earn it.
 
-**Rewards**:
-- Bronze achievement NFT
-- 10% bonus on future airdrops
-- Access to Bronze-only Discord channels
-- Basic profile customization options
+**The Formula is Simple**:
+- Harder achievements = More points
+- Rarer achievements = Bonus multipliers  
+- Special event achievements = Mystery multipliers
+- Long-term dedication = Exponential rewards
 
-#### Silver Tier (Active User)
-**Requirements**:
-- 100+ messages sent
-- 5+ active chats
-- 4+ weeks of platform usage
-- 1+ voice message sent
-- 3+ images shared
-- Display at least 1 achievement badge
+But points for what? *That's the question everyone's asking...*
 
-**Rewards**:
-- Silver achievement NFT
-- 25% bonus on future airdrops
-- Early access to new features
-- Silver Discord role and channels
-- Enhanced profile themes and customization
+### 🌟 The Mysterious Point Values
 
-#### Gold Tier (Power User)
-**Requirements**:
-- 500+ messages sent
-- 10+ active chats
-- 12+ weeks of platform usage
-- 10+ voice messages sent
-- 20+ images shared
-- Created chats with 5+ different people
-- Display at least 2 achievement badges
+Not all achievements are created equal. Some whispered rumors from the community suggest:
 
-**Rewards**:
-- Gold achievement NFT
-- 50% bonus on future airdrops
-- Beta testing priority
-- Gold Discord role and exclusive channels
-- Direct feedback channel with development team
-- Advanced profile features and animated elements
+- **Basic achievements**: Standard point values
+- **Rare achievements**: 2-5x point multipliers
+- **Ultra-rare achievements**: 10x+ multipliers
+- **Legendary achievements**: *Point values so high they're kept secret*
+- **First-ever achievements**: Historical bonus that can never be replicated
 
-#### Platinum Tier (Community Leader)
-**Requirements**:
-- 2000+ messages sent
-- 25+ active chats
-- 26+ weeks of platform usage
-- 50+ voice messages sent
-- 100+ images shared
-- Active community participation (Discord/support)
-- Referred 5+ new users
+### 🔮 What We Can Tell You (And What We Can't)
 
-**Rewards**:
-- Platinum achievement NFT
-- 100% bonus on future airdrops
-- Governance voting rights (future)
-- Exclusive Platinum Discord channels
-- Monthly community calls with team
-- Early access to all new features
+**What we know**:
+- Points are being tracked for every user
+- Higher points = Better positioning for *future opportunities*
+- Some achievements may never be available again
+- Early adopters have access to achievements that will become impossible later
+- The system rewards consistent engagement over burst activity
 
-#### Diamond Tier (Elite Status)
-**Requirements**:
-- 10000+ messages sent
-- 100+ active chats
-- 52+ weeks of platform usage
-- 500+ voice messages sent
-- 1000+ images shared
-- Significant community contributions
-- Verified positive impact on platform growth
+**What remains mysterious**:
+- The exact point values for each achievement
+- When the "big event" will happen
+- What form the rewards will take
+- How many points will be "enough"
+- Whether there's a maximum cap
+- If points can be lost or only gained
 
-**Rewards**:
-- Diamond achievement NFT
-- 200% bonus on future airdrops
-- Advisory board consideration
-- Direct communication with founding team
-- Influence on platform roadmap
-- Exclusive Diamond Discord channels
-- Annual community summit invitation
+### 🚀 The Airdrop Connection
 
-### Airdrop Distribution
+While we can't reveal everything, the point system is intimately connected to future airdrop eligibility. The more points you accumulate:
 
-#### Qualification Metrics
+- The higher your position in the distribution
+- The larger your potential allocation
+- The earlier your access to exclusive opportunities
+- The greater your influence in the ecosystem
 
-**Messaging Activity (40% weight)**:
-- Total messages sent
-- Message frequency and consistency
-- Use of different message types
-- Chat participation diversity
+**Multiple Distribution Events Planned**:
+- 🎁 **Surprise Drops**: Unexpected rewards for active point accumulators
+- 📈 **Milestone Celebrations**: Community-wide rewards when we hit major goals
+- 🏆 **Annual Recognition**: The biggest distribution for the most dedicated
+- 💎 **Ultra-Exclusive**: Reserved for those who achieve the impossible
 
-**Community Engagement (30% weight)**:
-- Discord participation
-- Help provided to other users
-- Feature feedback and suggestions
-- Bug reports and testing participation
+### ⚡ The Race is On
 
-**Platform Adoption (20% weight)**:
-- Time since first use
-- Consistency of usage
-- Feature adoption rate
-- Wallet security practices
+Every day you're not earning achievements, someone else is pulling ahead. Every achievement you miss might have been worth 10x more than you think. Every point accumulated now could be the difference between life-changing rewards and watching from the sidelines.
 
-**Social Impact (10% weight)**:
-- Referrals and new user onboarding
-- Content creation about platform
-- Social media engagement
-- Community building efforts
+**The early bird doesn't just get the worm—they get the entire feast.**
 
-#### Airdrop Schedule
+### 🎭 Tiers of Mystery
 
-**Monthly Mini-Airdrops**:
-- Small rewards for consistent users
-- Recognition of monthly top contributors
-- Special event participation rewards
+While specific requirements remain classified, rumors suggest different "classes" of point accumulators:
 
-**Quarterly Major Airdrops**:
-- Substantial token distributions
-- Based on tier qualification
-- Bonus multipliers for higher tiers
+- **🥉 Apprentice**: Those who've discovered the system exists
+- **🥈 Adept**: Active participants building their score
+- **🥇 Expert**: Dedicated achievers with substantial points
+- **💎 Master**: Elite few with access to impossible achievements
+- **👑 Legend**: *Status so rare, it might be a myth*
 
-**Annual Mega-Airdrop**:
-- Largest reward distribution
-- Recognition of yearly contributions
-- Special NFTs for top contributors
+Each tier unlocks different aspects of the ecosystem, but the exact benefits? *Those secrets are earned, not given.*
+
+### 🔥 Why the Mystery?
+
+The gaming system rewards **genuine engagement** over **gaming the system**. By keeping exact values secret:
+- Merit-based participation is encouraged
+- Point farming becomes impossible
+- Authentic community building is rewarded
+- Early supporters get the recognition they deserve
+
+**The best strategy? Be active, be genuine, be early.**
+
+*The revolution rewards its pioneers.*
 
 ## Social Features
 
@@ -380,11 +393,15 @@ Transform your Stork SMS experience with personalized user identities that showc
 **Month 1**:
 - User identity system implementation
 - Custom display name functionality
+- Profile picture upload and management
+- Basic NFT verification system
 - Basic achievement system implementation
 - Core tier structure (Bronze, Silver, Gold)
 - Achievement NFT minting system
 
 **Month 2**:
+- Advanced NFT verification and collection support
+- Verified collection badges and priority features
 - Achievement badge display system
 - Profile customization features
 - Leaderboard implementation with identity integration
@@ -393,6 +410,8 @@ Transform your Stork SMS experience with personalized user identities that showc
 
 **Month 3**:
 - Advanced tier implementation (Platinum, Diamond)
+- Animated NFT profile picture support
+- Collection-based features and exclusive access
 - Advanced profile themes and animations
 - Airdrop qualification system
 - Community challenge events
