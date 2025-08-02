@@ -52,7 +52,7 @@ To use Stork SMS, you'll need:
 
 ### Quick Start Guide
 
-1. **Visit the App**: Navigate to [app.stork-sms.net](https://app.stork-sms.net)
+1. **Visit the App**: Navigate to [dapp.stork-sms.net](https://dapp.stork-sms.net)
 2. **Connect Your Wallet**: Click "Connect Wallet" and select your preferred wallet
 3. **Start a New Chat**: Click "New Chat" and enter the recipient's wallet address
 4. **Send Your First Message**: Type your message and optionally add a sticker
@@ -550,7 +550,7 @@ Stork SMS represents the future of messaging - where users truly own their conve
 
 ### Start Messaging Today
 
-Visit [app.stork-sms.net](https://app.stork-sms.net) to begin your journey into decentralized messaging.
+Visit [dapp.stork-sms.net](https://dapp.stork-sms.net) to begin your journey into decentralized messaging.
 
 ---
 

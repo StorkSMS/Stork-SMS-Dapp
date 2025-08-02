@@ -359,12 +359,12 @@ export function formatNFTForDisplay(nft: MessageNFTInfo) {
   }
 }
 
-export function generateNFTShareURL(assetId: string, baseUrl: string = 'https://app.stork-sms.net') {
+export function generateNFTShareURL(assetId: string, baseUrl: string = 'https://dapp.stork-sms.net') {
   return `${baseUrl}/nft/${assetId}`
 }
 
 // Note: Marketplace URLs don't work for cNFTs as they're not tradeable on traditional NFT marketplaces
 export function getMarketplaceURL(assetId: string) {
   console.warn('cNFTs are not tradeable on traditional NFT marketplaces')
-  return `https://app.stork-sms.net/nft/${assetId}` // Link to your own viewer instead
+  return `https://dapp.stork-sms.net/nft/${assetId}` // Link to your own viewer instead
 }

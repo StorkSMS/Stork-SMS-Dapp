@@ -62,7 +62,7 @@ The same Stork SMS app you know and love, enhanced by Seeker's unique hardware c
 
 2. **Access Stork SMS**
    - Open your wallet app (Phantom, Solflare, etc.) on Seeker
-   - Navigate to app.stork-sms.net in the built-in browser
+   - Navigate to dapp.stork-sms.net in the built-in browser
    - Enjoy enhanced security through hardware integration
 
 3. **Enhanced Security Setup**

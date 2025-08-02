@@ -140,7 +140,7 @@ function generateNFTMetadata(
     description,
     image: imageUrl,
     animation_url: imageUrl, // Some wallets prefer this field
-    external_url: `https://app.stork-sms.net/message/${messageId}`,
+    external_url: `https://dapp.stork-sms.net/message/${messageId}`,
     attributes,
     properties: {
       files: [

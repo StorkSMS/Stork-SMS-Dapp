@@ -115,7 +115,7 @@ const verified = nacl.sign.detached.verify(
 
 ### For Users
 1. **Secure Your Wallet**: Use strong wallet passwords
-2. **Verify Requests**: Only sign messages from app.stork-sms.net
+2. **Verify Requests**: Only sign messages from dapp.stork-sms.net
 3. **Check URLs**: Beware of phishing sites
 4. **Update Wallets**: Keep wallet software current
 

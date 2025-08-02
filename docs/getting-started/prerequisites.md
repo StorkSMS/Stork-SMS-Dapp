@@ -46,7 +46,7 @@ You'll need a small amount of SOL to:
 
 ### Recommended Mobile Experience
 For the best mobile experience, we recommend using:
-1. **Phantom Mobile App** - Open app.stork-sms.net in the built-in browser
+1. **Phantom Mobile App** - Open dapp.stork-sms.net in the built-in browser
 2. **Solflare Mobile App** - Use the dApp browser feature
 3. This ensures seamless wallet integration and transaction signing
 
