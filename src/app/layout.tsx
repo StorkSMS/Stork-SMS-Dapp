@@ -15,6 +15,29 @@ export const metadata: Metadata = {
     shortcut: "/New stork Site Favicon.png",
     apple: "/Stork Site Phone App icon.png", // Use the phone app icon for Apple home screen
   },
+  openGraph: {
+    title: "Stork SMS - Web3 Chat",
+    description: "Decentralized messaging on Solana",
+    url: "https://dapp.stork-sms.net",
+    siteName: "Stork SMS",
+    images: [
+      {
+        url: "/Stork dapp webpreview.png",
+        width: 1200,
+        height: 630,
+        alt: "Stork SMS - Decentralized Web3 Chat",
+      }
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Stork SMS - Web3 Chat",
+    description: "Decentralized messaging on Solana",
+    images: ["/Stork dapp webpreview.png"],
+    creator: "@StorkSMS",
+  },
 }
 
 export default function RootLayout({
