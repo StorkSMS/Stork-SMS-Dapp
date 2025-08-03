@@ -102,34 +102,28 @@ export default async (request: Request, context: any) => {
       scope: 'https://www.googleapis.com/auth/cloud-platform'
     }
 
-    // Import crypto for JWT signing
+    // Import crypto for JWT signing - properly handle PEM format
     const encoder = new TextEncoder()
     
-    // Debug the private key to understand the issue
-    console.log('Raw private key from env:', privateKey.substring(0, 100))
-    console.log('Raw private key length:', privateKey.length)
-    
-    // Replace escaped newlines with actual newlines first, then remove headers and newlines
+    // Convert escaped newlines to actual newlines for proper PEM format
     const normalizedKey = privateKey.replace(/\\n/g, '\n')
-    console.log('After normalizing newlines:', normalizedKey.substring(0, 100))
+    console.log('Normalized PEM key length:', normalizedKey.length)
     
-    const keyData = normalizedKey
-      .replace(/-----BEGIN PRIVATE KEY-----/g, '')
-      .replace(/-----END PRIVATE KEY-----/g, '')
-      .replace(/\s+/g, '') // Remove all whitespace characters
+    // Extract the base64 portion from the PEM (between headers)
+    const base64Key = normalizedKey
+      .replace(/-----BEGIN PRIVATE KEY-----/, '')
+      .replace(/-----END PRIVATE KEY-----/, '')
+      .replace(/\s/g, '') // Remove all whitespace including newlines
     
-    console.log('Final key data length:', keyData.length)
-    console.log('Final key data first 50 chars:', keyData.substring(0, 50))
-    console.log('Final key data last 50 chars:', keyData.substring(keyData.length - 50))
+    console.log('Extracted base64 key length:', base64Key.length)
+    console.log('Base64 key sample:', base64Key.substring(0, 50))
     
-    // Check for invalid base64 characters
-    const invalidChars = keyData.match(/[^A-Za-z0-9+/=]/g)
-    if (invalidChars) {
-      console.log('Invalid base64 characters found:', invalidChars)
-      console.log('Character codes:', invalidChars.map(c => c.charCodeAt(0)))
+    // Convert base64 to binary
+    const binaryString = atob(base64Key)
+    const keyBytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      keyBytes[i] = binaryString.charCodeAt(i)
     }
-    
-    const keyBytes = Uint8Array.from(atob(keyData), c => c.charCodeAt(0))
     
     const cryptoKey = await crypto.subtle.importKey(
       'pkcs8',
