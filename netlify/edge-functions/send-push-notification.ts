@@ -41,20 +41,28 @@ export default async (request: Request, context: any) => {
 
     console.log('Found subscriptions:', subscriptions.length)
 
-    // Prepare Firebase Admin request
-    const privateKey = Deno.env.get('FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
-    const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL')
-    const projectId = 'stork-sms-560b2'
+    // Prepare Firebase Admin request - decode base64 credentials
+    const firebaseCredentialsB64 = Deno.env.get('FIREBASE_CREDENTIALS_B64')
+    if (!firebaseCredentialsB64) {
+      console.log('Missing Firebase credentials base64')
+      throw new Error('Missing Firebase credentials base64')
+    }
+
+    const firebaseCredentials = JSON.parse(atob(firebaseCredentialsB64))
+    const privateKey = firebaseCredentials.private_key
+    const clientEmail = firebaseCredentials.client_email
+    const projectId = firebaseCredentials.project_id
 
     console.log('Firebase credentials check:', {
       hasPrivateKey: !!privateKey,
       hasClientEmail: !!clientEmail,
+      projectId,
       clientEmail: clientEmail?.substring(0, 20) + '...'
     })
 
     if (!privateKey || !clientEmail) {
-      console.log('Missing Firebase credentials')
-      throw new Error('Missing Firebase credentials')
+      console.log('Missing Firebase credentials from decoded JSON')
+      throw new Error('Missing Firebase credentials from decoded JSON')
     }
 
     // Create JWT for Firebase Admin
