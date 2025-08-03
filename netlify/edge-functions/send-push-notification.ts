@@ -72,20 +72,38 @@ export default async (request: Request, context: any) => {
       console.log('Private key section from env:', privateKeySection)
     }
     
-    // Parse env-style format into object
+    // Parse env-style format into object - handle multiline values
     const firebaseCredentials: any = {}
-    decryptedEnvData.split('\n').forEach((line, index) => {
+    const lines = decryptedEnvData.split('\n')
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
       if (line.trim() && line.includes('=')) {
         const [key, ...valueParts] = line.split('=')
-        const value = valueParts.join('=') // Handle values with = in them
-        firebaseCredentials[key.trim()] = value.trim()
+        let value = valueParts.join('=').trim()
         
-        // Debug the private key line specifically
+        // For private key, collect all lines until we hit the next key or end
         if (key.trim() === 'FIREBASE_PRIVATE_KEY') {
-          console.log(`Private key line ${index}: length=${value.length}, ends with: ${value.slice(-20)}`)
+          // Keep adding lines until we find another key= or reach the end
+          for (let j = i + 1; j < lines.length; j++) {
+            const nextLine = lines[j]
+            if (nextLine.includes('=') && nextLine.match(/^[A-Z_]+=/)) {
+              // Found next key, stop here
+              break
+            }
+            value += '\n' + nextLine
+            i = j // Skip these lines in the main loop
+          }
+        }
+        
+        firebaseCredentials[key.trim()] = value
+        
+        if (key.trim() === 'FIREBASE_PRIVATE_KEY') {
+          console.log(`Complete private key length: ${value.length}`)
+          console.log(`Private key ends with: ${value.slice(-50)}`)
         }
       }
-    })
+    }
     const privateKey = firebaseCredentials.FIREBASE_PRIVATE_KEY
     const clientEmail = firebaseCredentials.FIREBASE_CLIENT_EMAIL
     const projectId = firebaseCredentials.FIREBASE_PROJECT_ID
