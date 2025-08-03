@@ -31,11 +31,25 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
   // Use public RPC endpoints for wallet adapter (only used for wallet connection, not sensitive operations)
   const endpoint = useMemo(() => clusterApiUrl(network), [network])
 
-  // Get standard wallet adapters (includes MWA)
-  const standardAdapters = useStandardWalletAdapters([])
+  // Add refresh trigger for wallet re-evaluation after MWA registration
+  const [walletRefreshTrigger, setWalletRefreshTrigger] = useState(0)
+  
+  // Get standard wallet adapters (includes MWA) - remove empty array to allow auto-detection
+  // Re-evaluate when trigger changes
+  const standardAdapters = useStandardWalletAdapters()
   
   // Check for manually registered wallets and try to detect MWA
   const [manualMWA, setManualMWA] = useState<any>(null)
+  
+  // Force wallet re-evaluation after MWA registration
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log("🔄 Triggering wallet adapter refresh after MWA registration")
+      setWalletRefreshTrigger(prev => prev + 1)
+    }, 3000) // Give MWA time to register
+    
+    return () => clearTimeout(timer)
+  }, [])
   
   useEffect(() => {
     const checkForMWA = () => {
