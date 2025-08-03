@@ -2,27 +2,26 @@
 const nextConfig = {
   // Configuration for Stork SMS Web App
   
-  // Exclude reference folder from compilation
+  // Disable static optimization to avoid SSR issues with wallet components
+  output: 'standalone',
+  
+  // Experimental features
+  experimental: {
+    typedRoutes: true,
+  },
+  
+  // Webpack configuration
   webpack: (config, { isServer }) => {
-    // Exclude reference folder from TypeScript compilation
-    config.resolve.alias = {
-      ...config.resolve.alias,
+    // Handle wallet adapter ESM modules
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
     };
-    
-    // Add rule to ignore reference folder files
-    config.module.rules.push({
-      test: /\.(tsx?|jsx?)$/,
-      exclude: [/node_modules/, /reference/],
-      use: config.module.rules.find(rule => rule.use && rule.use.loader === 'next-swc-loader')?.use || 'ignore-loader',
-    });
     
     return config;
   },
-  
-  // Ignore reference folder completely during development
-  experimental: {
-    typedRoutes: true,
-  }
 }
 
 module.exports = nextConfig
