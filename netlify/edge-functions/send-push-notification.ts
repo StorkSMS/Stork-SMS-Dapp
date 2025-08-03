@@ -155,8 +155,24 @@ export default async (request: Request, context: any) => {
     console.log('Base64 key first 50:', base64Key.substring(0, 50))
     console.log('Base64 key last 50:', base64Key.substring(base64Key.length - 50))
     
+    // Check for invalid base64 characters
+    const validBase64Chars = /^[A-Za-z0-9+/=]*$/
+    const isValidBase64 = validBase64Chars.test(base64Key)
+    console.log('Is valid base64:', isValidBase64)
+    
+    let finalBase64Key = base64Key
+    if (!isValidBase64) {
+      const invalidChars = [...base64Key.matchAll(/[^A-Za-z0-9+/=]/g)]
+      console.log('Found invalid base64 characters at positions:', invalidChars.map(match => ({ char: match[0], index: match.index, charCode: match[0].charCodeAt(0) })))
+      
+      // Clean the base64 by removing invalid characters
+      finalBase64Key = base64Key.replace(/[^A-Za-z0-9+/=]/g, '')
+      console.log('Cleaned base64 length:', finalBase64Key.length)
+      console.log('Cleaned vs original length diff:', base64Key.length - finalBase64Key.length)
+    }
+    
     // Convert base64 to binary
-    const binaryString = atob(base64Key)
+    const binaryString = atob(finalBase64Key)
     const keyBytes = new Uint8Array(binaryString.length)
     for (let i = 0; i < binaryString.length; i++) {
       keyBytes[i] = binaryString.charCodeAt(i)
