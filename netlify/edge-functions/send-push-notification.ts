@@ -121,7 +121,7 @@ export default async (request: Request, context: any) => {
     }
 
     // Create JWT for Firebase Admin
-    const header = { alg: 'RS256', typ: 'JWT' }
+    const header = { alg: 'PS256', typ: 'JWT' }
     const now = Math.floor(Date.now() / 1000)
     const payload = {
       iss: clientEmail,
@@ -187,14 +187,18 @@ export default async (request: Request, context: any) => {
     
     let cryptoKey
     try {
+      // Try RSA-PSS first as it's more widely supported in edge runtimes
       cryptoKey = await crypto.subtle.importKey(
         'pkcs8',
         keyBytes,
-        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        { 
+          name: 'RSA-PSS',
+          hash: 'SHA-256'
+        },
         false,
         ['sign']
       )
-      console.log('Crypto key imported successfully')
+      console.log('Crypto key imported successfully with RSA-PSS')
     } catch (error) {
       console.error('Failed to import crypto key:', error)
       console.error('Error type:', typeof error)
@@ -209,7 +213,10 @@ export default async (request: Request, context: any) => {
     let signature
     try {
       signature = await crypto.subtle.sign(
-        'RSASSA-PKCS1-v1_5',
+        {
+          name: 'RSA-PSS',
+          saltLength: 32
+        },
         cryptoKey,
         encoder.encode(signatureInput)
       )
