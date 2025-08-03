@@ -79,13 +79,14 @@ self.addEventListener('push', (event) => {
   let notificationData = {
     title: 'Stork SMS',
     body: 'You have a new message',
-    icon: notificationIcon,
-    badge: '/stork-app-icon.png',
-    sound: '/noti/11L-stork_squawk_message-1752946389647.mp3',
+    icon: '/stork-app-icon-512x512.png', // Large icon for notification body
+    badge: '/monochrome-app-icon.png', // Small monochrome icon
+    image: '/stork-dapp-webpreview.png', // Optional banner image
     vibrate: [200, 100, 200],
     tag: 'stork-notification',
     renotify: true,
     requireInteraction: false,
+    silent: false, // Ensure notification makes sound (system default)
     data: {}
   };
   
@@ -96,9 +97,10 @@ self.addEventListener('push', (event) => {
       notificationData = {
         ...notificationData,
         ...data,
-        // Ensure our icon is always used (with Android optimization)
-        icon: data.icon || notificationIcon,
-        badge: data.badge || '/stork-app-icon.png'
+        // Ensure our icons are always used
+        icon: data.icon || '/stork-app-icon-512x512.png',
+        badge: data.badge || '/monochrome-app-icon.png',
+        image: data.image || '/stork-dapp-webpreview.png'
       };
     } catch (error) {
       console.error('Error parsing push data:', error);
