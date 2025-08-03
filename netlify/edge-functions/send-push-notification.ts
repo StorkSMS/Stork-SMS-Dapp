@@ -105,12 +105,29 @@ export default async (request: Request, context: any) => {
     // Import crypto for JWT signing
     const encoder = new TextEncoder()
     
+    // Debug the private key to understand the issue
+    console.log('Raw private key from env:', privateKey.substring(0, 100))
+    console.log('Raw private key length:', privateKey.length)
+    
     // Replace escaped newlines with actual newlines first, then remove headers and newlines
     const normalizedKey = privateKey.replace(/\\n/g, '\n')
+    console.log('After normalizing newlines:', normalizedKey.substring(0, 100))
+    
     const keyData = normalizedKey
       .replace(/-----BEGIN PRIVATE KEY-----/g, '')
       .replace(/-----END PRIVATE KEY-----/g, '')
       .replace(/\s+/g, '') // Remove all whitespace characters
+    
+    console.log('Final key data length:', keyData.length)
+    console.log('Final key data first 50 chars:', keyData.substring(0, 50))
+    console.log('Final key data last 50 chars:', keyData.substring(keyData.length - 50))
+    
+    // Check for invalid base64 characters
+    const invalidChars = keyData.match(/[^A-Za-z0-9+/=]/g)
+    if (invalidChars) {
+      console.log('Invalid base64 characters found:', invalidChars)
+      console.log('Character codes:', invalidChars.map(c => c.charCodeAt(0)))
+    }
     
     const keyBytes = Uint8Array.from(atob(keyData), c => c.charCodeAt(0))
     
