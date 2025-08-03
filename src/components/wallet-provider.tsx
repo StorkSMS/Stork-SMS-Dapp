@@ -9,6 +9,7 @@ import {
   LedgerWalletAdapter,
 } from "@solana/wallet-adapter-wallets"
 import { clusterApiUrl } from "@solana/web3.js"
+import { MWARegistration } from "./mwa-registration"
 
 interface WalletContextProviderProps {
   children: React.ReactNode
@@ -41,6 +42,7 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect={false}>
+        <MWARegistration />
         {children}
       </WalletProvider>
     </ConnectionProvider>
