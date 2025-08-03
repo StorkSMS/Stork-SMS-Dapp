@@ -969,6 +969,28 @@ export const useRealtimeMessaging = () => {
         content: confirmedMessage.encrypted_content?.slice(0, 30) + '...'
       })
 
+      // BACKUP NOTIFICATION: Send push notification as fallback (independent of realtime)
+      if (params.recipientWallet) {
+        const messagePreview = messageContent.length > 100 
+          ? messageContent.substring(0, 97) + '...'
+          : messageContent
+        
+        console.log('🔔 Sending backup push notification for message:', confirmedMessage.id)
+        
+        fetch('/api/send-push-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientWallet: params.recipientWallet,
+            senderWallet: walletAddress,
+            messagePreview,
+            chatId: params.chatId
+          })
+        }).catch(error => {
+          console.error('Failed to send backup push notification:', error)
+        })
+      }
+
       return confirmedMessage
 
     } catch (error) {
