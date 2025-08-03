@@ -30,7 +30,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: payload.notification?.body || 'You have a new message',
     icon: isAndroid ? '/stork-app-icon-512x512.png' : '/stork-app-icon-512x512.png', // Use Stork icon for all platforms
-    badge: isAndroid ? '/monochrome-app-icon.png' : '/monochrome-app-icon.png', // Use Stork badge for all platforms
+    badge: isAndroid ? '/newmonochrome.png' : '/newmonochrome.png', // Updated badge with transparent background
     tag: 'stork-notification',
     renotify: true,
     requireInteraction: false,
