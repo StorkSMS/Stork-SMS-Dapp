@@ -106,12 +106,13 @@ export function usePushNotifications() {
       console.log('Token length:', token.length)
       console.log('Token starts with:', token.substring(0, 20) + '...')
 
-      // Create subscription-like object for backend compatibility
+      // Create subscription object with proper v1 format
+      // Store the raw FCM token in p256dh field for v1 API compatibility
       const subData = {
-        endpoint: `https://fcm.googleapis.com/fcm/send/${token}`,
+        endpoint: token, // Store raw FCM token for v1 API
         keys: {
-          p256dh: token, // Using token as identifier
-          auth: token
+          p256dh: token, // Also store here for compatibility
+          auth: btoa(String(Date.now())) // Generate unique auth for this subscription
         }
       }
       
