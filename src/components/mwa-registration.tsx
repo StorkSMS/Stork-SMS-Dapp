@@ -160,6 +160,46 @@ export function MWARegistration() {
             }
           };
           console.log("💡 Run window.debugMWA() for Solflare-specific debugging")
+          
+          // Add force wallet detection function
+          (window as any).forceMWADetection = () => {
+            console.log("🔄 FORCING MWA WALLET DETECTION...")
+            
+            // Try to manually trigger wallet registration events
+            const wallets = (window.navigator as any).wallets
+            if (wallets) {
+              console.log("📡 Triggering wallet discovery...")
+              
+              // Force discovery
+              if (wallets.get) {
+                const result = wallets.get()
+                console.log("🔍 Discovery result:", result)
+              }
+              
+              // Check if there's a discovery method
+              if (wallets.discover) {
+                console.log("🔍 Calling wallets.discover()...")
+                wallets.discover()
+              }
+              
+              // Check for any hidden methods
+              console.log("🔧 Available wallet methods:", Object.getOwnPropertyNames(wallets))
+            }
+            
+            // Also check for direct MWA detection
+            console.log("📱 Checking for MWA-specific signatures...")
+            if ('solana' in window) {
+              console.log("Found window.solana")
+            }
+            
+            // Check Android intent handling
+            if ('Android' in window || 'startActivity' in window) {
+              console.log("Android-specific APIs available")
+            }
+            
+            return "Check console for detection results"
+          }
+          console.log("💡 Run window.forceMWADetection() to force wallet discovery")
         }, 2000)
         
         console.log("MWA registered successfully")
