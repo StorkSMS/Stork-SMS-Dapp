@@ -971,7 +971,6 @@ export const useRealtimeMessaging = () => {
       })
 
       // BACKUP NOTIFICATION: Send push notification as fallback (independent of realtime)
-      // Only send if realtime notification wasn't already sent
       if (params.recipientWallet) {
         const messagePreview = messageContent.length > 100 
           ? messageContent.substring(0, 97) + '...'
@@ -979,15 +978,8 @@ export const useRealtimeMessaging = () => {
         
         console.log('🔔 Scheduling backup push notification for message:', confirmedMessage.id)
         
-        // Wait 2 seconds to let realtime notification handle it first
+        // Wait 3 seconds to let realtime notification handle it first
         setTimeout(() => {
-          const notificationKey = `${confirmedMessage.id}-${params.recipientWallet}`
-          if (sentNotifications.current.has(notificationKey)) {
-            console.log('🔄 Skipping backup notification - realtime already sent for message:', confirmedMessage.id)
-            return
-          }
-          
-          sentNotifications.current.add(notificationKey)
           console.log('🔔 Sending backup push notification for message:', confirmedMessage.id)
           
           fetch('/api/send-push-notification', {
@@ -1002,7 +994,7 @@ export const useRealtimeMessaging = () => {
           }).catch(error => {
             console.error('Failed to send backup push notification:', error)
           })
-        }, 2000) // 2 second delay
+        }, 3000) // 3 second delay to let realtime go first
       }
 
       return confirmedMessage
@@ -1544,15 +1536,7 @@ export const useRealtimeMessaging = () => {
                   const shouldNotify = isAndroid || (currentChatIdRef.current !== chatId || !document.hasFocus())
                   
                   if (shouldNotify) {
-                    // Check for duplicate notifications
-                    const notificationKey = `${formattedMessage.id}-${currentWallet}`
-                    if (sentNotifications.current.has(notificationKey)) {
-                      console.log('🔄 Skipping duplicate push notification for message:', formattedMessage.id)
-                      return
-                    }
-                    
-                    sentNotifications.current.add(notificationKey)
-                    console.log('🔔 Triggering push notification for incoming message')
+                    console.log('🔔 Triggering realtime push notification for incoming message')
                     
                     // Extract message preview (limit to 100 chars)
                     const messagePreview = formattedMessage.message_content.length > 100 
