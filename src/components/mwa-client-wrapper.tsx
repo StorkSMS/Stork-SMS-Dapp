@@ -19,7 +19,7 @@ export function MWAClientWrapper({ children }: { children: React.ReactNode }) {
 
     try {
       // Custom wallet not found handler
-      const customWalletNotFoundHandler = () => {
+      const customWalletNotFoundHandler = async () => {
         console.log("🔍 No wallet found - handling gracefully")
         
         // Show a subtle notification instead of the big modal
