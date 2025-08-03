@@ -7,23 +7,27 @@ import { usePushNotifications } from '@/hooks/usePushNotifications'
 export default function PushNotificationManager() {
   const { walletAddress, isAuthenticated } = useAuth()
   const { isSupported, permission, subscribe, subscription } = usePushNotifications()
-  const hasAttemptedSubscription = useRef(false)
+  const lastWalletAddress = useRef<string | null>(null)
 
   useEffect(() => {
-    // Auto-subscribe when user is authenticated and hasn't subscribed yet
+    // Auto-subscribe when user is authenticated (refresh on every wallet connection)
     if (
       isAuthenticated && 
       walletAddress && 
       isSupported && 
-      !subscription && 
-      !hasAttemptedSubscription.current &&
-      permission !== 'denied'
+      permission !== 'denied' &&
+      lastWalletAddress.current !== walletAddress // Only trigger if wallet changed
     ) {
-      hasAttemptedSubscription.current = true
+      lastWalletAddress.current = walletAddress
       
       // Automatically request permission and subscribe
       const setupPushNotifications = async () => {
         try {
+          console.log('🔄 Refreshing push notifications for wallet:', walletAddress)
+          
+          // First, clean up any existing subscriptions for this wallet
+          await cleanupExistingSubscriptions(walletAddress)
+          
           // Check current permission state
           let currentPermission = Notification.permission
           
@@ -37,8 +41,9 @@ export default function PushNotificationManager() {
             const sub = await subscribe()
             
             if (sub && walletAddress) {
-              // Send subscription to backend
+              // Send fresh subscription to backend
               await savePushSubscription(walletAddress, sub)
+              console.log('✅ Fresh push notification subscription created for wallet:', walletAddress)
             }
           }
         } catch (error) {
@@ -59,6 +64,27 @@ export default function PushNotificationManager() {
   }, [subscription, walletAddress])
 
   return null // This component doesn't render anything
+}
+
+async function cleanupExistingSubscriptions(walletAddress: string) {
+  try {
+    console.log('🧹 Cleaning up existing subscriptions for wallet:', walletAddress)
+    const response = await fetch('/api/push-subscription/cleanup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        walletAddress
+      }),
+    })
+
+    if (response.ok) {
+      console.log('✅ Existing subscriptions cleaned up')
+    }
+  } catch (error) {
+    console.error('Error cleaning up existing subscriptions:', error)
+  }
 }
 
 async function savePushSubscription(walletAddress: string, subscription: any) {

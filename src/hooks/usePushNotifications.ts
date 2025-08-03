@@ -85,7 +85,7 @@ export function usePushNotifications() {
     setIsSubscribing(true)
 
     try {
-      // Get FCM token using Firebase SDK
+      // Get FCM token using Firebase SDK (force refresh to avoid stale tokens)
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       
       if (!vapidPublicKey) {
@@ -93,8 +93,10 @@ export function usePushNotifications() {
         return null
       }
 
+      // Force refresh to get a fresh token and avoid duplicates
       const token = await getToken(messaging, {
-        vapidKey: vapidPublicKey
+        vapidKey: vapidPublicKey,
+        serviceWorkerRegistration: await navigator.serviceWorker.ready
       })
 
       if (!token) {
