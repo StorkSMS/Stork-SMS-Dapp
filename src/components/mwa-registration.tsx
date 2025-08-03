@@ -204,12 +204,42 @@ export function MWARegistration() {
         
         console.log("MWA registered successfully")
         
-        // Immediate function exposure for testing
-        ;(window as any).testMWA = () => {
-          console.log("🧪 TEST MWA FUNCTION WORKS!")
-          return "Function is available"
+        // Immediate diagnostic function
+        ;(window as any).diagnoseMWA = () => {
+          console.log("🔬 MWA DIAGNOSTIC REPORT:")
+          
+          // Check Wallet Standard implementation
+          const wallets = (window.navigator as any).wallets
+          console.log("1. 📱 navigator.wallets object:", wallets)
+          console.log("2. 🔧 Available methods:", Object.getOwnPropertyNames(wallets))
+          console.log("3. 📋 Wallet count:", wallets?.get?.() || "get() method missing")
+          
+          // Check if @solana-mobile/wallet-standard-mobile loaded
+          console.log("4. 📦 Checking if MWA library loaded...")
+          if ((window as any).solana_mobile_wallet_adapter) {
+            console.log("   ✅ solana_mobile_wallet_adapter found")
+          } else {
+            console.log("   ❌ solana_mobile_wallet_adapter NOT found")
+          }
+          
+          // Check for wallet standard registry
+          const registry = (window as any).walletStandardRegistry || (window as any)._wallet_standard_registry
+          console.log("5. 🗂️ Wallet Standard Registry:", registry ? "Found" : "Missing")
+          
+          // Recommendation
+          console.log("🎯 ISSUE: navigator.wallets only has 'push' method")
+          console.log("💡 SOLUTION: Try Solflare's in-app browser instead")
+          console.log("📱 OR: Install Phantom wallet to test if MWA works with other wallets")
+          
+          return {
+            walletsObject: !!wallets,
+            hasPush: typeof wallets?.push === 'function',
+            hasGet: typeof wallets?.get === 'function', 
+            hasOn: typeof wallets?.on === 'function',
+            recommendation: "Use Solflare in-app browser or try Phantom wallet"
+          }
         }
-        console.log("🧪 TEST: window.testMWA() should work immediately")
+        console.log("🔬 Run window.diagnoseMWA() for detailed analysis")
       } catch (error) {
         console.error("Failed to register MWA:", error)
       }
