@@ -93,9 +93,26 @@ export default async (request: Request, context: any) => {
 
     // Import crypto for JWT signing
     const encoder = new TextEncoder()
+    
+    // Debug the private key format
+    console.log('Raw private key length:', privateKey.length)
+    console.log('Private key starts with:', privateKey.substring(0, 50))
+    
     // Replace escaped newlines with actual newlines first, then remove headers and newlines
     const normalizedKey = privateKey.replace(/\\n/g, '\n')
-    const keyData = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n/g, '')
+    console.log('Normalized key starts with:', normalizedKey.substring(0, 50))
+    
+    const keyData = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n|\r/g, '')
+    console.log('Clean key data length:', keyData.length)
+    console.log('Clean key data starts with:', keyData.substring(0, 50))
+    
+    // Validate base64 before decoding
+    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/
+    if (!base64Regex.test(keyData)) {
+      console.log('Invalid base64 characters found in key data')
+      throw new Error('Invalid base64 format in private key')
+    }
+    
     const keyBytes = Uint8Array.from(atob(keyData), c => c.charCodeAt(0))
     
     const cryptoKey = await crypto.subtle.importKey(
