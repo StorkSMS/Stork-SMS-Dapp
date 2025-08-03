@@ -29,8 +29,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'Stork SMS'
   const notificationOptions = {
     body: payload.notification?.body || 'You have a new message',
-    icon: isAndroid ? undefined : '/stork-app-icon-512x512.png', // Let Android TWA use native app icon
-    badge: isAndroid ? undefined : '/monochrome-app-icon.png', // Let Android TWA use native badge
+    icon: isAndroid ? '/stork-app-icon-512x512.png' : '/stork-app-icon-512x512.png', // Use Stork icon for all platforms
+    badge: isAndroid ? '/monochrome-app-icon.png' : '/monochrome-app-icon.png', // Use Stork badge for all platforms
     tag: 'stork-notification',
     renotify: true,
     requireInteraction: false,
