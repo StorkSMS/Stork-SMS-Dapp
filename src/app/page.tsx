@@ -308,11 +308,21 @@ export default function ChatApp() {
         }
         
         // Play notification sound if audio is initialized and user has interacted
+        console.log('🔔 Notification sound check:', {
+          audioInitialized,
+          userInteracted,
+          hasAudioRef: !!audioRef.current,
+          messageFrom: message.sender_wallet_address?.slice(0, 8),
+          currentUser: walletPublicKey?.toBase58().slice(0, 8)
+        })
+        
         if (audioInitialized && userInteracted && audioRef.current) {
           console.log('🔔 Playing notification sound for message from other user')
           audioRef.current.play()
             .then(() => console.log('✅ Notification sound played'))
             .catch(err => console.error('❌ Failed to play notification sound:', err))
+        } else {
+          console.log('🔇 Sound not played - conditions not met')
         }
       } else {
         console.log('🔇 No notification - message is from current user')

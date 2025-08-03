@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
+import { handleWalletConnectionError } from "@/lib/wallet-error-handler"
 
 export function WalletButton() {
   const { wallets, wallet, publicKey, connect, disconnect, connecting, connected, select, signMessage } = useWallet()
@@ -47,9 +48,7 @@ export function WalletButton() {
     if (isReady && !isPostDisconnectCooldown && pendingConnection && wallet) {
       // Clear the awaiting signature state as we're about to connect
       setAwaitingSignature(false)
-      connect().catch((error) => {
-        console.error("Failed to connect wallet:", error)
-      })
+      connect().catch(handleWalletConnectionError)
       setPendingConnection(false)
     }
   }, [isReady, isPostDisconnectCooldown, pendingConnection, wallet, connect, setAwaitingSignature])
@@ -116,7 +115,7 @@ export function WalletButton() {
           try {
             await connect()
           } catch (error) {
-            console.error("Failed to connect wallet:", error)
+            handleWalletConnectionError(error)
           }
         } else {
           // Show "Awaiting signature" during the delay period
@@ -135,7 +134,7 @@ export function WalletButton() {
         try {
           await connect()
         } catch (error) {
-          console.error("Failed to connect wallet:", error)
+          handleWalletConnectionError(error)
         }
       } else {
         setPendingConnection(true)
