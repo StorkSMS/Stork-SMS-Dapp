@@ -1484,54 +1484,55 @@ export const useRealtimeMessaging = () => {
                   }
                 }
 
+                // Check if we already processed this message to prevent duplicates
+                if (processedMessageIds.current.has(formattedMessage.id)) {
+                  console.log('🔄 Skipping duplicate notification for message:', formattedMessage.id)
+                  return
+                }
+                
+                processedMessageIds.current.add(formattedMessage.id)
+                
+                // Determine if message is from current user with fresh wallet state
+                const currentWallet = publicKey?.toString()
+                const isFromCurrentUser = !!(currentWallet && formattedMessage.sender_wallet === currentWallet)
+                
+                // Reset typing sound cooldown when someone sends a message (not from current user)
+                if (!isFromCurrentUser) {
+                  console.log('🔄 Resetting typing sound cooldown due to message from other user')
+                  resetTypingSoundCooldown()
+                  
+                  // Trigger push notification for incoming messages - ALWAYS try regardless of callback state
+                  // For Android TWA: always notify (background notifications work differently)
+                  // For browser: only if not viewing chat or tab not focused
+                  const isAndroid = /Android/i.test(navigator.userAgent)
+                  const shouldNotify = isAndroid || (currentChatIdRef.current !== chatId || !document.hasFocus())
+                  
+                  if (shouldNotify) {
+                    console.log('🔔 Triggering push notification for incoming message')
+                    
+                    // Extract message preview (limit to 100 chars)
+                    const messagePreview = formattedMessage.message_content.length > 100 
+                      ? formattedMessage.message_content.substring(0, 97) + '...'
+                      : formattedMessage.message_content
+                    
+                    // Send push notification request to backend
+                    fetch('/api/send-push-notification', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        recipientWallet: currentWallet,
+                        senderWallet: formattedMessage.sender_wallet,
+                        messagePreview,
+                        chatId
+                      })
+                    }).catch(error => {
+                      console.error('Failed to send push notification:', error)
+                    })
+                  }
+                }
+
                 // Notify callback about new message with sender detection
                 if (messageCallbackRef.current) {
-                  // Check if we already processed this message to prevent duplicates
-                  if (processedMessageIds.current.has(formattedMessage.id)) {
-                    console.log('🔄 Skipping duplicate notification for message:', formattedMessage.id)
-                    return
-                  }
-                  
-                  processedMessageIds.current.add(formattedMessage.id)
-                  
-                  // Determine if message is from current user with fresh wallet state
-                  const currentWallet = publicKey?.toString()
-                  const isFromCurrentUser = !!(currentWallet && formattedMessage.sender_wallet === currentWallet)
-                  
-                  // Reset typing sound cooldown when someone sends a message (not from current user)
-                  if (!isFromCurrentUser) {
-                    console.log('🔄 Resetting typing sound cooldown due to message from other user')
-                    resetTypingSoundCooldown()
-                    
-                    // Trigger push notification for incoming messages
-                    // For Android TWA: always notify (background notifications work differently)
-                    // For browser: only if not viewing chat or tab not focused
-                    const isAndroid = /Android/i.test(navigator.userAgent)
-                    const shouldNotify = isAndroid || (currentChatIdRef.current !== chatId || !document.hasFocus())
-                    
-                    if (shouldNotify) {
-                      console.log('🔔 Triggering push notification for incoming message')
-                      
-                      // Extract message preview (limit to 100 chars)
-                      const messagePreview = formattedMessage.message_content.length > 100 
-                        ? formattedMessage.message_content.substring(0, 97) + '...'
-                        : formattedMessage.message_content
-                      
-                      // Send push notification request to backend
-                      fetch('/api/send-push-notification', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          recipientWallet: currentWallet,
-                          senderWallet: formattedMessage.sender_wallet,
-                          messagePreview,
-                          chatId
-                        })
-                      }).catch(error => {
-                        console.error('Failed to send push notification:', error)
-                      })
-                    }
-                  }
                   
                   console.log('🔔 Calling onNewMessage callback with:', {
                     messageId: formattedMessage.id,
