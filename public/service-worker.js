@@ -1,11 +1,14 @@
 // Service Worker for Stork SMS PWA
-const CACHE_NAME = 'stork-sms-v1';
+const CACHE_NAME = 'stork-sms-v2';
 const urlsToCache = [
   '/',
   '/stork-app-icon.png',
   '/stork-app-icon-512x512.png',
   '/monochrome-app-icon.png',
-  '/noti/11L-stork_squawk_message-1752946389647.mp3'
+  '/noti/11L-stork_squawk_message-1752946389647.mp3',
+  '/Light-1-min.webp',
+  '/Dark-1-min.png',
+  '/Paper-Texture-7.jpg'
 ];
 
 // Install event - cache essential files

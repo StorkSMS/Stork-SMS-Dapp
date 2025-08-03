@@ -26,5 +26,19 @@
       "type": "image/png",
       "purpose": "monochrome"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/Light-1-min.webp",
+      "sizes": "any",
+      "type": "image/webp",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/Dark-1-min.png",
+      "sizes": "any", 
+      "type": "image/png",
+      "form_factor": "wide"
+    }
   ]
 }
