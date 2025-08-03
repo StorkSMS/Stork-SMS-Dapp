@@ -321,7 +321,7 @@ export default function ChatApp() {
           userInteracted,
           hasAudioRef: !!audioRef.current,
           messageFrom: message.sender_wallet_address?.slice(0, 8),
-          currentUser: walletPublicKey?.toBase58().slice(0, 8)
+          currentUser: publicKey?.toBase58().slice(0, 8)
         })
         
         if (audioInitialized && userInteracted && audioRef.current) {
