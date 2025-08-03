@@ -43,20 +43,40 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
         const wallets = window.navigator.wallets as any
         console.log("🔍 Checking navigator.wallets:", wallets)
         
+        console.log("🔍 wallets object methods:", Object.getOwnPropertyNames(wallets))
+        console.log("🔍 wallets.get exists:", typeof wallets.get)
+        
         if (wallets && wallets.get) {
-          const availableWallets = wallets.get()
-          console.log("🔍 Available standard wallets:", availableWallets)
+          try {
+            const availableWallets = wallets.get()
+            console.log("🔍 Available standard wallets:", availableWallets)
+            
+            // Look for MWA specifically
+            const mwaWallet = availableWallets.find((w: any) => 
+              w.name?.includes('Mobile Wallet Adapter') || 
+              w.name?.includes('MWA') ||
+              w.name?.toLowerCase().includes('mobile')
+            )
+            
+            if (mwaWallet) {
+              console.log("✅ Found MWA manually:", mwaWallet)
+              setManualMWA(mwaWallet)
+            }
+          } catch (error) {
+            console.error("❌ Error calling wallets.get():", error)
+          }
+        } else {
+          console.log("❌ wallets.get() method not available")
           
-          // Look for MWA specifically
-          const mwaWallet = availableWallets.find((w: any) => 
-            w.name?.includes('Mobile Wallet Adapter') || 
-            w.name?.includes('MWA') ||
-            w.name?.toLowerCase().includes('mobile')
-          )
-          
-          if (mwaWallet) {
-            console.log("✅ Found MWA manually:", mwaWallet)
-            setManualMWA(mwaWallet)
+          // Try alternative wallet standard APIs
+          if ('getWallets' in window.navigator) {
+            console.log("🔍 Trying navigator.getWallets...")
+            try {
+              const navWallets = (window.navigator as any).getWallets()
+              console.log("🔍 navigator.getWallets():", navWallets)
+            } catch (error) {
+              console.error("❌ Error with getWallets:", error)
+            }
           }
         }
       }
