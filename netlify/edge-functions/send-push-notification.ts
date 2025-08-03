@@ -102,14 +102,23 @@ export default async (request: Request, context: any) => {
     const normalizedKey = privateKey.replace(/\\n/g, '\n')
     console.log('Normalized key starts with:', normalizedKey.substring(0, 50))
     
-    const keyData = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n|\r|\s/g, '')
+    // More comprehensive cleaning - remove headers, footers, and all whitespace
+    let keyData = normalizedKey
+      .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+      .replace(/-----END PRIVATE KEY-----/g, '')
+      .replace(/\s+/g, '') // Remove all whitespace characters
+    
     console.log('Clean key data length:', keyData.length)
     console.log('Clean key data starts with:', keyData.substring(0, 50))
+    console.log('Clean key data ends with:', keyData.substring(keyData.length - 50))
     
     // Validate base64 before decoding
     const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/
     if (!base64Regex.test(keyData)) {
       console.log('Invalid base64 characters found in key data')
+      // Show which characters are invalid
+      const invalidChars = keyData.match(/[^A-Za-z0-9+/=]/g)
+      console.log('Invalid characters:', invalidChars)
       throw new Error('Invalid base64 format in private key')
     }
     
