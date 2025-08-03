@@ -4,20 +4,24 @@ const nextConfig = {
   
   // Exclude reference folder from compilation
   webpack: (config, { isServer }) => {
+    // Exclude reference folder from TypeScript compilation
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+    
+    // Add rule to ignore reference folder files
     config.module.rules.push({
-      test: /\.tsx?$/,
-      exclude: /reference\//,
-      use: 'ignore-loader'
+      test: /\.(tsx?|jsx?)$/,
+      exclude: [/node_modules/, /reference/],
+      use: config.module.rules.find(rule => rule.use && rule.use.loader === 'next-swc-loader')?.use || 'ignore-loader',
     });
+    
     return config;
   },
   
-  // Also exclude from page directory scanning
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'].map(ext => ext),
-  
-  // Ignore reference folder completely
-  experimental: {
-    typedRoutes: true
+  // Ignore reference folder completely during development
+  watchOptions: {
+    ignored: ['**/reference/**', '**/node_modules/**']
   }
 }
 

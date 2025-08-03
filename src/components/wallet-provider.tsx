@@ -16,14 +16,15 @@ import {
   registerMwa, 
 } from "@solana-mobile/wallet-standard-mobile"
 
-// Register MWA at module level (like official example)
-function getUriForAppIdentity() {
-  const location = globalThis.location;
-  if (!location) return;
-  return `${location.protocol}//${location.host}`;
-}
+// Register MWA function (will be called in component)
+function registerMWAForApp() {
+  if (typeof window === 'undefined') return;
+  
+  const getUriForAppIdentity = () => {
+    if (typeof window === 'undefined') return 'https://dapp.stork-sms.net';
+    return `${window.location.protocol}//${window.location.host}`;
+  };
 
-if (typeof window !== 'undefined') {
   registerMwa({
     appIdentity: {
       uri: getUriForAppIdentity(),
@@ -34,7 +35,7 @@ if (typeof window !== 'undefined') {
     chains: ["solana:devnet", "solana:mainnet"] as const,
     chainSelector: createDefaultChainSelector(),
     onWalletNotFound: createDefaultWalletNotFoundHandler(),
-  })
+  });
 }
 
 interface WalletContextProviderProps {
@@ -68,11 +69,14 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
         ]
   , [])
 
-  // Debug logging - run after component mounts
+  // Register MWA and debug logging - run after component mounts
   useEffect(() => {
+    // Register MWA on component mount (client-side only)
+    registerMWAForApp();
+    
     console.log("🔍 WALLET PROVIDER DEBUG (Official MWA Pattern):")
     console.log("Adapters provided:", adapters.length)
-    console.log("🎯 MWA should auto-register via module-level registration")
+    console.log("🎯 MWA registered on component mount")
     
     // Check if MWA registered properly
     setTimeout(() => {
