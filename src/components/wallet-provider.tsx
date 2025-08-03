@@ -34,9 +34,9 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
   // Add refresh trigger for wallet re-evaluation after MWA registration
   const [walletRefreshTrigger, setWalletRefreshTrigger] = useState(0)
   
-  // Get standard wallet adapters (includes MWA) - remove empty array to allow auto-detection
+  // Get standard wallet adapters (includes MWA) - use undefined to allow auto-detection
   // Re-evaluate when trigger changes
-  const standardAdapters = useStandardWalletAdapters()
+  const standardAdapters = useStandardWalletAdapters(undefined)
   
   // Check for manually registered wallets and try to detect MWA
   const [manualMWA, setManualMWA] = useState<any>(null)
