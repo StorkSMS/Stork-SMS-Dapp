@@ -184,25 +184,37 @@ export default async (request: Request, context: any) => {
     
     console.log('Key bytes length:', keyBytes.length)
     
-    const cryptoKey = await crypto.subtle.importKey(
-      'pkcs8',
-      keyBytes,
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['sign']
-    )
-    
-    console.log('Crypto key imported successfully')
+    let cryptoKey
+    try {
+      cryptoKey = await crypto.subtle.importKey(
+        'pkcs8',
+        keyBytes,
+        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        false,
+        ['sign']
+      )
+      console.log('Crypto key imported successfully')
+    } catch (error) {
+      console.error('Failed to import crypto key:', error)
+      throw new Error(`Failed to import crypto key: ${error.message}`)
+    }
 
     const headerB64 = btoa(JSON.stringify(header)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
     const payloadB64 = btoa(JSON.stringify(payload)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
     const signatureInput = `${headerB64}.${payloadB64}`
     
-    const signature = await crypto.subtle.sign(
-      'RSASSA-PKCS1-v1_5',
-      cryptoKey,
-      encoder.encode(signatureInput)
-    )
+    let signature
+    try {
+      signature = await crypto.subtle.sign(
+        'RSASSA-PKCS1-v1_5',
+        cryptoKey,
+        encoder.encode(signatureInput)
+      )
+      console.log('JWT signature created successfully')
+    } catch (error) {
+      console.error('Failed to create JWT signature:', error)
+      throw new Error(`Failed to create JWT signature: ${error.message}`)
+    }
     
     const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
       .replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
