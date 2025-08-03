@@ -17,7 +17,12 @@ const app = initializeApp(firebaseConfig)
 // Initialize Firebase Cloud Messaging and get a reference to the service
 let messaging: any = null
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  messaging = getMessaging(app)
+  try {
+    messaging = getMessaging(app)
+    console.log('Firebase messaging initialized successfully')
+  } catch (error) {
+    console.error('Error initializing Firebase messaging:', error)
+  }
 }
 
 export { messaging, getToken, onMessage }

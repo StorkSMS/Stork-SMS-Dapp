@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
       icon: '/stork-app-icon.png',
       badge: '/stork-app-icon.png',
       tag: `message-${chatId || Date.now()}`,
+      renotify: true,
+      requireInteraction: false,
+      vibrate: [200, 100, 200],
       data: {
         url: chatId ? `/chat/${chatId}` : '/',
         chatId,
@@ -98,8 +101,7 @@ export async function POST(request: NextRequest) {
               badge: notificationPayload.badge,
               tag: notificationPayload.tag,
               renotify: notificationPayload.renotify,
-              requireInteraction: notificationPayload.requireInteraction,
-              vibrate: notificationPayload.vibrate
+              requireInteraction: notificationPayload.requireInteraction
             }
           }
         }
