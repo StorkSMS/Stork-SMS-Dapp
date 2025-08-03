@@ -20,6 +20,12 @@ const nextConfig = {
       tls: false,
     };
     
+    // Exclude Netlify Edge Functions from compilation
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ['**/netlify/edge-functions/**']
+    };
+    
     return config;
   },
 }
