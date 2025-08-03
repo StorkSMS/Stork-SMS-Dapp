@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useMemo, useEffect } from "react"
+import { useMemo, useEffect, useState } from "react"
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react"
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
 import {
@@ -33,6 +33,47 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
 
   // Get standard wallet adapters (includes MWA)
   const standardAdapters = useStandardWalletAdapters([])
+  
+  // Check for manually registered wallets and try to detect MWA
+  const [manualMWA, setManualMWA] = useState<any>(null)
+  
+  useEffect(() => {
+    const checkForMWA = () => {
+      if (typeof window !== 'undefined' && window.navigator && 'wallets' in window.navigator) {
+        const wallets = window.navigator.wallets as any
+        console.log("🔍 Checking navigator.wallets:", wallets)
+        
+        if (wallets && wallets.get) {
+          const availableWallets = wallets.get()
+          console.log("🔍 Available standard wallets:", availableWallets)
+          
+          // Look for MWA specifically
+          const mwaWallet = availableWallets.find((w: any) => 
+            w.name?.includes('Mobile Wallet Adapter') || 
+            w.name?.includes('MWA') ||
+            w.name?.toLowerCase().includes('mobile')
+          )
+          
+          if (mwaWallet) {
+            console.log("✅ Found MWA manually:", mwaWallet)
+            setManualMWA(mwaWallet)
+          }
+        }
+      }
+    }
+    
+    // Check immediately and then periodically
+    checkForMWA()
+    const intervals = [2000, 4000, 6000, 8000] // Multiple checks
+    const timers = intervals.map(delay => 
+      setTimeout(() => {
+        console.log(`🔄 Checking for MWA after ${delay}ms`)
+        checkForMWA()
+      }, delay)
+    )
+    
+    return () => timers.forEach(clearTimeout)
+  }, [])
 
   // Debug logging - run after component mounts
   useEffect(() => {
