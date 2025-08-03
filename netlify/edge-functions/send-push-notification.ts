@@ -140,13 +140,20 @@ export default async (request: Request, context: any) => {
     console.log('Normalized PEM key length:', normalizedKey.length)
     
     // Extract the base64 portion from the PEM (between headers)
-    const base64Key = normalizedKey
-      .replace(/-----BEGIN PRIVATE KEY-----/, '')
-      .replace(/-----END PRIVATE KEY-----/, '')
-      .replace(/\s/g, '') // Remove all whitespace including newlines
+    console.log('Before base64 extraction, key contains BEGIN:', normalizedKey.includes('-----BEGIN PRIVATE KEY-----'))
+    console.log('Before base64 extraction, key contains END:', normalizedKey.includes('-----END PRIVATE KEY-----'))
     
-    console.log('Extracted base64 key length:', base64Key.length)
-    console.log('Base64 key sample:', base64Key.substring(0, 50))
+    const withoutBegin = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----/, '')
+    console.log('After removing BEGIN, length:', withoutBegin.length)
+    
+    const withoutEnd = withoutBegin.replace(/-----END PRIVATE KEY-----/, '')
+    console.log('After removing END, length:', withoutEnd.length)
+    
+    const base64Key = withoutEnd.replace(/\s/g, '') // Remove all whitespace including newlines
+    
+    console.log('Final base64 key length:', base64Key.length)
+    console.log('Base64 key first 50:', base64Key.substring(0, 50))
+    console.log('Base64 key last 50:', base64Key.substring(base64Key.length - 50))
     
     // Convert base64 to binary
     const binaryString = atob(base64Key)
