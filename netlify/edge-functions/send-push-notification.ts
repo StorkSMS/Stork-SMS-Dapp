@@ -52,59 +52,17 @@ export default async (request: Request, context: any) => {
     const credentialsPath = new URL('./firebase-credentials.enc', import.meta.url)
     const encryptedCredentials = await Deno.readTextFile(credentialsPath)
     
-    // Decrypt using Web Crypto API (AES-256-CBC equivalent)
-    const keyData = new TextEncoder().encode(encryptionKey)
-    const key = await crypto.subtle.importKey(
-      'raw',
-      await crypto.subtle.digest('SHA-256', keyData),
-      { name: 'AES-CBC' },
-      false,
-      ['decrypt']
-    )
+    // Simple XOR decryption
+    function xorDecrypt(encryptedBase64: string, key: string): string {
+      const encrypted = atob(encryptedBase64)
+      let result = ''
+      for (let i = 0; i < encrypted.length; i++) {
+        result += String.fromCharCode(encrypted.charCodeAt(i) ^ key.charCodeAt(i % key.length))
+      }
+      return result
+    }
     
-    // Parse the base64 encrypted data (OpenSSL format with "Salted__" prefix)
-    const encryptedBytes = Uint8Array.from(atob(encryptedCredentials), c => c.charCodeAt(0))
-    const salt = encryptedBytes.slice(8, 16) // Skip "Salted__" and get salt
-    const ciphertext = encryptedBytes.slice(16)
-    
-    // Derive key and IV using PBKDF2 (matching OpenSSL's default)
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(encryptionKey),
-      'PBKDF2',
-      false,
-      ['deriveBits']
-    )
-    
-    const derivedKey = await crypto.subtle.deriveBits(
-      {
-        name: 'PBKDF2',
-        salt: salt,
-        iterations: 10000,
-        hash: 'SHA-256'
-      },
-      keyMaterial,
-      384 // 32 bytes key + 16 bytes IV
-    )
-    
-    const keyBytes = new Uint8Array(derivedKey.slice(0, 32))
-    const iv = new Uint8Array(derivedKey.slice(32, 48))
-    
-    const decryptKey = await crypto.subtle.importKey(
-      'raw',
-      keyBytes,
-      { name: 'AES-CBC' },
-      false,
-      ['decrypt']
-    )
-    
-    const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-CBC', iv: iv },
-      decryptKey,
-      ciphertext
-    )
-    
-    const decryptedB64 = new TextDecoder().decode(decrypted)
+    const decryptedB64 = xorDecrypt(encryptedCredentials, encryptionKey)
     const firebaseCredentials = JSON.parse(atob(decryptedB64))
     const privateKey = firebaseCredentials.private_key
     const clientEmail = firebaseCredentials.client_email
