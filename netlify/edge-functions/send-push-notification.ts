@@ -93,7 +93,9 @@ export default async (request: Request, context: any) => {
 
     // Import crypto for JWT signing
     const encoder = new TextEncoder()
-    const keyData = privateKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n/g, '')
+    // Replace escaped newlines with actual newlines first, then remove headers and newlines
+    const normalizedKey = privateKey.replace(/\\n/g, '\n')
+    const keyData = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n/g, '')
     const keyBytes = Uint8Array.from(atob(keyData), c => c.charCodeAt(0))
     
     const cryptoKey = await crypto.subtle.importKey(
