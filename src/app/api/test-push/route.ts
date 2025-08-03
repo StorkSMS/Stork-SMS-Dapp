@@ -14,11 +14,12 @@ export async function POST(request: NextRequest) {
 
     console.log('Calling Edge Function with test data:', testData)
 
-    // Call the Edge Function directly
-    const edgeResponse = await fetch(`${request.nextUrl.origin}/.netlify/edge-functions/send-push-notification`, {
+    // Call the Supabase Edge Function directly
+    const edgeResponse = await fetch(`https://wicadttatwpzzzfefvsw.supabase.co/functions/v1/send-push-notification`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
       },
       body: JSON.stringify(testData)
     })

@@ -30,11 +30,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Forward to Edge Function which handles Firebase credentials separately
-    const edgeResponse = await fetch(`${request.nextUrl.origin}/.netlify/edge-functions/send-push-notification`, {
+    // Forward to Supabase Edge Function which handles Firebase credentials
+    const edgeResponse = await fetch(`https://wicadttatwpzzzfefvsw.supabase.co/functions/v1/send-push-notification`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
       },
       body: JSON.stringify({ recipientWallet, senderWallet, messagePreview, chatId })
     })
