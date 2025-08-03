@@ -19,7 +19,9 @@ const messaging = firebase.messaging()
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message:', payload)
+  console.log('🔔 [SW] Received background message:', payload)
+  console.log('🔔 [SW] Payload notification:', payload.notification)
+  console.log('🔔 [SW] Payload data:', payload.data)
   
   // Detect if we're on Android for better configuration
   const isAndroid = /Android/i.test(navigator.userAgent)
@@ -42,5 +44,8 @@ messaging.onBackgroundMessage((payload) => {
     })
   }
 
+  console.log('🔔 [SW] Showing notification with title:', notificationTitle)
+  console.log('🔔 [SW] Notification options:', notificationOptions)
+  
   return self.registration.showNotification(notificationTitle, notificationOptions)
 })
