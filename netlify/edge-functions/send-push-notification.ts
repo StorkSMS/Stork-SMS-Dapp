@@ -183,6 +183,7 @@ export default async (request: Request, context: any) => {
     }
     
     console.log('Key bytes length:', keyBytes.length)
+    console.log('First 32 bytes as hex:', Array.from(keyBytes.slice(0, 32)).map(b => b.toString(16).padStart(2, '0')).join(' '))
     
     let cryptoKey
     try {
@@ -196,7 +197,9 @@ export default async (request: Request, context: any) => {
       console.log('Crypto key imported successfully')
     } catch (error) {
       console.error('Failed to import crypto key:', error)
-      throw new Error(`Failed to import crypto key: ${error.message}`)
+      console.error('Error type:', typeof error)
+      console.error('Error string:', String(error))
+      throw new Error(`Failed to import crypto key: ${String(error)}`)
     }
 
     const headerB64 = btoa(JSON.stringify(header)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
@@ -213,7 +216,9 @@ export default async (request: Request, context: any) => {
       console.log('JWT signature created successfully')
     } catch (error) {
       console.error('Failed to create JWT signature:', error)
-      throw new Error(`Failed to create JWT signature: ${error.message}`)
+      console.error('Signature error type:', typeof error)
+      console.error('Signature error string:', String(error))
+      throw new Error(`Failed to create JWT signature: ${String(error)}`)
     }
     
     const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
