@@ -65,13 +65,25 @@ export default async (request: Request, context: any) => {
     const decryptedEnvData = xorDecrypt(encryptedCredentials, encryptionKey)
     console.log('Decrypted env data length:', decryptedEnvData.length)
     
+    // Debug the raw decrypted data around the private key
+    const privateKeyStartIndex = decryptedEnvData.indexOf('FIREBASE_PRIVATE_KEY=')
+    if (privateKeyStartIndex !== -1) {
+      const privateKeySection = decryptedEnvData.substring(privateKeyStartIndex, privateKeyStartIndex + 500)
+      console.log('Private key section from env:', privateKeySection)
+    }
+    
     // Parse env-style format into object
     const firebaseCredentials: any = {}
-    decryptedEnvData.split('\n').forEach(line => {
+    decryptedEnvData.split('\n').forEach((line, index) => {
       if (line.trim() && line.includes('=')) {
         const [key, ...valueParts] = line.split('=')
         const value = valueParts.join('=') // Handle values with = in them
         firebaseCredentials[key.trim()] = value.trim()
+        
+        // Debug the private key line specifically
+        if (key.trim() === 'FIREBASE_PRIVATE_KEY') {
+          console.log(`Private key line ${index}: length=${value.length}, ends with: ${value.slice(-20)}`)
+        }
       }
     })
     const privateKey = firebaseCredentials.FIREBASE_PRIVATE_KEY
