@@ -1173,7 +1173,7 @@ export default function ChatApp() {
 
       {/* Mobile Welcome Screen - Connect wallet button (only show on initial load, never after auth) */}
       {isMobile && !hideWelcomeScreen && !hasEverAuthenticated && (
-        <div className="fixed inset-0 z-[8] flex flex-col items-center justify-center px-6 pointer-events-none">
+        <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center px-6 pointer-events-none">
           <div className="mb-8 invisible">
             {/* Invisible spacer to match logo position */}
             <div className="h-24 w-auto"></div>
