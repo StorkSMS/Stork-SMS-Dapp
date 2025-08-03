@@ -182,6 +182,8 @@ export default async (request: Request, context: any) => {
       keyBytes[i] = binaryString.charCodeAt(i)
     }
     
+    console.log('Key bytes length:', keyBytes.length)
+    
     const cryptoKey = await crypto.subtle.importKey(
       'pkcs8',
       keyBytes,
@@ -189,6 +191,8 @@ export default async (request: Request, context: any) => {
       false,
       ['sign']
     )
+    
+    console.log('Crypto key imported successfully')
 
     const headerB64 = btoa(JSON.stringify(header)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
     const payloadB64 = btoa(JSON.stringify(payload)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
@@ -215,7 +219,16 @@ export default async (request: Request, context: any) => {
       })
     })
 
-    const { access_token } = await tokenResponse.json()
+    console.log('Token response status:', tokenResponse.status)
+    const tokenData = await tokenResponse.json()
+    console.log('Token response data:', tokenData)
+    
+    const { access_token } = tokenData
+    
+    if (!access_token) {
+      console.log('Failed to get access token:', tokenData)
+      throw new Error(`Failed to get access token: ${JSON.stringify(tokenData)}`)
+    }
 
     // Prepare notification payload
     const notificationPayload = {
