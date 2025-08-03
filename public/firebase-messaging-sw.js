@@ -1,6 +1,6 @@
-// Import and configure Firebase using modern SDK
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js')
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js')
+// Import Firebase scripts (using compat versions for service worker)
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js')
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js')
 
 const firebaseConfig = {
   apiKey: "AIzaSyBaEBkpG2i9p3ePaoQdnE6I5wC4jX8idx0",
