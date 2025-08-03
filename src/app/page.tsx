@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to avoid SSR issues with wallet components
+export const dynamic = 'force-dynamic'
+
 import type React from "react"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"

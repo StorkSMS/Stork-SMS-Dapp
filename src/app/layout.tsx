@@ -3,13 +3,17 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import dynamic from "next/dynamic"
 import "./globals.css"
-import { AuthProvider } from "@/contexts/AuthContext"
 import ServiceWorkerProvider from "@/components/ServiceWorkerProvider"
 import PushNotificationManager from "@/components/PushNotificationManager"
 
-// Dynamically import WalletContextProvider to avoid SSR issues
+// Dynamically import wallet and auth providers to avoid SSR issues
 const WalletContextProvider = dynamic(
   () => import("@/components/wallet-provider").then(mod => ({ default: mod.WalletContextProvider })),
+  { ssr: false }
+)
+
+const AuthProvider = dynamic(
+  () => import("@/contexts/AuthContext").then(mod => ({ default: mod.AuthProvider })),
   { ssr: false }
 )
 

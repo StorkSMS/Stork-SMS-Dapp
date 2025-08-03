@@ -9,34 +9,7 @@ import {
   LedgerWalletAdapter,
 } from "@solana/wallet-adapter-wallets"
 import { clusterApiUrl } from "@solana/web3.js"
-import { 
-  createDefaultAuthorizationCache, 
-  createDefaultChainSelector, 
-  createDefaultWalletNotFoundHandler,
-  registerMwa, 
-} from "@solana-mobile/wallet-standard-mobile"
-
-// Register MWA function (will be called in component)
-function registerMWAForApp() {
-  if (typeof window === 'undefined') return;
-  
-  const getUriForAppIdentity = () => {
-    if (typeof window === 'undefined') return 'https://dapp.stork-sms.net';
-    return `${window.location.protocol}//${window.location.host}`;
-  };
-
-  registerMwa({
-    appIdentity: {
-      uri: getUriForAppIdentity(),
-      name: 'Stork SMS',
-      icon: 'stork-app-icon.png',
-    },
-    authorizationCache: createDefaultAuthorizationCache(),
-    chains: ["solana:devnet", "solana:mainnet"] as const,
-    chainSelector: createDefaultChainSelector(),
-    onWalletNotFound: createDefaultWalletNotFoundHandler(),
-  });
-}
+import { MWAClientWrapper } from "./mwa-client-wrapper"
 
 interface WalletContextProviderProps {
   children: React.ReactNode
@@ -69,18 +42,15 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
         ]
   , [])
 
-  // Register MWA and debug logging - run after component mounts
+  // Debug logging - run after component mounts
   useEffect(() => {
-    // Register MWA on component mount (client-side only)
-    registerMWAForApp();
-    
     console.log("🔍 WALLET PROVIDER DEBUG (Official MWA Pattern):")
     console.log("Adapters provided:", adapters.length)
-    console.log("🎯 MWA registered on component mount")
+    console.log("🎯 MWA will be registered in separate client wrapper")
     
     // Check if MWA registered properly
     setTimeout(() => {
-      if (window.navigator && 'wallets' in window.navigator) {
+      if (typeof window !== 'undefined' && window.navigator && 'wallets' in window.navigator) {
         const wallets = (window.navigator as any).wallets
         console.log("📱 Navigator wallets API:", wallets)
         console.log("🔧 Available methods:", Object.getOwnPropertyNames(wallets))
@@ -88,14 +58,16 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
           console.log("📋 Detected wallets:", wallets.get())
         }
       }
-    }, 1000)
+    }, 2000)
   }, [adapters])
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={adapters} autoConnect={true}>
-        {children}
-      </WalletProvider>
-    </ConnectionProvider>
+    <MWAClientWrapper>
+      <ConnectionProvider endpoint={endpoint}>
+        <WalletProvider wallets={adapters} autoConnect={true}>
+          {children}
+        </WalletProvider>
+      </ConnectionProvider>
+    </MWAClientWrapper>
   )
 }
