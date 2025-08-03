@@ -68,6 +68,16 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
         } else {
           console.log("❌ wallets.get() method not available")
           
+          // Try the push method (maybe it's a different API)
+          if (wallets.push) {
+            console.log("🔍 navigator.wallets has push method, trying to inspect it...")
+            console.log("🔍 wallets.push:", wallets.push)
+            
+            // See if it's actually an array-like object
+            console.log("🔍 wallets.length:", wallets.length)
+            console.log("🔍 wallets as array:", Array.from(wallets))
+          }
+          
           // Try alternative wallet standard APIs
           if ('getWallets' in window.navigator) {
             console.log("🔍 Trying navigator.getWallets...")
@@ -77,6 +87,18 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
             } catch (error) {
               console.error("❌ Error with getWallets:", error)
             }
+          }
+          
+          // Check for Wallet Standard events
+          if (window.addEventListener) {
+            console.log("🔍 Setting up wallet standard event listeners...")
+            window.addEventListener('wallet-standard:register', (event) => {
+              console.log("🎉 Wallet registered event:", event)
+            })
+            
+            window.addEventListener('wallet-standard:unregister', (event) => {
+              console.log("👋 Wallet unregistered event:", event)
+            })
           }
         }
       }
