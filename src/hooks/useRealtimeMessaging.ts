@@ -1504,8 +1504,12 @@ export const useRealtimeMessaging = () => {
                     resetTypingSoundCooldown()
                     
                     // Trigger push notification for incoming messages
-                    // Only send if not viewing the chat or tab is not focused
-                    if (currentChatIdRef.current !== chatId || !document.hasFocus()) {
+                    // For Android TWA: always notify (background notifications work differently)
+                    // For browser: only if not viewing chat or tab not focused
+                    const isAndroid = /Android/i.test(navigator.userAgent)
+                    const shouldNotify = isAndroid || (currentChatIdRef.current !== chatId || !document.hasFocus())
+                    
+                    if (shouldNotify) {
                       console.log('🔔 Triggering push notification for incoming message')
                       
                       // Extract message preview (limit to 100 chars)
