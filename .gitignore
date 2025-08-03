@@ -55,3 +55,6 @@ android-build/manifest-checksum.txt
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Reference repositories (for development comparison)
+/reference/
