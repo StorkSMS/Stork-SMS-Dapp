@@ -3,7 +3,9 @@ const CACHE_NAME = 'stork-sms-v1';
 const urlsToCache = [
   '/',
   '/stork-app-icon.png',
-  '/stork-app-icon-512x512.png'
+  '/stork-app-icon-512x512.png',
+  '/monochrome-app-icon.png',
+  '/noti/11L-stork_squawk_message-1752946389647.mp3'
 ];
 
 // Install event - cache essential files
@@ -70,11 +72,16 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   console.log('Push notification received');
   
+  // Detect if we're on Android for better icon choice
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const notificationIcon = isAndroid ? '/monochrome-app-icon.png' : '/stork-app-icon.png';
+  
   let notificationData = {
     title: 'Stork SMS',
     body: 'You have a new message',
-    icon: '/stork-app-icon.png',
+    icon: notificationIcon,
     badge: '/stork-app-icon.png',
+    sound: '/noti/11L-stork_squawk_message-1752946389647.mp3',
     vibrate: [200, 100, 200],
     tag: 'stork-notification',
     renotify: true,
@@ -89,8 +96,8 @@ self.addEventListener('push', (event) => {
       notificationData = {
         ...notificationData,
         ...data,
-        // Ensure our icon is always used
-        icon: data.icon || '/stork-app-icon.png',
+        // Ensure our icon is always used (with Android optimization)
+        icon: data.icon || notificationIcon,
         badge: data.badge || '/stork-app-icon.png'
       };
     } catch (error) {
