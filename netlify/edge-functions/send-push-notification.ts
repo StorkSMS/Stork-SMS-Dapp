@@ -171,8 +171,12 @@ export default async (request: Request, context: any) => {
       console.log('Cleaned vs original length diff:', base64Key.length - finalBase64Key.length)
     }
     
+    // Ensure proper base64 padding before decoding
+    const paddedBase64Key = finalBase64Key + '='.repeat((4 - finalBase64Key.length % 4) % 4)
+    console.log('Padded base64 length:', paddedBase64Key.length)
+    
     // Convert base64 to binary
-    const binaryString = atob(finalBase64Key)
+    const binaryString = atob(paddedBase64Key)
     const keyBytes = new Uint8Array(binaryString.length)
     for (let i = 0; i < binaryString.length; i++) {
       keyBytes[i] = binaryString.charCodeAt(i)
