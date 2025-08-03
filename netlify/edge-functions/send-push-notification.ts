@@ -102,7 +102,7 @@ export default async (request: Request, context: any) => {
     const normalizedKey = privateKey.replace(/\\n/g, '\n')
     console.log('Normalized key starts with:', normalizedKey.substring(0, 50))
     
-    const keyData = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n|\r/g, '')
+    const keyData = normalizedKey.replace(/-----BEGIN PRIVATE KEY-----|\-----END PRIVATE KEY-----|\n|\r|\s/g, '')
     console.log('Clean key data length:', keyData.length)
     console.log('Clean key data starts with:', keyData.substring(0, 50))
     
