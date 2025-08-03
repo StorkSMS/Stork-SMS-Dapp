@@ -105,6 +105,7 @@ export default function ChatApp() {
   const [isStickerPickerOpen, setIsStickerPickerOpen] = useState(false)
   const [isAppLoaded, setIsAppLoaded] = useState(false)
   const [hideWelcomeScreen, setHideWelcomeScreen] = useState(false)
+  const [hasEverAuthenticated, setHasEverAuthenticated] = useState(false)
   
   // Typing detection refs
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -193,6 +194,13 @@ export default function ChatApp() {
     
     return () => clearTimeout(timer)
   }, [isMobile])
+
+  // Track when user has ever authenticated to prevent welcome screen from reappearing
+  useEffect(() => {
+    if (isActuallyAuthenticated && !hasEverAuthenticated) {
+      setHasEverAuthenticated(true)
+    }
+  }, [isActuallyAuthenticated, hasEverAuthenticated])
 
   // Trigger mobile animation after wallet connects AND authenticates
   useEffect(() => {
@@ -1164,8 +1172,8 @@ export default function ChatApp() {
       )}
 
       {/* Mobile Welcome Screen - Connect wallet button (only show on initial load, never after auth) */}
-      {isMobile && !hideWelcomeScreen && (
-        <div className={`fixed inset-0 ${isActuallyAuthenticated ? 'z-[8]' : 'z-[150]'} flex flex-col items-center justify-center px-6 pointer-events-none`}>
+      {isMobile && !hideWelcomeScreen && !hasEverAuthenticated && (
+        <div className="fixed inset-0 z-[8] flex flex-col items-center justify-center px-6 pointer-events-none">
           <div className="mb-8 invisible">
             {/* Invisible spacer to match logo position */}
             <div className="h-24 w-auto"></div>
