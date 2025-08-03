@@ -9,6 +9,7 @@ import {
   LedgerWalletAdapter,
 } from "@solana/wallet-adapter-wallets"
 import { clusterApiUrl } from "@solana/web3.js"
+import { useStandardWalletAdapters } from "@solana/wallet-standard-wallet-adapter-react"
 import { MWARegistration } from "./mwa-registration"
 
 interface WalletContextProviderProps {
@@ -30,13 +31,17 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
   // Use public RPC endpoints for wallet adapter (only used for wallet connection, not sensitive operations)
   const endpoint = useMemo(() => clusterApiUrl(network), [network])
 
-  // Only include adapters that are definitely available in @solana/wallet-adapter-wallets
+  // Get standard wallet adapters (includes MWA)
+  const standardAdapters = useStandardWalletAdapters([])
+
+  // Combine standard adapters with legacy adapters
   const wallets = useMemo(
     () => [
+      ...standardAdapters,
       new TorusWalletAdapter(),
       new LedgerWalletAdapter(),
     ],
-    [],
+    [standardAdapters],
   )
 
   return (

@@ -20,6 +20,8 @@
     "@solana/wallet-adapter-base": "^0.9.27",
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/wallet-standard-wallet-adapter-base": "^1.1.4",
+    "@solana/wallet-standard-wallet-adapter-react": "^1.1.4",
     "@solana/web3.js": "^1.98.2",
     "@supabase/supabase-js": "^2.51.0",
     "@types/crypto-js": "^4.2.2",
