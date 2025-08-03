@@ -86,10 +86,13 @@ export function usePushNotifications() {
     try {
       const registration = await navigator.serviceWorker.ready
       
-      // VAPID public key (you'll need to generate this and store it in env)
-      // For now, using a placeholder - you'll need to generate a real one
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 
-        'BKd0F0yPUYhGfNhJe-kEHhKETpHfNfFfDmfrFmT-h-3CqbAXfXezOkZb5JSKFRVWjNqPy1rXHtkcHNqnZTCIyqc'
+      // FCM VAPID public key from environment
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      
+      if (!vapidPublicKey) {
+        console.error('NEXT_PUBLIC_VAPID_PUBLIC_KEY environment variable is required')
+        return null
+      }
       
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey)
       
@@ -108,8 +111,28 @@ export function usePushNotifications() {
       
       setSubscription(subData)
       
-      // TODO: Send subscription to your backend
-      // await sendSubscriptionToBackend(subData)
+      // Send subscription to backend
+      const walletAddress = window.localStorage.getItem('wallet_address')
+      if (walletAddress) {
+        try {
+          const response = await fetch('/api/push-subscription', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              walletAddress,
+              subscription: subData
+            })
+          })
+          
+          if (!response.ok) {
+            console.error('Failed to save subscription to backend')
+          }
+        } catch (error) {
+          console.error('Error saving subscription to backend:', error)
+        }
+      }
       
       return subData
     } catch (error) {
