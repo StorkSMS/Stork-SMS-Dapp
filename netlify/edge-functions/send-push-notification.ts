@@ -48,8 +48,8 @@ export default async (request: Request, context: any) => {
       throw new Error('Missing Firebase encryption key')
     }
 
-    // Embedded encrypted credentials (XOR encrypted)
-    const encryptedCredentials = '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'
+    // Embedded encrypted env-style credentials (XOR encrypted)
+    const encryptedCredentials = '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'
     
     // Simple XOR decryption
     function xorDecrypt(encryptedBase64: string, key: string): string {
@@ -61,11 +61,22 @@ export default async (request: Request, context: any) => {
       return result
     }
     
-    const decryptedB64 = xorDecrypt(encryptedCredentials, encryptionKey)
-    const firebaseCredentials = JSON.parse(atob(decryptedB64))
-    const privateKey = firebaseCredentials.private_key
-    const clientEmail = firebaseCredentials.client_email
-    const projectId = firebaseCredentials.project_id
+    // Decrypt and parse env-style format
+    const decryptedEnvData = xorDecrypt(encryptedCredentials, encryptionKey)
+    console.log('Decrypted env data length:', decryptedEnvData.length)
+    
+    // Parse env-style format into object
+    const firebaseCredentials: any = {}
+    decryptedEnvData.split('\n').forEach(line => {
+      if (line.trim() && line.includes('=')) {
+        const [key, ...valueParts] = line.split('=')
+        const value = valueParts.join('=') // Handle values with = in them
+        firebaseCredentials[key.trim()] = value.trim()
+      }
+    })
+    const privateKey = firebaseCredentials.FIREBASE_PRIVATE_KEY
+    const clientEmail = firebaseCredentials.FIREBASE_CLIENT_EMAIL
+    const projectId = firebaseCredentials.FIREBASE_PROJECT_ID
 
     console.log('Firebase credentials check:', {
       hasPrivateKey: !!privateKey,
@@ -75,8 +86,8 @@ export default async (request: Request, context: any) => {
     })
 
     if (!privateKey || !clientEmail) {
-      console.log('Missing Firebase credentials from decrypted JSON')
-      throw new Error('Missing Firebase credentials from decrypted JSON')
+      console.log('Missing Firebase credentials from decrypted env data')
+      throw new Error('Missing Firebase credentials from decrypted env data')
     }
 
     // Create JWT for Firebase Admin
@@ -94,33 +105,12 @@ export default async (request: Request, context: any) => {
     // Import crypto for JWT signing
     const encoder = new TextEncoder()
     
-    // Debug the private key format
-    console.log('Raw private key length:', privateKey.length)
-    console.log('Private key starts with:', privateKey.substring(0, 50))
-    
     // Replace escaped newlines with actual newlines first, then remove headers and newlines
     const normalizedKey = privateKey.replace(/\\n/g, '\n')
-    console.log('Normalized key starts with:', normalizedKey.substring(0, 50))
-    
-    // More comprehensive cleaning - remove headers, footers, and all whitespace
-    let keyData = normalizedKey
+    const keyData = normalizedKey
       .replace(/-----BEGIN PRIVATE KEY-----/g, '')
       .replace(/-----END PRIVATE KEY-----/g, '')
       .replace(/\s+/g, '') // Remove all whitespace characters
-    
-    console.log('Clean key data length:', keyData.length)
-    console.log('Clean key data starts with:', keyData.substring(0, 50))
-    console.log('Clean key data ends with:', keyData.substring(keyData.length - 50))
-    
-    // Validate base64 before decoding
-    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/
-    if (!base64Regex.test(keyData)) {
-      console.log('Invalid base64 characters found in key data')
-      // Show which characters are invalid
-      const invalidChars = keyData.match(/[^A-Za-z0-9+/=]/g)
-      console.log('Invalid characters:', invalidChars)
-      throw new Error('Invalid base64 format in private key')
-    }
     
     const keyBytes = Uint8Array.from(atob(keyData), c => c.charCodeAt(0))
     
