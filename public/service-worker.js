@@ -1,5 +1,5 @@
 // Service Worker for Stork SMS PWA
-const CACHE_NAME = 'stork-sms-v2';
+const CACHE_NAME = 'stork-sms-v3';
 const urlsToCache = [
   '/',
   '/stork-app-icon.png',
@@ -74,23 +74,29 @@ self.addEventListener('fetch', (event) => {
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
   console.log('Push notification received');
+  console.log('Push event data:', event.data ? event.data.text() : 'No data');
   
-  // Detect if we're on Android for better icon choice
+  // Detect if we're on Android for better configuration
   const isAndroid = /Android/i.test(navigator.userAgent);
-  const notificationIcon = isAndroid ? '/monochrome-app-icon.png' : '/stork-app-icon.png';
   
   let notificationData = {
     title: 'Stork SMS',
     body: 'You have a new message',
-    icon: '/stork-app-icon-512x512.png', // Large icon for notification body
-    badge: '/monochrome-app-icon.png', // Small monochrome icon
-    image: '/stork-dapp-webpreview.png', // Optional banner image
+    icon: isAndroid ? '/monochrome-app-icon.png' : '/stork-app-icon-512x512.png',
+    badge: '/monochrome-app-icon.png',
     vibrate: [200, 100, 200],
     tag: 'stork-notification',
     renotify: true,
     requireInteraction: false,
-    silent: false, // Ensure notification makes sound (system default)
-    data: {}
+    silent: false,
+    data: {},
+    // Android-specific optimizations
+    ...(isAndroid && {
+      image: undefined, // Remove image on Android as it can cause issues
+      actions: [], // Clear actions that might interfere
+      timestamp: Date.now(),
+      showTrigger: undefined // Ensure immediate display
+    })
   };
   
   // Parse push data if available
@@ -100,18 +106,30 @@ self.addEventListener('push', (event) => {
       notificationData = {
         ...notificationData,
         ...data,
-        // Ensure our icons are always used
-        icon: data.icon || '/stork-app-icon-512x512.png',
+        // Ensure proper icons for platform
+        icon: data.icon || (isAndroid ? '/monochrome-app-icon.png' : '/stork-app-icon-512x512.png'),
         badge: data.badge || '/monochrome-app-icon.png',
-        image: data.image || '/stork-dapp-webpreview.png'
+        // Only set image on non-Android or if explicitly provided
+        ...((!isAndroid || data.image) && {
+          image: data.image || '/stork-dapp-webpreview.png'
+        })
       };
     } catch (error) {
       console.error('Error parsing push data:', error);
     }
   }
   
+  console.log('Android detected:', isAndroid);
+  console.log('Showing notification with data:', notificationData);
+  
   event.waitUntil(
     self.registration.showNotification(notificationData.title, notificationData)
+      .then(() => {
+        console.log('Notification displayed successfully');
+      })
+      .catch((error) => {
+        console.error('Error displaying notification:', error);
+      })
   );
 });
 
