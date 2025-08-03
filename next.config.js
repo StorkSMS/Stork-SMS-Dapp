@@ -20,8 +20,8 @@ const nextConfig = {
   },
   
   // Ignore reference folder completely during development
-  watchOptions: {
-    ignored: ['**/reference/**', '**/node_modules/**']
+  experimental: {
+    typedRoutes: true,
   }
 }
 
