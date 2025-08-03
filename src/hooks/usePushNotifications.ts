@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { messaging, getToken, onMessage } from '@/lib/firebase'
 
 interface PushSubscription {
   endpoint: string
@@ -76,36 +77,39 @@ export function usePushNotifications() {
   }, [isSupported])
 
   const subscribe = useCallback(async () => {
-    if (!isSupported || permission !== 'granted') {
-      console.warn('Cannot subscribe: notifications not supported or permission not granted')
+    if (!isSupported || permission !== 'granted' || !messaging) {
+      console.warn('Cannot subscribe: notifications not supported, permission not granted, or messaging unavailable')
       return null
     }
 
     setIsSubscribing(true)
 
     try {
-      const registration = await navigator.serviceWorker.ready
-      
-      // FCM VAPID public key from environment
+      // Get FCM token using Firebase SDK
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       
       if (!vapidPublicKey) {
         console.error('NEXT_PUBLIC_VAPID_PUBLIC_KEY environment variable is required')
         return null
       }
-      
-      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey)
-      
-      const sub = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey
+
+      const token = await getToken(messaging, {
+        vapidKey: vapidPublicKey
       })
-      
+
+      if (!token) {
+        console.error('Failed to get FCM token')
+        return null
+      }
+
+      console.log('FCM Token:', token)
+
+      // Create subscription-like object for backend compatibility
       const subData = {
-        endpoint: sub.endpoint,
+        endpoint: `https://fcm.googleapis.com/fcm/send/${token}`,
         keys: {
-          p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')!))),
-          auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')!)))
+          p256dh: token, // Using token as identifier
+          auth: token
         }
       }
       
@@ -122,7 +126,8 @@ export function usePushNotifications() {
             },
             body: JSON.stringify({
               walletAddress,
-              subscription: subData
+              subscription: subData,
+              fcmToken: token // Add FCM token for proper backend handling
             })
           })
           
@@ -133,6 +138,12 @@ export function usePushNotifications() {
           console.error('Error saving subscription to backend:', error)
         }
       }
+
+      // Listen for foreground messages
+      onMessage(messaging, (payload) => {
+        console.log('Message received in foreground:', payload)
+        // Handle foreground messages if needed
+      })
       
       return subData
     } catch (error) {

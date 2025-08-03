@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import admin from 'firebase-admin'
 
-// Configure web-push
-webpush.setVapidDetails(
-  'mailto:support@stork-sms.net',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
+// Initialize Firebase Admin if not already initialized
+if (!admin.apps.length) {
+  const serviceAccount = {
+    type: "service_account",
+    project_id: "stork-sms-560b2",
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID,
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    token_uri: "https://oauth2.googleapis.com/token",
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
+    universe_domain: "googleapis.com"
+  }
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+    projectId: 'stork-sms-560b2'
+  })
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,25 +69,50 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send notifications to all subscriptions
+    // Send FCM notifications to all subscriptions
     const sendPromises = subscriptions.map(async (subscription) => {
       try {
-        await webpush.sendNotification(
-          {
-            endpoint: subscription.endpoint,
-            keys: {
-              p256dh: subscription.p256dh,
-              auth: subscription.auth
-            }
+        // Extract FCM token from endpoint or use p256dh field
+        let fcmToken = subscription.p256dh
+        if (subscription.endpoint.includes('fcm.googleapis.com')) {
+          fcmToken = subscription.endpoint.split('/').pop() || subscription.p256dh
+        }
+
+        // Send via Firebase Admin SDK
+        const message = {
+          token: fcmToken,
+          notification: {
+            title: notificationPayload.title,
+            body: notificationPayload.body,
+            icon: notificationPayload.icon
           },
-          JSON.stringify(notificationPayload)
-        )
-        return { success: true, endpoint: subscription.endpoint }
+          data: {
+            url: notificationPayload.data?.url || '/',
+            chatId: notificationPayload.data?.chatId || '',
+            senderWallet: notificationPayload.data?.senderWallet || '',
+            timestamp: String(notificationPayload.data?.timestamp || Date.now())
+          },
+          webpush: {
+            notification: {
+              icon: notificationPayload.icon,
+              badge: notificationPayload.badge,
+              tag: notificationPayload.tag,
+              renotify: notificationPayload.renotify,
+              requireInteraction: notificationPayload.requireInteraction,
+              vibrate: notificationPayload.vibrate
+            }
+          }
+        }
+
+        const response = await admin.messaging().send(message)
+        console.log('FCM notification sent successfully:', response)
+        return { success: true, endpoint: subscription.endpoint, response }
       } catch (error: any) {
-        console.error('Error sending notification:', error)
+        console.error('Error sending FCM notification:', error)
         
-        // If subscription is invalid, remove it
-        if (error.statusCode === 410) {
+        // If token is invalid, remove subscription
+        if (error.code === 'messaging/registration-token-not-registered' || 
+            error.code === 'messaging/invalid-registration-token') {
           await supabase
             .from('push_subscriptions')
             .delete()
