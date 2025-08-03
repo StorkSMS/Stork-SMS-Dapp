@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { SignJWT } from 'https://esm.sh/jose@5.2.0'
 
 export default async (request: Request, context: any) => {
   console.log('Edge Function called with method:', request.method)
@@ -41,16 +42,53 @@ export default async (request: Request, context: any) => {
 
     console.log('Found subscriptions:', subscriptions.length)
 
-    // Get Firebase credentials from env vars (much simpler!)
-    const serverKey = Deno.env.get('FIREBASE_SERVER_KEY')
+    // Get Firebase credentials from env vars
+    const privateKey = Deno.env.get('FIREBASE_PRIVATE_KEY')
+    const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL')
     const projectId = Deno.env.get('FIREBASE_PROJECT_ID')
 
-    if (!serverKey || !projectId) {
+    if (!privateKey || !clientEmail || !projectId) {
       console.log('Missing Firebase credentials')
-      throw new Error('Missing Firebase server key or project ID')
+      throw new Error('Missing Firebase credentials')
     }
 
     console.log('Using Firebase project:', projectId)
+
+    // Create JWT using jose library (much simpler!)
+    const privateKeyFormatted = privateKey.replace(/\\n/g, '\n')
+    
+    const jwt = await new SignJWT({
+      iss: clientEmail,
+      sub: clientEmail,
+      aud: 'https://oauth2.googleapis.com/token',
+      scope: 'https://www.googleapis.com/auth/cloud-platform'
+    })
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuedAt()
+      .setExpirationTime('1h')
+      .sign(await crypto.subtle.importKey(
+        'pkcs8',
+        new TextEncoder().encode(privateKeyFormatted),
+        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        false,
+        ['sign']
+      ))
+
+    // Get access token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt
+      })
+    })
+
+    const { access_token } = await tokenResponse.json()
+    
+    if (!access_token) {
+      throw new Error('Failed to get Firebase access token')
+    }
 
     // Prepare notification payload
     const notificationPayload = {
@@ -78,32 +116,36 @@ export default async (request: Request, context: any) => {
 
         console.log('Sending to FCM token:', fcmToken?.substring(0, 20) + '...')
 
-        // Use legacy FCM API - much simpler, no JWT needed!
+        // Use FCM v1 API
         const message = {
-          to: fcmToken,
+          token: fcmToken,
           notification: {
             title: notificationPayload.title,
             body: notificationPayload.body,
-            icon: notificationPayload.icon,
-            badge: notificationPayload.badge,
-            tag: notificationPayload.tag,
-            click_action: notificationPayload.data.url
+            icon: notificationPayload.icon
           },
           data: {
             url: notificationPayload.data?.url || '/',
             chatId: notificationPayload.data?.chatId || '',
             senderWallet: notificationPayload.data?.senderWallet || '',
             timestamp: String(notificationPayload.data?.timestamp || Date.now())
+          },
+          webpush: {
+            notification: {
+              icon: notificationPayload.icon,
+              badge: notificationPayload.badge,
+              tag: notificationPayload.tag
+            }
           }
         }
 
-        const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+        const response = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
           method: 'POST',
           headers: {
-            'Authorization': `key=${serverKey}`,
+            'Authorization': `Bearer ${access_token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(message)
+          body: JSON.stringify({ message })
         })
 
         const result = await response.json()
