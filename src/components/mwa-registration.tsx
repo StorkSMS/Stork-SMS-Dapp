@@ -27,7 +27,7 @@ export function MWARegistration() {
             icon: "stork-app-icon.png",
           },
           authorizationCache: createDefaultAuthorizationCache(),
-          chains: ["solana:devnet", "solana:mainnet"],
+          chains: ["solana:devnet", "solana:mainnet"] as const,
           chainSelector: createDefaultChainSelector(),
           onWalletNotFound: createDefaultWalletNotFoundHandler(),
         }
@@ -112,11 +112,11 @@ export function MWARegistration() {
         
         // Expose enhanced debugging function
         setTimeout(() => {
-          const isAndroidChrome = /Android/i.test(navigator.userAgent) && /Chrome/i.test(navigator.userAgent) && !/Edge|OPR/i.test(navigator.userAgent)
+          const isAndroidChrome = /Android/i.test(navigator.userAgent) && /Chrome/i.test(navigator.userAgent) && !/Edge|OPR/i.test(navigator.userAgent);
           
           (window as any).debugMWA = () => {
             console.log("🔧 MANUAL MWA DEBUG (SOLFLARE SEARCH):")
-            const wallets = window.navigator.wallets?.get?.() || []
+            const wallets = (window.navigator as any).wallets?.get?.() || []
             console.log("  Current wallets:", wallets)
             
             const solflareWallet = wallets.find((w: any) => 
@@ -158,7 +158,7 @@ export function MWARegistration() {
                 "Try dApp from Solflare in-app browser"
               ]
             }
-          }
+          };
           console.log("💡 Run window.debugMWA() for Solflare-specific debugging")
         }, 2000)
         
