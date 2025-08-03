@@ -41,16 +41,104 @@ export default async (request: Request, context: any) => {
 
     console.log('Found subscriptions:', subscriptions.length)
 
-    // Use Firebase Web API key instead - much simpler and smaller!
-    const firebaseApiKey = Deno.env.get('FIREBASE_WEB_API_KEY')
+    // Get encrypted private key and decrypt it (much smaller than full JSON)
+    const encryptedKey = Deno.env.get('FIREBASE_ENCRYPTED_KEY')
+    const encryptionPassword = Deno.env.get('FIREBASE_ENCRYPTION_PASSWORD')
+    const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL')
     const projectId = Deno.env.get('FIREBASE_PROJECT_ID')
 
-    if (!firebaseApiKey || !projectId) {
+    if (!encryptedKey || !encryptionPassword || !clientEmail || !projectId) {
       console.log('Missing Firebase credentials')
-      throw new Error('Missing Firebase Web API key or project ID')
+      throw new Error('Missing Firebase credentials')
     }
 
     console.log('Using Firebase project:', projectId)
+
+    // Simple XOR decrypt just the private key
+    function xorDecrypt(encryptedBase64: string, password: string): string {
+      const encrypted = atob(encryptedBase64)
+      let result = ''
+      for (let i = 0; i < encrypted.length; i++) {
+        result += String.fromCharCode(encrypted.charCodeAt(i) ^ password.charCodeAt(i % password.length))
+      }
+      return result
+    }
+
+    const privateKey = xorDecrypt(encryptedKey, encryptionPassword)
+    console.log('Decrypted private key length:', privateKey.length)
+
+    // Create access token using the decrypted private key
+    const jwt = await createFirebaseJWT(privateKey, clientEmail)
+    const accessToken = await getFirebaseAccessToken(jwt)
+
+async function createFirebaseJWT(privateKey: string, clientEmail: string): Promise<string> {
+  const header = { alg: 'RS256', typ: 'JWT' }
+  const now = Math.floor(Date.now() / 1000)
+  const payload = {
+    iss: clientEmail,
+    sub: clientEmail,
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: now,
+    exp: now + 3600,
+    scope: 'https://www.googleapis.com/auth/cloud-platform'
+  }
+
+  const encoder = new TextEncoder()
+  const normalizedKey = privateKey.replace(/\\n/g, '\n')
+  
+  // Extract base64 and add padding
+  const base64Key = normalizedKey
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s/g, '')
+  
+  const paddedKey = base64Key + '='.repeat((4 - base64Key.length % 4) % 4)
+  const binaryString = atob(paddedKey)
+  const keyBytes = new Uint8Array(binaryString.length)
+  for (let i = 0; i < binaryString.length; i++) {
+    keyBytes[i] = binaryString.charCodeAt(i)
+  }
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    keyBytes,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+
+  const headerB64 = btoa(JSON.stringify(header)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
+  const payloadB64 = btoa(JSON.stringify(payload)).replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
+  const signatureInput = `${headerB64}.${payloadB64}`
+  
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    encoder.encode(signatureInput)
+  )
+  
+  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/[+/=]/g, m => ({'+':'-','/':'_','=':''})[m]!)
+  
+  return `${signatureInput}.${signatureB64}`
+}
+
+async function getFirebaseAccessToken(jwt: string): Promise<string> {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt
+    })
+  })
+
+  const { access_token } = await response.json()
+  if (!access_token) {
+    throw new Error('Failed to get Firebase access token')
+  }
+  return access_token
+}
 
     // Prepare notification payload
     const notificationPayload = {
@@ -78,32 +166,36 @@ export default async (request: Request, context: any) => {
 
         console.log('Sending to FCM token:', fcmToken?.substring(0, 20) + '...')
 
-        // Use Firebase Web Push API - super simple with just API key!
+        // Use FCM v1 API with proper authentication
         const message = {
-          to: fcmToken,
+          token: fcmToken,
           notification: {
             title: notificationPayload.title,
             body: notificationPayload.body,
-            icon: notificationPayload.icon,
-            badge: notificationPayload.badge,
-            tag: notificationPayload.tag,
-            click_action: notificationPayload.data.url
+            icon: notificationPayload.icon
           },
           data: {
             url: notificationPayload.data?.url || '/',
             chatId: notificationPayload.data?.chatId || '',
             senderWallet: notificationPayload.data?.senderWallet || '',
             timestamp: String(notificationPayload.data?.timestamp || Date.now())
+          },
+          webpush: {
+            notification: {
+              icon: notificationPayload.icon,
+              badge: notificationPayload.badge,
+              tag: notificationPayload.tag
+            }
           }
         }
 
-        const response = await fetch(`https://fcm.googleapis.com/fcm/send`, {
+        const response = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
           method: 'POST',
           headers: {
-            'Authorization': `key=${firebaseApiKey}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(message)
+          body: JSON.stringify({ message })
         })
 
         const result = await response.json()
