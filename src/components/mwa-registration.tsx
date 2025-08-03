@@ -29,8 +29,24 @@ export function MWARegistration() {
         setTimeout(() => {
           if (window.navigator && 'wallets' in window.navigator) {
             console.log("Available wallets:", window.navigator.wallets)
+            const wallets = window.navigator.wallets as any
+            if (wallets && wallets.get) {
+              console.log("Wallets.get():", wallets.get())
+            }
           }
-        }, 1000)
+          
+          // Check window.solana and other wallet detection methods
+          console.log("window.solana:", typeof window.solana !== 'undefined')
+          
+          // Check if wallet standard is working
+          if ('getWallets' in window.navigator) {
+            console.log("getWallets available")
+          }
+          
+          // Check for specific mobile wallet signatures
+          console.log("User Agent:", navigator.userAgent)
+          console.log("Is Mobile:", /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+        }, 2000)
         
         console.log("MWA registered successfully")
       } catch (error) {

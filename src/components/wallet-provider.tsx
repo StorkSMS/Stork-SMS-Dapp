@@ -34,13 +34,29 @@ export function WalletContextProvider({ children }: WalletContextProviderProps) 
   // Get standard wallet adapters (includes MWA)
   const standardAdapters = useStandardWalletAdapters([])
 
+  // Debug logging - run after component mounts
+  useEffect(() => {
+    console.log("🔍 WALLET PROVIDER DEBUG:")
+    console.log("Standard adapters found:", standardAdapters.length)
+    standardAdapters.forEach((adapter, index) => {
+      console.log(`Adapter ${index}:`, adapter.name, adapter)
+    })
+  }, [standardAdapters])
+
   // Combine standard adapters with legacy adapters
   const wallets = useMemo(
-    () => [
-      ...standardAdapters,
-      new TorusWalletAdapter(),
-      new LedgerWalletAdapter(),
-    ],
+    () => {
+      const allWallets = [
+        ...standardAdapters,
+        new TorusWalletAdapter(),
+        new LedgerWalletAdapter(),
+      ]
+      console.log("Total wallets available:", allWallets.length)
+      allWallets.forEach((wallet, index) => {
+        console.log(`Wallet ${index}:`, wallet.name)
+      })
+      return allWallets
+    },
     [standardAdapters],
   )
 
