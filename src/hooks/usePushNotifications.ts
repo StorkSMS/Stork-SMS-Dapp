@@ -102,7 +102,9 @@ export function usePushNotifications() {
         return null
       }
 
-      console.log('FCM Token:', token)
+      console.log('FCM Token generated:', token)
+      console.log('Token length:', token.length)
+      console.log('Token starts with:', token.substring(0, 20) + '...')
 
       // Create subscription-like object for backend compatibility
       const subData = {

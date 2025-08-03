@@ -4,3 +4,7 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[edge_functions]]
+  function = "send-push-notification"
+  path = "/.netlify/edge-functions/send-push-notification"

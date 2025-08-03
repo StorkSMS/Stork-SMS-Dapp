@@ -1,6 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 export default async (request: Request, context: any) => {
+  console.log('Edge Function called with method:', request.method)
+  
   // Only allow POST requests
   if (request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 })
@@ -8,8 +10,10 @@ export default async (request: Request, context: any) => {
 
   try {
     const { recipientWallet, senderWallet, messagePreview, chatId } = await request.json()
+    console.log('Edge Function received data:', { recipientWallet, senderWallet, messagePreview, chatId })
 
     if (!recipientWallet) {
+      console.log('Missing recipientWallet')
       return new Response(
         JSON.stringify({ error: 'Recipient wallet required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -35,12 +39,21 @@ export default async (request: Request, context: any) => {
       )
     }
 
+    console.log('Found subscriptions:', subscriptions.length)
+
     // Prepare Firebase Admin request
     const privateKey = Deno.env.get('FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
     const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL')
     const projectId = 'stork-sms-560b2'
 
+    console.log('Firebase credentials check:', {
+      hasPrivateKey: !!privateKey,
+      hasClientEmail: !!clientEmail,
+      clientEmail: clientEmail?.substring(0, 20) + '...'
+    })
+
     if (!privateKey || !clientEmail) {
+      console.log('Missing Firebase credentials')
       throw new Error('Missing Firebase credentials')
     }
 
