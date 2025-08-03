@@ -159,7 +159,7 @@ export function MWARegistration() {
               ]
             }
           };
-          console.log("💡 Run window.debugMWA() for Solflare-specific debugging")
+          console.log("💡 Run window.debugMWA() for Solflare-specific debugging");
           
           // Add force wallet detection function
           (window as any).forceMWADetection = () => {
@@ -198,11 +198,18 @@ export function MWARegistration() {
             }
             
             return "Check console for detection results"
-          }
-          console.log("💡 Run window.forceMWADetection() to force wallet discovery")
+          };
+          console.log("💡 Run window.forceMWADetection() to force wallet discovery");
         }, 2000)
         
         console.log("MWA registered successfully")
+        
+        // Immediate function exposure for testing
+        ;(window as any).testMWA = () => {
+          console.log("🧪 TEST MWA FUNCTION WORKS!")
+          return "Function is available"
+        }
+        console.log("🧪 TEST: window.testMWA() should work immediately")
       } catch (error) {
         console.error("Failed to register MWA:", error)
       }
