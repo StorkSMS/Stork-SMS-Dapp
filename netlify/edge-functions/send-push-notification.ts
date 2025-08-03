@@ -41,14 +41,71 @@ export default async (request: Request, context: any) => {
 
     console.log('Found subscriptions:', subscriptions.length)
 
-    // Prepare Firebase Admin request - decode base64 credentials
-    const firebaseCredentialsB64 = Deno.env.get('FIREBASE_CREDENTIALS_B64')
-    if (!firebaseCredentialsB64) {
-      console.log('Missing Firebase credentials base64')
-      throw new Error('Missing Firebase credentials base64')
+    // Prepare Firebase Admin request - decrypt credentials from file
+    const encryptionKey = Deno.env.get('FIREBASE_ENCRYPTION_KEY')
+    if (!encryptionKey) {
+      console.log('Missing Firebase encryption key')
+      throw new Error('Missing Firebase encryption key')
     }
 
-    const firebaseCredentials = JSON.parse(atob(firebaseCredentialsB64))
+    // Read encrypted credentials file
+    const credentialsPath = new URL('./firebase-credentials.enc', import.meta.url)
+    const encryptedCredentials = await Deno.readTextFile(credentialsPath)
+    
+    // Decrypt using Web Crypto API (AES-256-CBC equivalent)
+    const keyData = new TextEncoder().encode(encryptionKey)
+    const key = await crypto.subtle.importKey(
+      'raw',
+      await crypto.subtle.digest('SHA-256', keyData),
+      { name: 'AES-CBC' },
+      false,
+      ['decrypt']
+    )
+    
+    // Parse the base64 encrypted data (OpenSSL format with "Salted__" prefix)
+    const encryptedBytes = Uint8Array.from(atob(encryptedCredentials), c => c.charCodeAt(0))
+    const salt = encryptedBytes.slice(8, 16) // Skip "Salted__" and get salt
+    const ciphertext = encryptedBytes.slice(16)
+    
+    // Derive key and IV using PBKDF2 (matching OpenSSL's default)
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(encryptionKey),
+      'PBKDF2',
+      false,
+      ['deriveBits']
+    )
+    
+    const derivedKey = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 10000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      384 // 32 bytes key + 16 bytes IV
+    )
+    
+    const keyBytes = new Uint8Array(derivedKey.slice(0, 32))
+    const iv = new Uint8Array(derivedKey.slice(32, 48))
+    
+    const decryptKey = await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-CBC' },
+      false,
+      ['decrypt']
+    )
+    
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv: iv },
+      decryptKey,
+      ciphertext
+    )
+    
+    const decryptedB64 = new TextDecoder().decode(decrypted)
+    const firebaseCredentials = JSON.parse(atob(decryptedB64))
     const privateKey = firebaseCredentials.private_key
     const clientEmail = firebaseCredentials.client_email
     const projectId = firebaseCredentials.project_id
@@ -61,8 +118,8 @@ export default async (request: Request, context: any) => {
     })
 
     if (!privateKey || !clientEmail) {
-      console.log('Missing Firebase credentials from decoded JSON')
-      throw new Error('Missing Firebase credentials from decoded JSON')
+      console.log('Missing Firebase credentials from decrypted JSON')
+      throw new Error('Missing Firebase credentials from decrypted JSON')
     }
 
     // Create JWT for Firebase Admin
