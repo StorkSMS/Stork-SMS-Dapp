@@ -59,161 +59,30 @@ export interface LinkPreviewData {
   domain: string;
 }
 
+
 /**
- * Extracts Open Graph and meta tags from HTML content
+ * Fetches link preview data from our API endpoint
  */
-export function extractMetaData(html: string, url: string): LinkPreviewData {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+export async function fetchLinkPreviewFromAPI(url: string): Promise<LinkPreviewData> {
+  const apiUrl = `/api/link-preview?url=${encodeURIComponent(url)}`;
   
-  // Helper function to get meta content
-  const getMetaContent = (property: string): string | undefined => {
-    // Try Open Graph tags first
-    const ogTag = doc.querySelector(`meta[property="og:${property}"]`) as HTMLMetaElement;
-    if (ogTag?.content) return ogTag.content;
-    
-    // Try Twitter tags
-    const twitterTag = doc.querySelector(`meta[name="twitter:${property}"]`) as HTMLMetaElement;
-    if (twitterTag?.content) return twitterTag.content;
-    
-    // Try regular meta tags
-    const metaTag = doc.querySelector(`meta[name="${property}"]`) as HTMLMetaElement;
-    if (metaTag?.content) return metaTag.content;
-    
-    return undefined;
-  };
+  const response = await fetch(apiUrl, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+    // 15 second timeout
+    signal: AbortSignal.timeout(15000)
+  });
   
-  // Extract title (fallback to page title if no og:title)
-  const title = getMetaContent('title') || doc.querySelector('title')?.textContent || undefined;
-  
-  // Extract description
-  const description = getMetaContent('description') || undefined;
-  
-  // Extract image
-  let image = getMetaContent('image');
-  
-  // Make image URL absolute if it's relative
-  if (image && !image.startsWith('http')) {
-    try {
-      const baseUrl = new URL(url);
-      image = new URL(image, baseUrl.origin).href;
-    } catch {
-      image = undefined;
-    }
+  if (!response.ok) {
+    throw new Error(`API failed: ${response.status}`);
   }
   
-  // Extract favicon
-  let favicon: string | undefined;
-  const iconLink = doc.querySelector('link[rel="icon"]') as HTMLLinkElement;
-  const shortcutIcon = doc.querySelector('link[rel="shortcut icon"]') as HTMLLinkElement;
-  
-  if (iconLink?.href) {
-    favicon = iconLink.href;
-  } else if (shortcutIcon?.href) {
-    favicon = shortcutIcon.href;
-  } else {
-    // Try default favicon.ico
-    try {
-      const baseUrl = new URL(url);
-      favicon = `${baseUrl.origin}/favicon.ico`;
-    } catch {
-      favicon = undefined;
-    }
-  }
-  
-  return {
-    title,
-    description,
-    image,
-    favicon,
-    url,
-    domain: extractDomain(url)
-  };
+  const data = await response.json();
+  return data;
 }
 
-/**
- * List of CORS proxy services to try in order
- */
-const CORS_PROXIES = [
-  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  (url: string) => `https://cors-anywhere.herokuapp.com/${url}`, // May require demo access
-];
-
-/**
- * Fetches webpage content using a CORS proxy with multiple fallbacks
- */
-export async function fetchWebpageContent(url: string): Promise<string> {
-  let lastError: Error | null = null;
-  
-  // Try each proxy in order until one works
-  for (let i = 0; i < CORS_PROXIES.length; i++) {
-    const proxyUrl = CORS_PROXIES[i](url);
-    
-    try {
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'User-Agent': 'Mozilla/5.0 (compatible; LinkPreview/1.0)',
-        },
-        // Shorter timeout for better UX
-        signal: AbortSignal.timeout(5000) // 5 second timeout per proxy
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Proxy ${i + 1} failed: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      
-      // Basic validation to ensure we got HTML content
-      if (!text || (!text.includes('<html') && !text.includes('<!DOCTYPE'))) {
-        throw new Error('Invalid HTML content received');
-      }
-      
-      return text;
-    } catch (error) {
-      lastError = error as Error;
-      // Only log if it's not a timeout or abort error
-      if (!(error instanceof Error && error.name === 'TimeoutError')) {
-        console.debug(`Proxy ${i + 1} failed:`, error);
-      }
-      
-      // Don't try next proxy if we're on the last one
-      if (i === CORS_PROXIES.length - 1) {
-        throw lastError;
-      }
-    }
-  }
-  
-  throw lastError || new Error('All proxies failed');
-}
-
-/**
- * Domains that are known to block CORS proxies or have issues
- */
-const BLOCKED_DOMAINS = [
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  'twitter.com',
-  'x.com',
-  'instagram.com',
-  'facebook.com',
-];
-
-/**
- * Check if a domain is blocked
- */
-function isDomainBlocked(url: string): boolean {
-  try {
-    const domain = new URL(url).hostname.toLowerCase();
-    return BLOCKED_DOMAINS.some(blocked => domain.includes(blocked));
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Main function to get link preview data
@@ -223,22 +92,9 @@ export async function getLinkPreviewData(url: string): Promise<LinkPreviewData |
     return null;
   }
   
-  // Check if domain is blocked
-  if (isDomainBlocked(url)) {
-    // Return basic preview without fetching
-    return {
-      url,
-      domain: extractDomain(url),
-      title: extractDomain(url),
-      description: undefined,
-      image: undefined,
-      favicon: undefined,
-    };
-  }
-  
   try {
-    const html = await fetchWebpageContent(url);
-    return extractMetaData(html, url);
+    const previewData = await fetchLinkPreviewFromAPI(url);
+    return previewData;
   } catch (error) {
     console.debug('Error fetching link preview:', error);
     

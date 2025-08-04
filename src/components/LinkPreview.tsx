@@ -4,21 +4,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { LinkPreviewData, preloadImage, SkeletonDimensions } from '@/lib/url-utils'
 import { linkLoadingQueue, PRIORITY_LEVELS } from '@/lib/link-loading-queue'
 
-// Animation state machine for guaranteed smooth transitions
-enum AnimationPhase {
-  FIXED_SKELETON = 'FIXED_SKELETON',      // 0-200ms: Always show initial skeleton
-  SMART_DIMENSIONS = 'SMART_DIMENSIONS',  // 200-400ms: Morph to estimated size
-  DATA_PREPARATION = 'DATA_PREPARATION',  // 400ms+: Load data, keep skeleton
-  FINAL_MORPHING = 'FINAL_MORPHING',      // 100ms: Morph to final content size
-  CONTENT_REVEAL = 'CONTENT_REVEAL'       // Show actual content
-}
-
-const PHASE_DURATIONS = {
-  FIXED_SKELETON: 200,
-  SMART_DIMENSIONS: 200, 
-  FINAL_MORPHING: 100
-}
-
 interface LinkPreviewProps {
   url: string
   isDarkMode: boolean
@@ -41,14 +26,12 @@ const previewCache = new Map<string, LinkPreviewData>()
 const ongoingFetches = new Map<string, Promise<LinkPreviewData | null>>()
 
 export default function LinkPreview({ url, isDarkMode, colors, initialDimensions, priority = PRIORITY_LEVELS.NORMAL, isOptimistic = false }: LinkPreviewProps) {
-  // Animation state machine
-  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>(AnimationPhase.FIXED_SKELETON)
+  // Simplified state management
   const [previewData, setPreviewData] = useState<LinkPreviewData | null>(null)
-  const [preparedData, setPreparedData] = useState<LinkPreviewData | null>(null) // Data prepared during skeleton phases
+  const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const phaseStartTime = useRef<number>(Date.now())
   
   // Create keyframes for shimmer animation
   React.useEffect(() => {
@@ -65,93 +48,22 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
     }
   }, [])
 
-  // Animation timeline orchestration - guarantees smooth transitions regardless of data loading speed
+  // Simple loading state management
   useEffect(() => {
     if (isOptimistic) {
-      // For optimistic messages, stay in FIXED_SKELETON state until message becomes real
-      setAnimationPhase(AnimationPhase.FIXED_SKELETON)
+      setIsLoading(true)
       return
     }
 
-    let timeoutId: NodeJS.Timeout
+    // Show skeleton for at least 500ms for smooth UX
+    const minLoadingTime = setTimeout(() => {
+      if (previewData) {
+        setIsLoading(false)
+      }
+    }, 500)
 
-    const advanceToNextPhase = () => {
-      setAnimationPhase(currentPhase => {
-        const now = Date.now()
-        const elapsed = now - phaseStartTime.current
-        
-
-        switch (currentPhase) {
-          case AnimationPhase.FIXED_SKELETON:
-            // Ensure minimum duration before advancing
-            if (elapsed >= PHASE_DURATIONS.FIXED_SKELETON) {
-              phaseStartTime.current = now
-              return AnimationPhase.SMART_DIMENSIONS
-            }
-            // Wait for remaining time
-            timeoutId = setTimeout(advanceToNextPhase, PHASE_DURATIONS.FIXED_SKELETON - elapsed)
-            return currentPhase
-
-          case AnimationPhase.SMART_DIMENSIONS:
-            if (elapsed >= PHASE_DURATIONS.SMART_DIMENSIONS) {
-              phaseStartTime.current = now
-              return AnimationPhase.DATA_PREPARATION
-            }
-            timeoutId = setTimeout(advanceToNextPhase, PHASE_DURATIONS.SMART_DIMENSIONS - elapsed)
-            return currentPhase
-
-          case AnimationPhase.DATA_PREPARATION:
-            // This phase waits for data and is handled by separate useEffect
-            return currentPhase
-
-          case AnimationPhase.FINAL_MORPHING:
-            // This phase is handled by separate useEffect
-            return currentPhase
-
-          default:
-            return currentPhase
-        }
-      })
-    }
-
-    // Start the animation timeline
-    timeoutId = setTimeout(advanceToNextPhase, PHASE_DURATIONS.FIXED_SKELETON)
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [isOptimistic])
-
-  // Trigger advancement when data becomes available during DATA_PREPARATION phase
-  useEffect(() => {
-    if (preparedData && animationPhase === AnimationPhase.DATA_PREPARATION) {
-      // Data is ready, trigger phase advancement
-      const timeoutId = setTimeout(() => {
-        setAnimationPhase(currentPhase => {
-          if (currentPhase === AnimationPhase.DATA_PREPARATION) {
-            phaseStartTime.current = Date.now()
-            return AnimationPhase.FINAL_MORPHING
-          }
-          return currentPhase
-        })
-      }, 0) // Advance immediately when data is ready
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [preparedData, animationPhase])
-
-  // Handle FINAL_MORPHING to CONTENT_REVEAL transition
-  useEffect(() => {
-    if (animationPhase === AnimationPhase.FINAL_MORPHING) {
-      const timeoutId = setTimeout(() => {
-        // Move prepared data to active data and reveal content
-        setPreviewData(preparedData)
-        setAnimationPhase(AnimationPhase.CONTENT_REVEAL)
-      }, PHASE_DURATIONS.FINAL_MORPHING)
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [animationPhase, preparedData])
+    return () => clearTimeout(minLoadingTime)
+  }, [isOptimistic, previewData])
 
   // IntersectionObserver to track visibility and boost priority
   useEffect(() => {
@@ -164,7 +76,7 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
           setIsVisible(nowVisible);
           
           // If component just became visible and we don't have data yet, boost priority
-          if (nowVisible && !wasVisible && !preparedData && !previewData) {
+          if (nowVisible && !wasVisible && !previewData) {
             const boostedPriority = Math.max(priority, PRIORITY_LEVELS.VISIBLE);
             linkLoadingQueue.updatePriority(url, boostedPriority);
           }
@@ -185,9 +97,9 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
         observer.unobserve(containerRef.current);
       }
     };
-  }, [url, priority, previewData, preparedData, isVisible, isOptimistic]);
+  }, [url, priority, previewData, isVisible, isOptimistic]);
 
-  // Background data preparation - loads data in parallel with animations
+  // Simplified data fetching
   useEffect(() => {
     let isMounted = true
 
@@ -196,8 +108,11 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
       return
     }
 
-    const prepareData = async () => {
+    const fetchData = async () => {
       try {
+        setIsLoading(true)
+        setHasError(false)
+
         let data: LinkPreviewData | null = null
 
         // Check cache first
@@ -223,10 +138,10 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
           }
         }
 
-        if (!data || !isMounted) return
+        if (!isMounted) return
 
         // Preload image if exists
-        if (data.image) {
+        if (data && data.image) {
           try {
             await preloadImage(data.image)
           } catch {
@@ -235,9 +150,10 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
           }
         }
 
-        if (isMounted) {
-          // Set prepared data - animation timeline will use this when ready
-          setPreparedData(data)
+        if (isMounted && data) {
+          console.log('LinkPreview: Setting preview data:', data)
+          setPreviewData(data)
+          // Loading will be set to false by the loading timer effect
         }
 
       } catch (error) {
@@ -245,11 +161,12 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
         ongoingFetches.delete(url)
         if (isMounted) {
           setHasError(true)
+          setIsLoading(false)
         }
       }
     }
 
-    prepareData()
+    fetchData()
 
     return () => {
       isMounted = false
@@ -261,8 +178,8 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
     return null
   }
 
-  // Show skeleton during animation phases, content only at final phase
-  if (animationPhase !== AnimationPhase.CONTENT_REVEAL) {
+  // Show skeleton while loading or if no data yet
+  if (isLoading || !previewData) {
     // Start with fixed dimensions for the animation
     let imageHeight = '180px'
     let titleWidth = '240px'
@@ -276,71 +193,19 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
     let showDesc2 = true
     let showDomain = true
     
-    // Animation phase-based skeleton morphing
-    switch (animationPhase) {
-      case AnimationPhase.FIXED_SKELETON:
-        // Phase 1: Fixed initial dimensions (200ms)
-        break // Use default dimensions set above
-
-      case AnimationPhase.SMART_DIMENSIONS:
-      case AnimationPhase.DATA_PREPARATION:
-        // Phase 2 & 3: Smart estimated dimensions (200ms + waiting for data)
-        if (initialDimensions) {
-          imageHeight = initialDimensions.imageHeight
-          titleWidth = initialDimensions.titleWidth
-          titleWidth2 = initialDimensions.titleWidth2
-          descWidth = initialDimensions.descWidth
-          descWidth2 = initialDimensions.descWidth2
-          domainWidth = initialDimensions.domainWidth
-          showImage = initialDimensions.showImage
-          showTitle2 = initialDimensions.showTitle2
-          showDesc = initialDimensions.showDesc
-          showDesc2 = initialDimensions.showDesc2
-          showDomain = initialDimensions.showDomain
-        }
-        break
-
-      case AnimationPhase.FINAL_MORPHING:
-        // Phase 4: Morph to match actual content dimensions (100ms)
-        if (preparedData) {
-          const hasImage = preparedData.image
-          const hasTitle = preparedData.title || preparedData.domain
-          const hasDescription = preparedData.description
-          const isMinimal = !preparedData.title && !preparedData.description && !preparedData.image
-          
-          // Final dimensions - hide elements that don't exist
-          imageHeight = hasImage ? '180px' : '0px'
-          showImage = !!hasImage
-          
-          if (hasTitle) {
-            titleWidth = initialDimensions?.titleWidth || '240px'
-            titleWidth2 = (preparedData.title && preparedData.title.length > 40) ? 
-              (initialDimensions?.titleWidth2 || '180px') : '0px'
-            showTitle2 = !!(preparedData.title && preparedData.title.length > 40)
-          } else {
-            titleWidth = '0px'
-            titleWidth2 = '0px'
-            showTitle2 = false
-          }
-          
-          if (hasDescription) {
-            descWidth = initialDimensions?.descWidth || '300px'
-            descWidth2 = initialDimensions?.descWidth2 || '220px'
-          } else {
-            descWidth = '0px'
-            descWidth2 = '0px' 
-            showDesc = false
-            showDesc2 = false
-          }
-          
-          if (!isMinimal && preparedData.domain) {
-            domainWidth = initialDimensions?.domainWidth || '120px'
-          } else {
-            domainWidth = '0px'
-            showDomain = false
-          }
-        }
-        break
+    // Use initial dimensions if provided, otherwise use defaults
+    if (initialDimensions) {
+      imageHeight = initialDimensions.imageHeight
+      titleWidth = initialDimensions.titleWidth
+      titleWidth2 = initialDimensions.titleWidth2
+      descWidth = initialDimensions.descWidth
+      descWidth2 = initialDimensions.descWidth2
+      domainWidth = initialDimensions.domainWidth
+      showImage = initialDimensions.showImage
+      showTitle2 = initialDimensions.showTitle2
+      showDesc = initialDimensions.showDesc
+      showDesc2 = initialDimensions.showDesc2
+      showDomain = initialDimensions.showDomain
     }
     return (
       <div
@@ -472,15 +337,12 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
     )
   }
 
-  // Use the appropriate data based on animation phase
-  const activeData = animationPhase === AnimationPhase.CONTENT_REVEAL ? (previewData || preparedData) : previewData
-  
-  // Don't render content if we don't have data yet
-  if (!activeData) return null
+  // Render the actual content
+  if (!previewData) return null
   
   // Always show preview if we have at least a domain
-  const hasFullPreview = !!(activeData.title || activeData.description || activeData.image)
-  const isMinimalPreview = !hasFullPreview && !!activeData.domain
+  const hasFullPreview = !!(previewData.title || previewData.description || previewData.image)
+  const isMinimalPreview = !hasFullPreview && !!previewData.domain
 
   return (
     <div
@@ -506,7 +368,7 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
         className="block no-underline"
         style={{ color: 'inherit' }}
       >
-        {activeData.image && (
+        {previewData.image && (
           <div
             style={{
               width: '100%',
@@ -517,8 +379,8 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
             }}
           >
             <img
-              src={activeData.image}
-              alt={activeData.title || 'Link preview'}
+              src={previewData.image}
+              alt={previewData.title || 'Link preview'}
               style={{
                 width: '100%',
                 height: '100%',
@@ -539,7 +401,7 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
           padding: isMinimalPreview ? '8px 12px' : '12px',
           minHeight: isMinimalPreview ? 'auto' : '60px'
         }}>
-          {(activeData.title || isMinimalPreview) && (
+          {(previewData.title || isMinimalPreview) && (
             <h3
               style={{
                 margin: isMinimalPreview ? '0' : '0 0 4px 0',
@@ -556,11 +418,11 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
                 minWidth: '1000px' // Force LinkPreview to always be wide
               }}
             >
-              {activeData.title || activeData.domain}
+              {previewData.title || previewData.domain}
             </h3>
           )}
           
-          {activeData.description && (
+          {previewData.description && (
             <p
               style={{
                 margin: '0 0 8px 0',
@@ -575,7 +437,7 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
                 WebkitBoxOrient: 'vertical'
               }}
             >
-              {activeData.description}
+              {previewData.description}
             </p>
           )}
           
@@ -590,9 +452,9 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
                 fontFamily: 'Helvetica Neue, sans-serif'
               }}
             >
-              {activeData.favicon && (
+              {previewData.favicon && (
                 <img
-                  src={activeData.favicon}
+                  src={previewData.favicon}
                   alt=""
                   style={{
                     width: '16px',
@@ -606,7 +468,7 @@ export default function LinkPreview({ url, isDarkMode, colors, initialDimensions
                   }}
                 />
               )}
-              <span>{activeData.domain}</span>
+              <span>{previewData.domain}</span>
             </div>
           )}
         </div>
