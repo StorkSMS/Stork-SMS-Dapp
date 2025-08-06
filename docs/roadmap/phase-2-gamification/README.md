@@ -264,12 +264,22 @@ Not all achievements are created equal. Some whispered rumors from the community
 * Whether there's a maximum cap
 * If points can be lost or only gained
 
-### 🚀 The Airdrop Connection
+### 🚀 Early Bird Recognition
 
-While we can't reveal everything, the point system is intimately connected to future airdrop eligibility. The more points you accumulate:
+**Current users are pioneers!** All current users who help us through the early release phase will receive special recognition when the platform reaches full maturity.
+
+**Early Bird NFT Rewards**:
+* 🏆 **Pioneer Badge**: Special NFT for all users who helped during early testing
+* 🎯 **Bug Hunter**: Recognition for users who reported issues and helped improve the platform
+* 📅 **First Wave**: Commemorative NFT for joining before wide-scale marketing begins
+* 💎 **Community Builder**: Special recognition for early adopters who brought friends
+
+**Future Point System**:
+
+When Stork SMS is ready for large-scale marketing and the wider audience, we will implement our trophy/awards point system. This achievement system will be the foundation for future airdrop eligibility:
 
 * The higher your position in the distribution
-* The larger your potential allocation
+* The larger your potential allocation  
 * The earlier your access to exclusive opportunities
 * The greater your influence in the ecosystem
 

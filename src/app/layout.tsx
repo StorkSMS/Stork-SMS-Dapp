@@ -23,11 +23,11 @@ export const metadata: Metadata = {
     siteName: "Stork SMS",
     images: [
       {
-        url: "https://dapp.stork-sms.net/stork-dapp-webpreview.png",
+        url: "https://dapp.stork-sms.net/stork-dapp-webpreview-twitter.jpg",
         width: 1200,
         height: 630,
         alt: "Stork SMS - Decentralized Web3 Chat",
-        type: "image/png",
+        type: "image/jpeg",
       }
     ],
     locale: "en_US",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Stork SMS - Web3 Chat",
     description: "Decentralized messaging on Solana",
-    images: ["https://dapp.stork-sms.net/stork-dapp-webpreview.png"],
+    images: ["https://dapp.stork-sms.net/stork-dapp-webpreview-twitter.jpg"],
     creator: "@StorkSMS",
   },
 }

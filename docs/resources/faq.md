@@ -120,7 +120,7 @@ We plan to open source Stork SMS to ensure transparency and security. Our roadma
 - **Security Audit**: Professional security review first
 - **Code Release**: Gradual open sourcing of components
 - **Community Contributions**: Accept community improvements
-- **Decentralized Governance**: Community input on development
+- **User Feedback**: We listen to user input for improvements
 
 ## Features & Usage
 
@@ -319,7 +319,7 @@ We aim to keep Stork SMS affordable for global adoption.
 - Cross-chain messaging support
 
 **Long-term (Q4 2024+):**
-- SolAI chat bot for blockchain operations
+- Storkai chat bot for blockchain operations
 - Enterprise features
 - Advanced privacy options
 
@@ -328,7 +328,7 @@ We aim to keep Stork SMS affordable for global adoption.
 ### How can I get support?
 
 **Support Channels:**
-- **Discord**: [discord.gg/storksms](https://discord.gg/storksms) (fastest response)
+- **Discord**: Coming soon
 - **Email**: [info@stork-sms.net](mailto:info@stork-sms.net)
 - **Twitter**: [@StorkSMS](https://twitter.com/storksms)
 - **Documentation**: Comprehensive guides in this documentation
@@ -361,5 +361,5 @@ We aim to keep Stork SMS affordable for global adoption.
 
 ---
 
-**Still have questions?** Join our [Discord community](https://discord.gg/storksms) where our team and community members are happy to help!
+**Still have questions?** Our Discord community is coming soon! For now, reach out via email at info@stork-sms.net.
 

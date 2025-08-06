@@ -3,13 +3,13 @@ cover: ../.gitbook/assets/Roadmap image phase 3.png
 coverY: 0
 ---
 
-# Phase 3: SolAI Bot
+# Phase 3: Storkai Bot
 
 Transform your Stork SMS experience with conversational AI that gives you complete blockchain access through natural language.
 
 ## Overview
 
-Phase 3 introduces **SolAI**, an intelligent chat bot integrated directly into Stork SMS conversations. Manage your entire Solana experience through simple conversations - no complex interfaces or technical knowledge required.
+Phase 3 introduces **Storkai**, an intelligent chat bot integrated directly into Stork SMS conversations. Manage your entire Solana experience through simple conversations - no complex interfaces or technical knowledge required.
 
 ## Core Features
 
@@ -45,19 +45,19 @@ Phase 3 introduces **SolAI**, an intelligent chat bot integrated directly into S
 
 ### Example Conversations
 
-**User**: "I want to diversify my portfolio" **SolAI**: "I see you have 1,000 SOL. Here are some options:
+**User**: "I want to diversify my portfolio" **Storkai**: "I see you have 1,000 SOL. Here are some options:
 
 * Stake 500 SOL for 7% APY
 * Buy 200 SOL of blue-chip tokens (JUP, RAY, ORCA)
 * Keep 300 SOL liquid for opportunities Would you like me to execute this strategy?"
 
-**User**: "Buy the dip on memecoins" **SolAI**: "Current memecoin opportunities:
+**User**: "Buy the dip on memecoins" **Storkai**: "Current memecoin opportunities:
 
 * BONK: Down 15% from weekly high
 * WIF: Down 22% from weekly high
 * PEPE: Down 18% from weekly high How much would you like to allocate to each?"
 
-**User**: "What's my yield this month?" **SolAI**: "Your DeFi yield this month:
+**User**: "What's my yield this month?" **Storkai**: "Your DeFi yield this month:
 
 * Staking rewards: 12.5 SOL
 * LP fees: 3.2 SOL
@@ -122,7 +122,7 @@ Phase 3 introduces **SolAI**, an intelligent chat bot integrated directly into S
 ## Launch Timeline
 
 * **Q3 2024**: Beta testing with limited features
-* **Q4 2024**: Full SolAI launch with core trading features
+* **Q4 2024**: Full Storkai launch with core trading features
 * **Q1 2025**: Advanced strategies and automation
 * **Q2 2025**: Social trading and performance analytics
 

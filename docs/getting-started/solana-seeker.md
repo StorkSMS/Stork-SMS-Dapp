@@ -46,18 +46,16 @@ The same Stork SMS app you know and love, enhanced by Seeker's unique hardware c
 ### Unique Seeker Advantages
 
 #### Hardware-Enhanced Features
-- **NFC Capabilities**: Quick wallet address sharing via tap
-- **QR Code Scanner**: Instant wallet address capture with camera
 - **Secure Display**: Transaction details verified on tamper-proof screen
 - **Hardware Attestation**: Proof of genuine device for added security
+- **Secure Hardware Integration**: Deep integration with Seeker's Web3 hardware
+- **Enhanced Biometric Security**: Hardware-level authentication for all operations
 
 #### Native Push Notifications
 - **Instant Message Alerts**: Receive notifications immediately when new messages arrive
-- **Chat Invitations**: Get notified when someone starts a conversation with you
-- **Transaction Updates**: Alerts for NFT creation confirmations and completions
-- **Background Processing**: Notifications work even when Stork SMS isn't open
 - **Privacy-First**: Notifications don't reveal message content for security
-- **Customizable**: Control which notifications you want to receive
+- **Background Processing**: Notifications work even when Stork SMS isn't open
+- **Seamless Integration**: Native integration with Seeker's notification system
 
 ## Getting Started with Seeker
 
@@ -118,10 +116,10 @@ Your Stork SMS experience on Seeker includes:
 ## Availability
 
 ### Launch Timeline
-- **Seeker Device Launch**: April 8, 2025
-- **Stork SMS Ready**: Available immediately when you get your Seeker
-- **Enhanced Security**: Hardware features active from day one
-- **Continuous Optimization**: Regular performance improvements for Seeker
+- **Testing Phase**: Currently awaiting Seeker devices for development and testing
+- **Stork SMS Integration**: Available after testing is complete
+- **Enhanced Security**: Hardware features will be active from day one
+- **Full Launch**: Available after comprehensive testing and optimization
 
 ### Global Availability
 - **Same Markets**: Available wherever Seeker devices are sold

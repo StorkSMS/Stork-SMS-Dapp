@@ -18,7 +18,7 @@ Before diving into specific issues, try these common solutions:
 
 Before troubleshooting, check if the issue is system-wide:
 - **Solana Network**: Visit [status.solana.com](https://status.solana.com)
-- **Stork SMS Status**: Check our [Discord](https://discord.gg/storksms) for announcements
+- **Stork SMS Status**: Check our Twitter [@StorkSMS](https://twitter.com/storksms) for announcements
 - **Your Wallet**: Verify wallet is working with other dApps
 
 ## Wallet Connection Issues
@@ -433,7 +433,7 @@ Before troubleshooting, check if the issue is system-wide:
 5. **Transaction Signatures**: If blockchain-related
 
 ### Support Channels:
-- **Discord**: [discord.gg/storksms](https://discord.gg/storksms) (fastest)
+- **Discord**: Coming soon
 - **Email**: [info@stork-sms.net](mailto:info@stork-sms.net)
 - **Twitter**: [@StorkSMS](https://twitter.com/storksms)
 
@@ -461,5 +461,5 @@ Before troubleshooting, check if the issue is system-wide:
 
 ---
 
-**Still having issues?** Our community and support team are here to help! Join our [Discord](https://discord.gg/storksms) for real-time assistance.
+**Still having issues?** Our support team is here to help! Contact us at info@stork-sms.net for assistance. Discord community coming soon!
 

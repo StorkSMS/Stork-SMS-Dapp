@@ -5,7 +5,7 @@ Get help, connect with our community, and reach our team through multiple channe
 ## Support Channels
 
 ### Discord Community (Recommended)
-**Join**: [discord.gg/storksms](https://discord.gg/storksms)
+**Status**: Coming soon
 **Response Time**: Usually within 1-2 hours during business hours
 **Best For**: General questions, community help, feature discussions
 
@@ -355,7 +355,7 @@ We continuously improve our support resources based on user feedback.
 - [App running slowly](troubleshooting.md#performance-issues)
 - [Can't see chat messages](troubleshooting.md#chat-loading-issues)
 
-**Fastest Support**: Join our [Discord](https://discord.gg/storksms) community
+**Fastest Support**: Email us at info@stork-sms.net (Discord coming soon)
 **Business Inquiries**: [info@stork-sms.net](mailto:info@stork-sms.net)
 **Security Issues**: [info@stork-sms.net](mailto:info@stork-sms.net) with "SECURITY" subject
 

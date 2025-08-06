@@ -57,7 +57,7 @@
   * [User Identities & Profiles](roadmap/phase-2-gamification/README.md#user-identities--profiles)
   * [Achievement System](roadmap/phase-2-gamification/README.md#achievement-system)
   * [Airdrop Qualification](roadmap/phase-2-gamification/README.md#airdrop-qualification)
-* [Phase 3: SolAI Bot](roadmap/phase-3-solai-chatbot.md)
+* [Phase 3: Storkai Bot](roadmap/phase-3-storkai-chatbot.md)
 * [Phase 4: Enterprise](roadmap/phase-4-enterprise.md)
 * [And So Much More...](roadmap/feature-requests.md)
 

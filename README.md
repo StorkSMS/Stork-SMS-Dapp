@@ -25,6 +25,10 @@ Stork SMS is a revolutionary decentralized messaging platform that combines the 
 
 For comprehensive documentation, visit our [GitBook](https://www.gitbook.com/preview).
 
+## Pitch Deck
+
+View our Radiants Hackathon pitch deck: [Stork SMS Pitch Presentation](https://www.figma.com/proto/Mk7qspvEozyspinHUzVLaA/Stork-Live?node-id=0-1&t=L8dXrzuapof5z7N0-1&scaling=scale-down-width)
+
 ## Technology Stack
 
 - **Frontend**: Next.js 15, TypeScript, Tailwind CSS
