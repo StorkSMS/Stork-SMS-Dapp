@@ -47,10 +47,10 @@ Phase 4 focuses on scaling Stork SMS to enterprise levels, introducing business-
 
 #### Compliance Standards
 
-* **GDPR Compliance**: European data protection regulation adherence
-* **HIPAA Support**: Healthcare industry privacy requirements
-* **SOC 2 Type II**: Annual security and availability audits
-* **ISO 27001**: Information security management certification
+* **GDPR Compliance (Planned)**: European data protection regulation adherence
+* **HIPAA Support (Planned)**: Healthcare industry privacy requirements
+* **SOC 2 Type II (Planned)**: Annual security and availability audits
+* **ISO 27001 (Planned)**: Information security management certification
 
 #### Data Governance
 
@@ -239,7 +239,7 @@ Phase 4 focuses on scaling Stork SMS to enterprise levels, introducing business-
 
 ### Rollout Timeline
 
-#### Q1 2026 - Foundation
+#### Q2 2026 - Foundation
 
 **Month 1**:
 
@@ -311,7 +311,7 @@ Phase 4 focuses on scaling Stork SMS to enterprise levels, introducing business-
 #### Industry Verticals
 
 * **Financial Services**: Secure communication for banking and finance
-* **Healthcare**: HIPAA-compliant messaging for medical organizations
+* **Healthcare**: HIPAA-compliant messaging for medical organizations (certification pending)
 * **Legal**: Privileged communication for law firms
 * **Government**: Secure communication for public sector
 * **Technology**: Developer-friendly communication for tech companies
@@ -344,9 +344,9 @@ Phase 4 focuses on scaling Stork SMS to enterprise levels, introducing business-
 
 ### Revenue Goals
 
-* **Year 1**: $10M ARR (Annual Recurring Revenue)
-* **Year 2**: $50M ARR with 100+ enterprise customers
-* **Year 3**: $150M ARR with global market presence
+* **Year 1**: $100K-250K ARR (Annual Recurring Revenue)
+* **Year 2**: $500K-1M ARR with 20+ enterprise customers
+* **Year 3**: $2M-5M ARR with expanding market presence
 
 ### Customer Metrics
 

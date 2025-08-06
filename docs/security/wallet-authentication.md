@@ -1,6 +1,6 @@
 # Wallet-Based Authentication
 
-Stork SMS uses a revolutionary authentication system that eliminates passwords entirely, relying instead on cryptographic signatures from your Solana wallet.
+Stork SMS uses a cryptographic authentication system that eliminates passwords entirely, relying instead on digital signatures from your Solana wallet.
 
 ## How It Works
 

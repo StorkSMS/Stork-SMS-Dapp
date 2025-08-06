@@ -2,7 +2,7 @@
 
 [![GitBook](https://img.shields.io/static/v1?message=Documented%20on%20GitBook&logo=gitbook&logoColor=ffffff&label=%20&labelColor=5c5c5c&color=3F89A1)](https://www.gitbook.com/preview?utm_source=gitbook_readme_badge&utm_medium=organic&utm_campaign=preview_documentation&utm_content=link)
 
-Stork SMS is a revolutionary decentralized messaging platform that combines the privacy and security of blockchain technology with the seamless user experience of modern messaging apps.
+Stork SMS is an advanced decentralized messaging platform that combines the privacy and security of blockchain technology with the seamless user experience of modern messaging apps.
 
 ## Key Features
 
@@ -49,9 +49,6 @@ npm run dev
 npm run build
 ```
 
-## Environment Variables
-
-Create a `.env.local` file with the required variables. See `.env.example` for reference.
 
 ## Contributing
 
@@ -63,6 +60,6 @@ MIT License - see LICENSE file for details
 
 ## Contact
 
-- Discord: [discord.gg/storksms](https://discord.gg/storksms)
+- StorkSMS: Community chat coming soon...
 - Twitter: [@StorkSMS](https://twitter.com/storksms)
 - Email: info@stork-sms.net

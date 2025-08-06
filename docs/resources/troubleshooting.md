@@ -433,7 +433,7 @@ Before troubleshooting, check if the issue is system-wide:
 5. **Transaction Signatures**: If blockchain-related
 
 ### Support Channels:
-- **Discord**: Coming soon
+- **StorkSMS**: Community chat coming Q3
 - **Email**: [info@stork-sms.net](mailto:info@stork-sms.net)
 - **Twitter**: [@StorkSMS](https://twitter.com/storksms)
 
@@ -461,5 +461,5 @@ Before troubleshooting, check if the issue is system-wide:
 
 ---
 
-**Still having issues?** Our support team is here to help! Contact us at info@stork-sms.net for assistance. Discord community coming soon!
+**Still having issues?** Our support team is here to help! Contact us at info@stork-sms.net for assistance. Stork community chat coming Q3!
 

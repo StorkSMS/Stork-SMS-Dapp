@@ -45,7 +45,7 @@ Discover how we protect your privacy and minimize data collection.
 - **No Phone Numbers**: Only wallet addresses used
 - **No Central Database**: Messages encrypted before storage
 - **No Admin Access**: Even we can't read your messages
-- **Open Source**: Security through transparency (coming soon)
+- **Open Source**: Security through transparency ([GitHub](https://github.com/StorkSMS/Stork-SMS-Dapp))
 
 ## Security Guarantees
 

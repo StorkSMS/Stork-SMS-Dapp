@@ -4,8 +4,8 @@ Get help, connect with our community, and reach our team through multiple channe
 
 ## Support Channels
 
-### Discord Community (Recommended)
-**Status**: Coming soon
+### Stork Community Chat (Recommended)
+**Status**: Coming Q3
 **Response Time**: Usually within 1-2 hours during business hours
 **Best For**: General questions, community help, feature discussions
 
@@ -282,14 +282,14 @@ For faster resolution, gather this information before reaching out:
 ## Developer Resources
 
 ### Technical Documentation
-- **API Reference**: Coming soon with open-source release
+- **API Reference**: Available in our [GitHub repository](https://github.com/StorkSMS/Stork-SMS-Dapp)
 - **Integration Guides**: Step-by-step integration tutorials
 - **SDK Libraries**: Official software development kits
 - **Code Examples**: Sample implementations and use cases
 
 ### Developer Support
 **Discord**: #developer-support channel
-**GitHub**: Coming soon with open-source release
+**GitHub**: [StorkSMS/Stork-SMS-Dapp](https://github.com/StorkSMS/Stork-SMS-Dapp)
 **Email**: [info@stork-sms.net](mailto:info@stork-sms.net) (Subject: "Developer Support")
 
 #### Developer Community
@@ -355,7 +355,7 @@ We continuously improve our support resources based on user feedback.
 - [App running slowly](troubleshooting.md#performance-issues)
 - [Can't see chat messages](troubleshooting.md#chat-loading-issues)
 
-**Fastest Support**: Email us at info@stork-sms.net (Discord coming soon)
+**Fastest Support**: Email us at info@stork-sms.net (Stork community chat coming Q3)
 **Business Inquiries**: [info@stork-sms.net](mailto:info@stork-sms.net)
 **Security Issues**: [info@stork-sms.net](mailto:info@stork-sms.net) with "SECURITY" subject
 

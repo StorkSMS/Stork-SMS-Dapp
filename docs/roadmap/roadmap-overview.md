@@ -5,7 +5,7 @@ coverY: 0
 
 # Roadmap Overview
 
-Stork SMS is evolving rapidly to become the premier Web3 messaging platform. Our roadmap balances immediate user needs with revolutionary features that will define the future of decentralized communication.
+Stork SMS is evolving rapidly to become the premier Web3 messaging platform. Our roadmap balances immediate user needs with advanced blockchain features that define the future of decentralized communication.
 
 ## Our Vision
 
@@ -19,7 +19,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ## Roadmap Phases
 
-### 🚀 **Phase 1: Enhanced Messaging** (Q1-Q2 2025)
+### 🚀 **Phase 1: Enhanced Messaging** (Q3-Q4 2025)
 
 **Foundation Building**
 
@@ -32,7 +32,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ***
 
-### 🎮 **Phase 2: Gamification & Rewards** (Q3 2025)
+### 🎮 **Phase 2: Gamification & Rewards** (Q4 2025-Q1 2026)
 
 **Community Engagement**
 
@@ -45,7 +45,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ***
 
-### 🤖 **Phase 3: Storkai Chat Bot** (Q4 2025)
+### 🤖 **Phase 3: Storkai Chat Bot** (Q1-Q2 2026)
 
 **Conversational Blockchain**
 
@@ -54,11 +54,11 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 * Automated strategies and risk management
 * Complete Solana ecosystem access via conversation
 
-**Status**: Research & Development **Impact**: Revolutionary - manage entire Web3 portfolio through chat
+**Status**: Research & Development **Impact**: Advanced - comprehensive Web3 portfolio management through chat
 
 ***
 
-### 🏢 **Phase 4: Enterprise & Scale** (Q1 2026)
+### 🏢 **Phase 4: Enterprise & Scale** (Q2-Q3 2026)
 
 **Business Adoption**
 
@@ -128,7 +128,7 @@ Development timelines are estimates based on current resources and priorities. A
 
 **Ready to be part of the future?** Join our community and help shape the next generation of Web3 communication.
 
-* **Discord**: Coming soon
+* **StorkSMS**: Community chat coming Q3
 * **Twitter**: [@StorkSMS](https://twitter.com/storksms)
 * **Email**: [info@stork-sms.net](mailto:info@stork-sms.net)
 

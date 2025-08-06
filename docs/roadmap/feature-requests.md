@@ -70,7 +70,7 @@ Stork SMS is built with a focus on real user needs and market demands. We believ
 ### High-Priority Features (In Development)
 
 #### Message Search & Filtering
-**Status**: Q1 2025 Development
+**Status**: Q3 2025 Development
 **Community Votes**: 450+ Discord reactions
 
 **Requested Features**:
@@ -86,7 +86,7 @@ Stork SMS is built with a focus on real user needs and market demands. We believ
 - Integration with browser search capabilities
 
 #### Message Editing & Deletion
-**Status**: Q2 2025 Planned
+**Status**: Q4 2025 Planned
 **Community Votes**: 380+ Discord reactions
 
 **Requested Features**:
@@ -101,7 +101,7 @@ Stork SMS is built with a focus on real user needs and market demands. We believ
 - Consensus mechanism for mutual deletion
 
 #### Custom Message Reactions
-**Status**: Q2 2025 Planned
+**Status**: Q4 2025 Planned
 **Community Votes**: 320+ Discord reactions
 
 **Requested Features**:
@@ -223,25 +223,25 @@ Stork SMS is built with a focus on real user needs and market demands. We believ
 
 ## Implementation Roadmap
 
-### Q1 2025: Foundation Features
+### Q3 2025: Foundation Features
 - **Message Search**: Full-text search across conversations
 - **Enhanced File Sharing**: Expanded file type support
 - **UI/UX Improvements**: Based on user feedback
 - **Performance Optimizations**: Faster loading and responsiveness
 
-### Q2 2025: Productivity Features  
+### Q4 2025: Productivity Features  
 - **Message Editing**: Edit and delete message functionality
 - **Custom Reactions**: Extended emoji and reaction system
 - **Message Templates**: Quick replies and saved templates
 - **Advanced Filtering**: Message organization and management
 
-### Q3 2025: Social & Collaboration
+### Q1 2026: Social & Collaboration
 - **Group Enhancements**: Advanced group management features
 - **Collaboration Tools**: Document sharing and co-editing
 - **Social Features**: Enhanced user profiles and status
 - **Integration APIs**: Third-party application integration
 
-### Q4 2025: Innovation & Scale
+### Q2 2026: Innovation & Scale
 - **AI Integration**: Smart features and automation
 - **Cross-Chain Support**: Multi-blockchain messaging
 - **Enterprise Tools**: Advanced business features
@@ -263,7 +263,7 @@ Stork SMS is built with a focus on real user needs and market demands. We believ
 1. **Beta Testing**: Sign up for early feature testing
 2. **Bug Reporting**: Help identify and report issues
 3. **Documentation**: Contribute to user guides and tutorials
-4. **Code Contributions**: Participate in open-source development (coming soon)
+4. **Code Contributions**: Participate in open-source development ([GitHub](https://github.com/StorkSMS/Stork-SMS-Dapp))
 
 ### Shape the Roadmap
 1. **Feature Voting**: Vote on community feature priorities
@@ -296,7 +296,7 @@ Stork SMS is built with a focus on real user needs and market demands. We believ
 
 **Your Voice Matters**: Every feature request, vote, and piece of feedback helps shape Stork SMS into the messaging platform our community deserves. Join the conversation and help build the future of Web3 communication!
 
-**Ready to contribute?** Feature requests and community feedback systems coming soon! For now, email your ideas to info@stork-sms.net.
+**Ready to contribute?** Feature requests and community feedback systems coming soon! For now, email your ideas to info@stork-sms.net. Stork community chat launching Q3!
 
 The future of Stork SMS is driven by **you** - our community. Beyond our planned roadmap phases, we're building features that users actually want and need.
 

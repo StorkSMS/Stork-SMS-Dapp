@@ -116,10 +116,10 @@ This makes your conversations truly owned assets.
 
 ### Is Stork SMS open source?
 
-We plan to open source Stork SMS to ensure transparency and security. Our roadmap includes:
-- **Security Audit**: Professional security review first
-- **Code Release**: Gradual open sourcing of components
-- **Community Contributions**: Accept community improvements
+Yes! Stork SMS is open source to ensure transparency and security. Check out our code:
+- **GitHub Repository**: [StorkSMS/Stork-SMS-Dapp](https://github.com/StorkSMS/Stork-SMS-Dapp)
+- **Community Contributions**: We welcome improvements and contributions
+- **Security Transparency**: Full codebase available for review
 - **User Feedback**: We listen to user input for improvements
 
 ## Features & Usage
@@ -328,7 +328,7 @@ We aim to keep Stork SMS affordable for global adoption.
 ### How can I get support?
 
 **Support Channels:**
-- **Discord**: Coming soon
+- **StorkSMS**: Community chat coming Q3
 - **Email**: [info@stork-sms.net](mailto:info@stork-sms.net)
 - **Twitter**: [@StorkSMS](https://twitter.com/storksms)
 - **Documentation**: Comprehensive guides in this documentation
@@ -361,5 +361,5 @@ We aim to keep Stork SMS affordable for global adoption.
 
 ---
 
-**Still have questions?** Our Discord community is coming soon! For now, reach out via email at info@stork-sms.net.
+**Still have questions?** Our Stork community chat is coming Q3! For now, reach out via email at info@stork-sms.net.
 

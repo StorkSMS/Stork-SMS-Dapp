@@ -6,11 +6,11 @@ Stork SMS uses a straightforward fee structure for NFT creation that covers prod
 
 ### NFT Creation Fee
 
-**0.0033 SOL per conversation**
-- Cheaper than a postage stamp!
+**0.0033 SOL per conversation (current rate)**
 - Covers both sender and recipient NFTs
-- No hidden fees or additional charges
+- Transparent pricing with network fee adjustments
 - One-time payment per conversation
+- Pricing may adjust based on network conditions
 
 ### What's Included
 
@@ -37,8 +37,8 @@ Your 0.0033 SOL covers:
 
 ### No Subscription Fees
 
-- No monthly or annual fees
-- No premium tiers or hidden costs  
+- No monthly or annual fees (current model)
+- Transparent pricing structure  
 - Pay only when creating new conversations
 - Unlimited messaging within existing conversations
 

@@ -116,10 +116,11 @@ Your Stork SMS experience on Seeker includes:
 ## Availability
 
 ### Launch Timeline
-- **Testing Phase**: Currently awaiting Seeker devices for development and testing
-- **Stork SMS Integration**: Available after testing is complete
+- **Partnership Development**: Currently developing partnerships for Seeker integration
+- **Testing Phase**: Awaiting Seeker devices for development and testing  
+- **Stork SMS Integration**: Available after partnerships and testing are complete
 - **Enhanced Security**: Hardware features will be active from day one
-- **Full Launch**: Available after comprehensive testing and optimization
+- **Full Launch**: Available after comprehensive partnership and technical validation
 
 ### Global Availability
 - **Same Markets**: Available wherever Seeker devices are sold
