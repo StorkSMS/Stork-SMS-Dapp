@@ -1,3 +1,9 @@
+---
+cover: >-
+  ../.gitbook/assets/hyangrrrr_A_Japanese_peaceful_landscape_featuring_reeds_in_th_a3a00df0-c3f5-4755-9838-b92c0abb13e2_1.png
+coverY: 0
+---
+
 # Database Schema
 
 Stork SMS uses Supabase (PostgreSQL) as its primary database with a carefully designed schema that supports NFT-based messaging, end-to-end encryption, and real-time communication features.
