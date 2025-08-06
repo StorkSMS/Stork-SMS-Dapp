@@ -308,9 +308,9 @@ For faster resolution, gather this information before reaching out:
 ### Localization
 **Current Status**: English only
 **Future Plans**: 
-- Spanish and Portuguese (Q2 2024)
-- French and German (Q3 2024)
-- Asian languages (Q4 2024)
+- Spanish and Portuguese (Q2 2025)
+- French and German (Q3 2025)
+- Asian languages (Q4 2025)
 - Community-driven translations
 
 ## Emergency Contacts

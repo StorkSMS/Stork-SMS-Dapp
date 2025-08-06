@@ -239,7 +239,7 @@ Phase 4 focuses on scaling Stork SMS to enterprise levels, introducing business-
 
 ### Rollout Timeline
 
-#### Q4 2024 - Foundation
+#### Q1 2026 - Foundation
 
 **Month 1**:
 

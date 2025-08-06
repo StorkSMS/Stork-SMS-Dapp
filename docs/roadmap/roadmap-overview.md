@@ -19,7 +19,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ## Roadmap Phases
 
-### 🚀 **Phase 1: Enhanced Messaging** (Q1-Q2 2024)
+### 🚀 **Phase 1: Enhanced Messaging** (Q1-Q2 2025)
 
 **Foundation Building**
 
@@ -32,7 +32,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ***
 
-### 🎮 **Phase 2: Gamification & Rewards** (Q2 2024)
+### 🎮 **Phase 2: Gamification & Rewards** (Q3 2025)
 
 **Community Engagement**
 
@@ -45,7 +45,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ***
 
-### 🤖 **Phase 3: Storkai Chat Bot** (Q3 2024)
+### 🤖 **Phase 3: Storkai Chat Bot** (Q4 2025)
 
 **Conversational Blockchain**
 
@@ -58,7 +58,7 @@ Transform messaging from a simple communication tool into a comprehensive Web3 p
 
 ***
 
-### 🏢 **Phase 4: Enterprise & Scale** (Q4 2024)
+### 🏢 **Phase 4: Enterprise & Scale** (Q1 2026)
 
 **Business Adoption**
 

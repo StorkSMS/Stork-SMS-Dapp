@@ -397,19 +397,19 @@ const trackAPIPerformance = (endpoint: string, duration: number) => {
 
 ## Optimization Roadmap
 
-### Short-term Improvements (Q1 2024)
+### Short-term Improvements (Q1 2025)
 - **Service Worker**: Offline message caching
 - **WebAssembly**: Faster encryption/decryption
 - **IndexedDB**: Client-side message storage
 - **Image Lazy Loading**: Reduce initial bundle size
 
-### Medium-term Improvements (Q2-Q3 2024)
+### Medium-term Improvements (Q2-Q3 2025)
 - **Edge Computing**: Cloudflare Workers for API
 - **Database Sharding**: Horizontal scaling
 - **Redis Caching**: Advanced caching layer
 - **CDN Optimization**: Smart asset delivery
 
-### Long-term Improvements (Q4 2024+)
+### Long-term Improvements (Q4 2025+)
 - **Global Database**: Multi-region replication
 - **AI Optimization**: Smart prefetching
 - **Advanced Compression**: Custom algorithms

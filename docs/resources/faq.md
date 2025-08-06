@@ -295,30 +295,30 @@ We aim to keep Stork SMS affordable for global adoption.
 ### When will group chats be available?
 
 **Group Messaging Timeline:**
-- **Q1 2024**: Beta testing with limited groups
-- **Q2 2024**: Full group messaging launch
+- **Q1 2025**: Beta testing with limited groups
+- **Q2 2025**: Full group messaging launch
 - **Features**: Up to 100 participants, admin controls, group NFTs
 
 ### Will there be a mobile app?
 
 **Mobile Development:**
-- **Q2 2024**: Native mobile apps for iOS and Android
+- **Q2 2025**: Native mobile apps for iOS and Android
 - **Progressive Web App**: Mobile-optimized web version available now
 - **Solana Seeker**: Special integration for Seeker phone users
 
 ### What other features are planned?
 
-**Short-term (Q1 2024):**
+**Short-term (Q1 2025):**
 - SOL/USDC transfers in chat
 - Enhanced file sharing
 - Message search functionality
 
-**Medium-term (Q2-Q3 2024):**
+**Medium-term (Q2-Q3 2025):**
 - Achievement system and rewards
 - Group messaging
 - Cross-chain messaging support
 
-**Long-term (Q4 2024+):**
+**Long-term (Q4 2025+):**
 - Storkai chat bot for blockchain operations
 - Enterprise features
 - Advanced privacy options

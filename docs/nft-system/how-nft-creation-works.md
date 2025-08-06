@@ -86,7 +86,7 @@ Each NFT includes comprehensive metadata:
     "content": "Hello! How are you?",
     "sender": "ABC123...",
     "recipient": "XYZ789...",
-    "timestamp": "2024-01-15T10:30:00Z"
+    "timestamp": "2025-08-15T10:30:00Z"
   }
 }
 ```

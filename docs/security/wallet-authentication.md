@@ -14,7 +14,7 @@ Stork SMS uses a revolutionary authentication system that eliminates passwords e
 2. **Signature Challenge**
    - Server generates a unique message with timestamp
    - Message includes: wallet address, timestamp, and nonce
-   - Example: `Sign this message to authenticate with Stork SMS\n\nWallet: ABC123...\nTimestamp: 2024-01-15T10:30:00Z\nNonce: xyz789`
+   - Example: `Sign this message to authenticate with Stork SMS\n\nWallet: ABC123...\nTimestamp: 2025-08-15T10:30:00Z\nNonce: xyz789`
 
 3. **Cryptographic Signature**
    - User signs the message with their private key
@@ -56,8 +56,8 @@ Stork SMS uses a revolutionary authentication system that eliminates passwords e
 ### Message Format
 ```json
 {
-  "message": "Sign this message to authenticate with Stork SMS\n\nWallet: 5xYz...def\nTimestamp: 2024-01-15T10:30:00Z\nNonce: abc123",
-  "timestamp": "2024-01-15T10:30:00Z",
+  "message": "Sign this message to authenticate with Stork SMS\n\nWallet: 5xYz...def\nTimestamp: 2025-08-15T10:30:00Z\nNonce: abc123",
+  "timestamp": "2025-08-15T10:30:00Z",
   "nonce": "abc123"
 }
 ```

@@ -82,13 +82,13 @@ _Available days after platform launch_
 
 ## Timeline
 
-### Q1 2024
+### Q1 2025
 
 * **SOL & USDC Transfers**: Core payment functionality
 * **Group Messaging Beta**: Limited group testing
 * **Performance Improvements**: Infrastructure upgrades
 
-### Q2 2024
+### Q2 2025
 
 * **Full Group Messaging**: Complete group functionality
 * **Solana Seeker Integration**: Hardware security features

@@ -446,7 +446,7 @@ _The revolution rewards its pioneers._
 
 ## Implementation Timeline
 
-### Q2 2024 - Foundation
+### Q3 2025 - Foundation
 
 **Month 1**:
 
@@ -478,7 +478,7 @@ _The revolution rewards its pioneers._
 * Community challenge events
 * Social features integration with identity display
 
-### Q3 2024 - Enhancement
+### Q4 2025 - Enhancement
 
 **Month 4**:
 

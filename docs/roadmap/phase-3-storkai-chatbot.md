@@ -121,8 +121,8 @@ Phase 3 introduces **Storkai**, an intelligent chat bot integrated directly into
 
 ## Launch Timeline
 
-* **Q3 2024**: Beta testing with limited features
-* **Q4 2024**: Full Storkai launch with core trading features
+* **Q4 2025**: Beta testing with limited features
+* **Q1 2026**: Full Storkai launch with core trading features
 * **Q1 2025**: Advanced strategies and automation
 * **Q2 2025**: Social trading and performance analytics
 
