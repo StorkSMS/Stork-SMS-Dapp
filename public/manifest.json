@@ -9,19 +9,19 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/stork-app-icon.png",
-      "sizes": "180x180",
+      "src": "/Stork-Homescreen-Image.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/stork-app-icon-512x512.png",
+      "src": "/Stork-Homescreen-Image.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/monochrome-app-icon.png",
+      "src": "/Stork-Android-Notification-Icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "monochrome"
