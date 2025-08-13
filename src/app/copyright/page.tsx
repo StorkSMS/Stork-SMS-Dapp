@@ -55,15 +55,26 @@ export default function CopyrightPage() {
               </section>
 
               <section>
-                <h2 className="mb-3 text-xl font-bold">License</h2>
+                <h2 className="mb-3 text-xl font-bold">License and Restrictions</h2>
                 <p>
-                  Stork SMS is licensed under the MIT License. This means that the software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.
+                  Stork SMS is proprietary software. All rights reserved. The software and its source code are the exclusive property of Stork SMS and are protected by copyright laws and international treaties.
                 </p>
                 <p className="mt-3">
-                  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+                  <strong>You are NOT permitted to:</strong>
+                </p>
+                <ul className="ml-6 mt-2 list-disc">
+                  <li>Copy, reproduce, or duplicate the software or source code</li>
+                  <li>Modify, adapt, or create derivative works</li>
+                  <li>Distribute, sell, rent, lease, or sublicense the software</li>
+                  <li>Reverse engineer, decompile, or disassemble the software</li>
+                  <li>Remove or alter any proprietary notices or labels</li>
+                  <li>Use the software for commercial purposes without explicit written permission</li>
+                </ul>
+                <p className="mt-3">
+                  <strong>Limited Use License:</strong> Users are granted a limited, non-exclusive, non-transferable license to use the Stork SMS application solely for personal, non-commercial purposes through the official deployed application at dapp.stork-sms.net.
                 </p>
                 <p className="mt-3">
-                  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+                  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL STORK SMS BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OF THIS SOFTWARE.
                 </p>
               </section>
 

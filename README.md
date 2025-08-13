@@ -56,7 +56,9 @@ We welcome contributions! Please see our contributing guidelines for more inform
 
 ## License
 
-MIT License - see LICENSE file for details
+© 2025 Stork SMS. All Rights Reserved.
+
+This is proprietary software. Unauthorized copying, modification, distribution, or use of this software is strictly prohibited. See our [copyright notice](https://dapp.stork-sms.net/copyright) for details.
 
 ## Contact
 
