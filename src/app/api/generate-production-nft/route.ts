@@ -470,7 +470,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Return image buffer as response (default behavior)
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(imageBuffer as unknown as BodyInit, {
       headers: {
         'Content-Type': 'image/png',
         'Content-Length': imageBuffer.length.toString(),
