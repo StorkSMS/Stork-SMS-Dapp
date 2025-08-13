@@ -32,7 +32,7 @@ class MessageEncryption {
     
     const encoder = new TextEncoder()
     const data = encoder.encode(password)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data as BufferSource)
     
     const key = await crypto.subtle.importKey(
       'raw',
@@ -93,7 +93,7 @@ class MessageEncryption {
           iv: iv
         },
         key,
-        data
+        data as BufferSource
       )
       
       // Combine IV and encrypted data
@@ -156,7 +156,7 @@ class MessageEncryption {
           iv: iv
         },
         key,
-        encryptedData
+        encryptedData as BufferSource
       )
       
       // Convert back to string

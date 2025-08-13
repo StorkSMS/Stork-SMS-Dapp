@@ -428,7 +428,7 @@ export async function convertToMp3Download(blob: Blob, filename: string, onProgr
     if (onProgress) onProgress(95) // Encoding complete
     
     // Create final MP3 blob
-    const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' })
+    const mp3Blob = new Blob(mp3Data as BlobPart[], { type: 'audio/mp3' })
     
     // Download the file
     const url = URL.createObjectURL(mp3Blob)
