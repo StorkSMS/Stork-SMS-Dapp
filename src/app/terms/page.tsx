@@ -20,7 +20,7 @@ export default function TermsPage() {
       {/* Content Container */}
       <div className="relative z-10 flex min-h-screen items-center justify-center p-8">
         <div 
-          className="relative w-full max-w-3xl bg-white shadow-2xl"
+          className="relative w-full max-w-3xl bg-white shadow-2xl border-2 border-black"
           style={{
             backgroundImage: `url("/Nft-Build-Images/Recipient NFT/Paper-Texture (position bottom right).png")`,
             backgroundSize: '100% 100%',
