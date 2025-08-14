@@ -220,106 +220,130 @@ Transform your Stork SMS experience with personalized user identities that showc
 * **Network Upgrade Participant**: Active during major network upgrades
 * **Community Milestone**: Participate when platform hits user milestones
 
-## The Point System & Future Rewards
+## The Stork Egg Achievement System 🥚
 
-### 🎯 Achievement Points - Your Key to Something Big
+### 🎯 Collect Stork Eggs - Your Path to Airdrop Rewards
 
-Every achievement you unlock isn't just a badge—it's **points** accumulating in your favor. Each achievement carries a different point value based on its difficulty, rarity, and the dedication required to earn it.
+Every achievement you unlock earns you **Stork Eggs** - special tokens that directly determine your share of the 2% user airdrop allocation. Each egg tier represents different levels of engagement and dedication to the Stork SMS ecosystem.
 
-**The Formula is Simple**:
+### 🥚 The Four Egg Tiers
 
-* Harder achievements = More points
-* Rarer achievements = Bonus multipliers
-* Special event achievements = Mystery multipliers
-* Long-term dedication = Exponential rewards
+#### 🥉 Bronze Eggs
+**Requirement**: Complete basic platform activities
+**Achievements Include**:
+* **First Flight**: Send your first message
+* **NFT Pioneer**: Create your first chat NFT  
+* **Media Maven**: Send first image or voice message
+* **Sticker Enthusiast**: Send 10 sticker messages
+* **Week Warrior**: Use platform for 7 consecutive days
 
-But points for what? _That's the question everyone's asking..._
+**Reward**: 1 Bronze Egg each | **Airdrop Value**: 0.1% of personal allocation
 
-### 🌟 The Mysterious Point Values
+#### 🥈 Silver Eggs
+**Requirement**: Demonstrate regular engagement
+**Achievements Include**:
+* **Conversation Creator**: Start 10 different conversations
+* **Message Master**: Send 1,000 total messages
+* **NFT Collector**: Own 5 different chat NFTs
+* **Social Butterfly**: Engage with 25 unique wallet addresses
+* **Monthly Veteran**: Active user for 30 consecutive days
 
-Not all achievements are created equal. Some whispered rumors from the community suggest:
+**Reward**: 1 Silver Egg each | **Airdrop Value**: 0.5% of personal allocation
 
-* **Basic achievements**: Standard point values
-* **Rare achievements**: 2-5x point multipliers
-* **Ultra-rare achievements**: 10x+ multipliers
-* **Legendary achievements**: _Point values so high they're kept secret_
-* **First-ever achievements**: Historical bonus that can never be replicated
+#### 🥇 Gold Eggs
+**Requirement**: Advanced platform usage and community leadership
+**Achievements Include**:
+* **Chat Champion**: Participate in 100 different conversations
+* **NFT Trader**: Successfully transfer chat access NFTs
+* **Community Builder**: Refer 10 new active users
+* **Feature Explorer**: Use all available message types
+* **Loyalty Legend**: Active user for 90 consecutive days
 
-### 🔮 What We Can Tell You (And What We Can't)
+**Reward**: 1 Gold Egg each | **Airdrop Value**: 1.0% of personal allocation
 
-**What we know**:
+#### 💎 Platinum Eggs
+**Requirement**: Exceptional dedication and extreme platform usage
+**Achievements Include**:
+* **Platform Pioneer**: Among first 100 users
+* **Message Titan**: Send 50,000+ messages
+* **NFT Empire**: Create and send 150+ NFTs to others
+* **Community Architect**: Refer 100+ new active users
+* **Volume Legend**: Participate in 500+ different conversations
+* **Ecosystem Builder**: Contribute to platform development and testing
 
-* Points are being tracked for every user
-* Higher points = Better positioning for _future opportunities_
-* Some achievements may never be available again
-* Early adopters have access to achievements that will become impossible later
-* The system rewards consistent engagement over burst activity
+**Reward**: 1 Platinum Egg each | **Airdrop Value**: 2.5% of personal allocation
 
-**What remains mysterious**:
+### 🧮 Airdrop Calculation Formula
 
-* The exact point values for each achievement
-* When the "big event" will happen
-* What form the rewards will take
-* How many points will be "enough"
-* Whether there's a maximum cap
-* If points can be lost or only gained
+```typescript
+// Personal airdrop allocation calculation
+function calculateAirdropAllocation(eggs: UserEggs): number {
+    const baseAllocation = 100 // Base tokens per user
+    
+    const bronzeValue = eggs.bronze * 0.1
+    const silverValue = eggs.silver * 0.5  
+    const goldValue = eggs.gold * 1.0
+    const platinumValue = eggs.platinum * 2.5
+    
+    const multiplier = 1 + (bronzeValue + silverValue + goldValue + platinumValue) / 100
+    
+    return baseAllocation * multiplier
+}
+```
 
-### 🚀 Early Bird Recognition
+### 🏆 Leaderboard & Competition
 
-**Current users are pioneers!** All current users who help us through the early release phase will receive special recognition when the platform reaches full maturity.
+#### Community Rankings
+- **Top Egg Collectors**: Users with most eggs across all tiers
+- **Category Specialists**: Leaders in specific achievement types
+- **Streak Champions**: Longest consecutive activity periods
+- **Early Pioneers**: First to unlock new achievements
 
-**Early Bird NFT Rewards**:
-* 🏆 **Pioneer Badge**: Special NFT for all users who helped during early testing
-* 🎯 **Bug Hunter**: Recognition for users who reported issues and helped improve the platform
-* 📅 **First Wave**: Commemorative NFT for joining before wide-scale marketing begins
-* 💎 **Community Builder**: Special recognition for early adopters who brought friends
+#### Bonus Rewards
+- **Top 100 Overall**: Additional 50% airdrop bonus
+- **Top 10 Per Category**: Additional 25% airdrop bonus
+- **Perfect Score**: Unlock all achievements for 100% bonus
+- **Community Choice**: User-voted exceptional contributors
 
-**Future Point System**:
+### 🔮 Achievement Tracking & Transparency
 
-When Stork SMS is ready for large-scale marketing and the wider audience, we will implement our trophy/awards point system. This achievement system will be the foundation for future airdrop eligibility:
+**Real-Time Progress**:
+* Live dashboard showing your egg collection
+* Progress bars for achievements in progress
+* Leaderboard positioning and rankings
+* Historical achievement timeline
 
-* The higher your position in the distribution
-* The larger your potential allocation  
-* The earlier your access to exclusive opportunities
-* The greater your influence in the ecosystem
+**Blockchain Verification**:
+* All achievements verified through on-chain activity
+* Smart contract integration for tamper-proof records
+* Public leaderboards with verifiable data
+* Anti-gaming measures to prevent exploitation
 
-**Multiple Distribution Events Planned**:
+**Community Transparency**:
+* Open-source achievement verification system
+* Public API for achievement data
+* Community-driven achievement proposals
+* Regular transparency reports on egg distribution
 
-* 🎁 **Surprise Drops**: Unexpected rewards for active point accumulators
-* 📈 **Milestone Celebrations**: Community-wide rewards when we hit major goals
-* 🏆 **Annual Recognition**: The biggest distribution for the most dedicated
-* 💎 **Ultra-Exclusive**: Reserved for those who achieve the impossible
+### 🚀 Why the Egg System Works
 
-### ⚡ The Race is On
+**Fair Distribution**:
+* Multiple ways to earn across different skill levels
+* Long-term engagement valued over short bursts
+* Community building rewarded alongside individual activity
+* Inclusive design accessible to all user types
 
-Every day you're not earning achievements, someone else is pulling ahead. Every achievement you miss might have been worth 10x more than you think. Every point accumulated now could be the difference between life-changing rewards and watching from the sidelines.
+**Anti-Gaming Protection**:
+* Real blockchain activity required for verification
+* Sybil resistance through wallet-based identification
+* Human behavior pattern analysis
+* Community reporting for suspicious activity
 
-**The early bird doesn't just get the worm—they get the entire feast.**
-
-### 🎭 Tiers of Mystery
-
-While specific requirements remain classified, rumors suggest different "classes" of point accumulators:
-
-* **🥉 Apprentice**: Those who've discovered the system exists
-* **🥈 Adept**: Active participants building their score
-* **🥇 Expert**: Dedicated achievers with substantial points
-* **💎 Master**: Elite few with access to impossible achievements
-* **👑 Legend**: _Status so rare, it might be a myth_
-
-Each tier unlocks different aspects of the ecosystem, but the exact benefits? _Those secrets are earned, not given._
-
-### 🔥 Why the Mystery?
-
-The gaming system rewards **genuine engagement** over **gaming the system**. By keeping exact values secret:
-
-* Merit-based participation is encouraged
-* Point farming becomes impossible
-* Authentic community building is rewarded
-* Early supporters get the recognition they deserve
-
-**The best strategy? Be active, be genuine, be early.**
-
-_The revolution rewards its pioneers._
+**Sustainable Engagement**:
+* Achievements encourage genuine platform usage
+* Social elements build lasting community connections
+* Progressive difficulty maintains long-term interest
+* Multiple achievement paths prevent optimization exploitation
 
 ## Social Features
 

@@ -49,6 +49,10 @@
 
 * [StorkAI Overview](storkai-coming-soon.md)
 
+## 🪂 Airdrop Program
+
+* [Airdrop Overview](airdrop.md)
+
 ## Roadmap
 
 * [Roadmap Overview](roadmap/roadmap-overview.md)
