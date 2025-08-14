@@ -36,13 +36,13 @@ Learn how we use cryptographic signatures for passwordless authentication.
 ### [NFT-Based Access Control](nft-access-control.md)
 Understand how NFTs serve as unbreakable access tokens for conversations.
 
-### [End-to-End Encryption](encryption.md)
+### [End-to-End Encryption](end-to-end-encryption.md)
 Explore our encryption implementation and key management.
 
 ### [Security Measures](security-measures.md)
 Review our comprehensive security implementations and best practices.
 
-### [Privacy Features](privacy.md)
+### [Privacy Features](privacy-features.md)
 Discover how we protect your privacy and minimize data collection.
 
 ## Quick Security Facts

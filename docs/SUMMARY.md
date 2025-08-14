@@ -45,6 +45,9 @@
 * [Database Schema](technical/database-schema.md)
 * [Performance](technical/performance.md)
 
+## StorkAI (Coming Soon)
+
+* [StorkAI Overview](storkai-coming-soon.md)
 
 ## Roadmap
 
@@ -52,14 +55,13 @@
 * [Phase 1: Enhanced Messaging](roadmap/phase-1-enhanced-messaging/README.md)
   * [SOL & USDC Transfers](roadmap/phase-1-enhanced-messaging/README.md#sol--usdc-transfers)
   * [Group Messaging](roadmap/phase-1-enhanced-messaging/README.md#group-messaging)
-  * [Solana Seeker Integration](roadmap/phase-1-enhanced-messaging/README.md#solana-seeker-integration)
+  * [✓ Solana Seeker Integration](roadmap/phase-1-enhanced-messaging/README.md#solana-seeker-integration)
 * [Phase 2: Gamification](roadmap/phase-2-gamification/README.md)
   * [User Identities & Profiles](roadmap/phase-2-gamification/README.md#user-identities--profiles)
   * [Achievement System](roadmap/phase-2-gamification/README.md#achievement-system)
   * [Airdrop Qualification](roadmap/phase-2-gamification/README.md#airdrop-qualification)
-* [Phase 3: Storkai Bot](roadmap/phase-3-storkai-chatbot.md)
-* [Phase 4: Enterprise](roadmap/phase-4-enterprise.md)
-* [And So Much More...](roadmap/feature-requests.md)
+* [Phase 3: Enterprise](roadmap/phase-3-enterprise.md)
+* [Phase 4: And So Much More...](roadmap/feature-requests.md)
 
 ## Resources
 

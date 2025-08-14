@@ -15,6 +15,7 @@ We support the following wallets:
 - **Solflare**
 - **Torus**
 - **Ledger**
+- **Solana Seeker Wallet**
 
 ### Installing Phantom Wallet
 
@@ -42,6 +43,8 @@ You'll need a small amount of SOL to:
 - Mozilla Firefox (version 88+)
 - Safari (version 14+)
 - Microsoft Edge (version 90+)
+- Arc Browser
+- Brave Browser
 
 ### Mobile Browsers
 - **Phantom Mobile App Browser** (iOS/Android)
@@ -54,7 +57,8 @@ You'll need a small amount of SOL to:
 For the best mobile experience, we recommend using:
 1. **Phantom Mobile App** - Open dapp.stork-sms.net in the built-in browser
 2. **Solflare Mobile App** - Use the dApp browser feature
-3. This ensures seamless wallet integration and transaction signing
+3. **MWA (Mobile Wallet Adapter) on Android** - Just make sure you have Phantom or Solflare installed (supports Seeker wallet too)
+4. This ensures seamless wallet integration and transaction signing
 
 ## 4. Internet Connection
 

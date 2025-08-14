@@ -32,7 +32,7 @@ Stork SMS combines the best of traditional messaging apps with blockchain techno
 
 ## Blockchain Features
 
-### [NFT Integration](../nft-system/how-it-works.md)
+### [NFT Integration](../nft-system/how-nft-creation-works.md)
 
 * Dual NFT system for chat access
 * Compressed NFTs for efficiency
@@ -48,14 +48,14 @@ Stork SMS combines the best of traditional messaging apps with blockchain techno
 
 ## Security Features
 
-### [Encryption](../security/encryption.md)
+### [Encryption](../security/end-to-end-encryption.md)
 
 * End-to-end message encryption
 * AES-256-GCM algorithm
 * Key derivation from wallets
 * Zero-knowledge architecture
 
-### [Privacy](../security/privacy.md)
+### [Privacy](../security/privacy-features.md)
 
 * No phone numbers required
 * Minimal metadata collection

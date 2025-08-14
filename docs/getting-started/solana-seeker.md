@@ -20,7 +20,7 @@ The same Stork SMS app you know and love, enhanced by Seeker's unique hardware c
 #### Native Seed Vault Integration
 
 * **Hardware-Protected Keys**: Your wallet keys are stored in dedicated security hardware
-* **Biometric Authentication**: Unlock with fingerprint or face recognition
+* **Biometric Authentication**: Unlock with fingerprint recognition via side-mounted sensor
 * **Tamper Resistance**: Hardware-level protection against device compromise
 * **Secure Transactions**: All NFT creation and wallet operations use hardware security
 
@@ -90,7 +90,7 @@ Your Stork SMS experience on Seeker includes:
 
 1. **Secure Message Creation**: Write messages with hardware-backed security
 2. **Hardware Transaction Signing**: All NFT creation uses secure enclave
-3. **Biometric Confirmation**: Confirm transactions with fingerprint/face unlock
+3. **Biometric Confirmation**: Confirm transactions with fingerprint unlock
 4. **Push Notifications**: Native notifications for new messages and activity
 5. **Enhanced Performance**: Optimized specifically for Seeker hardware
 6. **Seamless Integration**: Same familiar interface with better security
@@ -100,7 +100,7 @@ Your Stork SMS experience on Seeker includes:
 ### Enhanced Security
 
 * **Hardware Protection**: All wallet operations protected by secure hardware
-* **Biometric Access**: Seamless unlock with fingerprint or face recognition
+* **Biometric Access**: Seamless unlock with fingerprint recognition
 * **Tamper Resistance**: Hardware-level protection against compromise
 * **Secure Transactions**: Every NFT creation benefits from hardware security
 
@@ -141,7 +141,7 @@ Your Stork SMS experience on Seeker includes:
 ### Enhanced Security
 
 * **Hardware-Level Protection**: Your wallet operations use secure hardware
-* **Biometric Convenience**: Quick, secure access with fingerprint/face unlock
+* **Biometric Convenience**: Quick, secure access with fingerprint unlock
 * **Tamper Resistance**: Hardware protection against device compromise
 * **Secure Transactions**: Every NFT creation benefits from hardware security
 

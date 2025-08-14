@@ -103,7 +103,6 @@ _See the [StorkAI section](../../storkai-coming-soon.md) for complete details on
 ### Q4 2025
 
 * **Full Group Messaging**: Complete group functionality
-* **Solana Seeker Integration**: Hardware security features
 * **Mobile Enhancements**: Optimized mobile experience
 * **Advanced Payment Features**: Escrow and multi-sig support
 * **StorkAI Beta**: Expanded AI capabilities and user testing
