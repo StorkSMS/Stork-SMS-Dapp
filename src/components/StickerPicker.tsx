@@ -301,12 +301,12 @@ export function useStickerState(initialMessage: string = '') {
   const handleMessageChange = (message: string) => {
     setCurrentMessage(message)
     
-    // Allow users to type while sticker is selected
-    // The message will be stored but remain visually hidden (faded) until sticker is deselected
-    // No longer auto-deselect sticker when typing
-    
-    // If user types while sticker is selected, store as original
-    if (selectedSticker && message && !originalMessage) {
+    // If no sticker is selected, update original message too to keep them in sync
+    if (!selectedSticker) {
+      setOriginalMessage(message)
+    }
+    // If sticker is selected and we don't have an original message yet, store the current one
+    else if (selectedSticker && !originalMessage && message) {
       setOriginalMessage(message)
     }
   }
@@ -328,10 +328,11 @@ export function useStickerState(initialMessage: string = '') {
     handleStickerSelect,
     handleMessageChange,
     getEffectiveMessage,
-    // For external message updates
+    // For external message updates - be more careful about originalMessage
     setCurrentMessage: (message: string) => {
       setCurrentMessage(message)
-      if (!originalMessage) {
+      // Only update originalMessage if no sticker is selected to avoid overwriting preserved message
+      if (!selectedSticker) {
         setOriginalMessage(message)
       }
     }

@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Check environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Missing Supabase environment variables:', {
+    url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    key: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+  })
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -22,6 +30,8 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || ''
 
     // Upsert subscription (update if exists, insert if not)
+    // Since endpoint has a unique constraint, we need to handle the case where
+    // the same device (endpoint) is used by different wallets
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
@@ -32,13 +42,20 @@ export async function POST(request: NextRequest) {
         user_agent: userAgent,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'wallet_address,endpoint'
+        onConflict: 'endpoint'  // Changed to match the unique constraint
       })
 
     if (error) {
-      console.error('Error saving push subscription:', error)
+      console.error('Supabase error saving push subscription:', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        walletAddress,
+        endpoint
+      })
       return NextResponse.json(
-        { error: 'Failed to save subscription' },
+        { error: 'Failed to save subscription', details: error.message },
         { status: 500 }
       )
     }
@@ -47,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Push subscription error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

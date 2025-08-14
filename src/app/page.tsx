@@ -207,6 +207,8 @@ export default function ChatApp() {
     if (isMobile && connected && isActuallyAuthenticated) {
       const animationTimer = setTimeout(() => {
         setIsAppLoaded(true)
+        // Open sidebar by default on mobile after wallet connection
+        setIsMobileMenuOpen(true)
       }, 300) // Small delay after wallet connection for smooth transition
       
       // Hide welcome screen elements 5 seconds after animation starts
@@ -1216,7 +1218,8 @@ export default function ChatApp() {
             backgroundColor: colors.bg, 
             borderColor: colors.border,
             transform: isAppLoaded ? 'translateY(0)' : `translateY(${isMobile ? '-120vh' : '-60vh'})`,
-            transition: 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            transition: 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            opacity: isAppLoaded ? 1 : (isMobile ? 0 : 1)
           }}
         >
           {/* Paper Texture Over App Window */}
@@ -1426,8 +1429,8 @@ export default function ChatApp() {
         onSubmit={handleSendInvitation}
         onChatDataChange={(data) => {
           setNewChatData(data)
-          // Sync message with sticker state
-          stickerState.setCurrentMessage(data.message)
+          // Don't sync message back to sticker state - let NewChatModal handle it
+          // to prevent circular updates that break sticker logic
         }}
         onStickerPickerOpen={() => setIsStickerPickerOpen(true)}
         onCanvasReady={setPreviewCanvasData}
