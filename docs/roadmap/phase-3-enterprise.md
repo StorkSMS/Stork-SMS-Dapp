@@ -1,9 +1,9 @@
 ---
-cover: ../.gitbook/assets/Roadmap image phase 4.png
+cover: ../.gitbook/assets/Roadmap image phase 3.png
 coverY: 0
 ---
 
-# Phase 4: Enterprise
+# Phase 3: Enterprise
 
 Transform Stork SMS into an enterprise-ready platform capable of serving large organizations while maintaining the decentralized, secure messaging experience that defines our platform.
 

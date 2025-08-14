@@ -1,15 +1,15 @@
 ---
-cover: ../.gitbook/assets/Roadmap image phase 3.png
+cover: ./.gitbook/assets/Roadmap image phase 3.png
 coverY: 0
 ---
 
-# Phase 3: Storkai Bot
+# StorkAI (Coming Soon)
 
 Transform your Stork SMS experience with conversational AI that gives you complete blockchain access through natural language.
 
 ## Overview
 
-Phase 3 introduces **Storkai**, an intelligent chat bot integrated directly into Stork SMS conversations. Manage your entire Solana experience through simple conversations - no complex interfaces or technical knowledge required.
+**StorkAI** is an intelligent chat bot that will be integrated directly into Stork SMS conversations. Manage your entire Solana experience through simple conversations - no complex interfaces or technical knowledge required.
 
 ## Core Features
 
@@ -45,20 +45,24 @@ Phase 3 introduces **Storkai**, an intelligent chat bot integrated directly into
 
 ### Example Conversations
 
-**User**: "I want to diversify my portfolio" **Storkai**: "I see you have 1,000 SOL. Here are some options:
-
+**User**: "I want to diversify my portfolio"  
+**StorkAI**: "I see you have 1,000 SOL. Here are some options:
 * Stake 500 SOL for 7% APY
 * Buy 200 SOL of blue-chip tokens (JUP, RAY, ORCA)
-* Keep 300 SOL liquid for opportunities Would you like me to execute this strategy?"
+* Keep 300 SOL liquid for opportunities
 
-**User**: "Buy the dip on memecoins" **Storkai**: "Current memecoin opportunities:
+Would you like me to execute this strategy?"
 
+**User**: "Buy the dip on memecoins"  
+**StorkAI**: "Current memecoin opportunities:
 * BONK: Down 15% from weekly high
 * WIF: Down 22% from weekly high
-* PEPE: Down 18% from weekly high How much would you like to allocate to each?"
+* PEPE: Down 18% from weekly high
 
-**User**: "What's my yield this month?" **Storkai**: "Your DeFi yield this month:
+How much would you like to allocate to each?"
 
+**User**: "What's my yield this month?"  
+**StorkAI**: "Your DeFi yield this month:
 * Staking rewards: 12.5 SOL
 * LP fees: 3.2 SOL
 * Lending interest: 1.8 SOL
@@ -105,6 +109,14 @@ Phase 3 introduces **Storkai**, an intelligent chat bot integrated directly into
 
 ## Technical Implementation
 
+### Embedded Wallet Technology
+
+* **Phantom Embedded Wallets**: Seamless wallet creation without seed phrases
+* **Solflare Integration**: Enterprise-grade embedded wallet infrastructure
+* **Invisible Onboarding**: Users get a wallet automatically when they start using StorkAI
+* **Social Recovery**: Recover wallets through trusted contacts instead of seed phrases
+* **Gas Abstraction**: StorkAI can sponsor transaction fees for smooth user experience
+
 ### AI Capabilities
 
 * **Natural Language Processing**: Understand complex financial requests
@@ -115,20 +127,13 @@ Phase 3 introduces **Storkai**, an intelligent chat bot integrated directly into
 ### Blockchain Integration
 
 * **Direct Protocol Access**: Connect to all major Solana protocols
-* **Cross-Chain Bridge**: Access Ethereum and other chains
+* **Solana-Native**: Built specifically for Solana's speed and efficiency
 * **MEV Protection**: Protect against front-running
 * **Transaction Optimization**: Find the best routes and timing
 
-## Launch Timeline
+## Early Access
 
-* **Q1 2026**: Beta testing with limited features
-* **Q2 2026**: Full Storkai launch with core trading features
-* **Q1 2025**: Advanced strategies and automation
-* **Q2 2025**: Social trading and performance analytics
-
-## Beta Access
-
-Early access will be provided to:
+StorkAI is currently in development as part of Phase 1 of our roadmap. Early access will be provided to:
 
 * Active Stork SMS users with NFT conversations
 * Users who complete achievement milestones
@@ -136,3 +141,13 @@ Early access will be provided to:
 * Long-term SOL holders and DeFi participants
 
 Join the waitlist to be among the first to experience conversational blockchain management!
+
+## Stay Updated
+
+Follow our progress and get early access:
+
+* **Twitter**: [@StorkSMS](https://twitter.com/storksms)
+* **Email**: [info@stork-sms.net](mailto:info@stork-sms.net)
+* **Community**: Join our chat (coming soon)
+
+The future of Web3 communication is conversational AI - and it's coming to Stork SMS! 🤖🚀

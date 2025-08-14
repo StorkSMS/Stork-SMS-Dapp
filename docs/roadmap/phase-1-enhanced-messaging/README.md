@@ -80,6 +80,17 @@ _Available days after platform launch_
 * **Multi-Factor Authentication**: Additional security layers
 * **Advanced Monitoring**: Improved threat detection
 
+## StorkAI Integration (Early Development)
+
+### Conversational Blockchain Assistant
+
+* **AI-Powered Chat Bot**: Natural language interface for blockchain operations
+* **Wallet Management**: Check balances and manage assets through conversation
+* **Trading Assistant**: Execute trades and monitor markets via chat commands
+* **DeFi Operations**: Stake, swap, and manage yield through simple messages
+
+_See the [StorkAI section](../../storkai-coming-soon.md) for complete details on this revolutionary feature._
+
 ## Timeline
 
 ### Q3 2025
@@ -87,6 +98,7 @@ _Available days after platform launch_
 * **SOL & USDC Transfers**: Core payment functionality
 * **Group Messaging Beta**: Limited group testing
 * **Performance Improvements**: Infrastructure upgrades
+* **StorkAI Alpha**: Early testing of conversational AI features
 
 ### Q4 2025
 
@@ -94,5 +106,6 @@ _Available days after platform launch_
 * **Solana Seeker Integration**: Hardware security features
 * **Mobile Enhancements**: Optimized mobile experience
 * **Advanced Payment Features**: Escrow and multi-sig support
+* **StorkAI Beta**: Expanded AI capabilities and user testing
 
-This phase establishes Stork SMS as a comprehensive Web3 messaging platform with both financial capabilities and cutting-edge mobile security through Solana Seeker integration.
+This phase establishes Stork SMS as a comprehensive Web3 messaging platform with financial capabilities, cutting-edge mobile security through Solana Seeker integration, and the beginning of our revolutionary StorkAI conversational blockchain assistant.
