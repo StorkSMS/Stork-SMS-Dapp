@@ -33,8 +33,6 @@ The Stork SMS token airdrop consists of **5% of total supply** distributed acros
 Base Allocation: Equal distribution among all qualifying holders
 Bonus Multipliers:
 - Genesis Seeker NFTs: 2x allocation
-- Rare Trait Holders: 1.5x allocation
-- Long-term Holders (6+ months): 1.25x allocation
 ```
 
 ### Why Seeker Holders?
@@ -47,10 +45,7 @@ Solana Seeker represents the pinnacle of Web3 mobile technology and aligns perfe
 **Active Seeker Usage**: Must demonstrate active use of Stork SMS on Solana Seeker device
 
 **Verification Criteria:**
-- Minimum 10 conversations created on Seeker
-- At least 100 messages sent via Seeker device
-- Minimum 30 days of active usage
-- Hardware verification through Seed Vault integration
+- Just create 1 NFT chat through our Seeker Dapp, and that's it you're in
 
 ### Enhanced Rewards for Seeker Integration
 ```
@@ -82,7 +77,7 @@ Earn **Stork Eggs** through various achievements in the Stork SMS ecosystem. Dif
 - **NFT Pioneer**: Create your first chat NFT
 - **Media Maven**: Send first image or voice message
 - **Sticker Enthusiast**: Send 10 sticker messages
-- **Week Warrior**: Use platform for 7 consecutive days
+- **Week Warrior**: Use platform actively for a week
 
 **Reward**: 1 Bronze Egg each | **Airdrop Value**: 0.1% of personal allocation
 
@@ -94,7 +89,7 @@ Earn **Stork Eggs** through various achievements in the Stork SMS ecosystem. Dif
 - **Message Master**: Send 1,000 total messages
 - **NFT Collector**: Own 5 different chat NFTs
 - **Social Butterfly**: Engage with 25 unique wallet addresses
-- **Monthly Veteran**: Active user for 30 consecutive days
+- **Monthly Veteran**: Active user for a month
 
 **Reward**: 1 Silver Egg each | **Airdrop Value**: 0.5% of personal allocation
 
@@ -106,7 +101,7 @@ Earn **Stork Eggs** through various achievements in the Stork SMS ecosystem. Dif
 - **NFT Trader**: Successfully transfer chat access NFTs
 - **Community Builder**: Refer 10 new active users
 - **Feature Explorer**: Use all available message types
-- **Loyalty Legend**: Active user for 90 consecutive days
+- **Loyalty Legend**: Long-term active user
 
 **Reward**: 1 Gold Egg each | **Airdrop Value**: 1.0% of personal allocation
 
@@ -115,7 +110,7 @@ Earn **Stork Eggs** through various achievements in the Stork SMS ecosystem. Dif
 
 **Platinum Achievements:**
 - **Platform Pioneer**: Among first 100 users
-- **Message Titan**: Send 50,000+ messages
+- **Message Titan**: Send 10,000+ messages
 - **NFT Empire**: Create and send 150+ NFTs to others
 - **Community Architect**: Refer 100+ new active users
 - **Volume Legend**: Participate in 500+ different conversations
@@ -184,24 +179,41 @@ function calculateAirdropAllocation(eggs: UserEggs): number {
 - Seeker integration completion
 - Community announcement and education
 
-### Phase 2: Accumulation Period (Q4 2025 - Q1 2026)
+### Phase 2: Accumulation Period (Q4 2025)
 - Achievement tracking begins
-- Seeker usage verification
+- Seeker usage verification  
 - Community engagement campaigns
 
-### Phase 3: Snapshot & Distribution (Q2 2026)
-- Final snapshots taken
-- Allocation calculations completed
-- Token distribution executed
+### Phase 3: Snapshot & Distribution (Q4 2025)
+- Round 1 & 2 snapshots and distribution
+- Round 3 (Achievement system) continues tracking until token launch
 
 ## Claiming Process
 
+### claim.stork-sms.net - Dedicated Claim Platform
+
+We will develop a dedicated claiming platform at **claim.stork-sms.net** specifically designed for secure and user-friendly token distribution.
+
+#### Platform Features
+- **Custom-Built Interface**: Purpose-built claiming system optimized for Stork SMS users
+- **Multi-Round Support**: Handle all three airdrop rounds from a single platform
+- **Real-Time Verification**: Live blockchain verification of eligibility criteria
+- **Achievement Dashboard**: Complete overview of your egg collection and qualification status
+- **Security-First Design**: Advanced anti-fraud measures and wallet verification
+
 ### Simple Claim Interface
-1. **Connect Wallet**: Connect your qualifying Solana wallet
-2. **Verify Eligibility**: System automatically verifies your achievements
-3. **Review Allocation**: See your egg collection and total allocation
-4. **Claim Tokens**: One-click claiming process
-5. **Confirmation**: Receive tokens directly to your wallet
+1. **Connect Wallet**: Connect your qualifying Solana wallet to claim.stork-sms.net
+2. **Verify Eligibility**: System automatically verifies your achievements across all three rounds
+3. **Review Allocation**: See your egg collection, Seeker NFT status, and total allocation breakdown
+4. **Claim Tokens**: One-click claiming process with transaction preview
+5. **Confirmation**: Receive tokens directly to your wallet with transaction receipt
+
+### Technical Implementation
+- **Blockchain Integration**: Direct Solana blockchain verification for all eligibility criteria
+- **Achievement Verification**: Real-time scanning of on-chain activity and platform usage
+- **Multi-Signature Security**: Enhanced security for large-scale token distribution
+- **Gas Optimization**: Minimal transaction fees for claiming process
+- **Mobile Responsive**: Full functionality on mobile devices and Solana Seeker
 
 ### Security Features
 - **Multi-Signature Verification**: Secure distribution process
@@ -253,7 +265,7 @@ The airdrop program is designed to bootstrap a thriving, engaged community of We
 ### General Questions
 
 **Q: When will the airdrop happen?**
-A: Token distribution is planned for Q2 2026, following the accumulation period.
+A: Round 1 & 2 distributions are planned for Q4 2025. Round 3 (achievement system) continues until token launch.
 
 **Q: Can I qualify for multiple rounds?**
 A: Yes! You can qualify for all three rounds if you meet the requirements.

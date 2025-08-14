@@ -49,7 +49,7 @@
 
 * [StorkAI Overview](storkai-coming-soon.md)
 
-## 🪂 Airdrop Program
+## Airdrop Program
 
 * [Airdrop Overview](airdrop.md)
 

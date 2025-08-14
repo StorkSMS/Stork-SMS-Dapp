@@ -165,9 +165,9 @@ Transform your Stork SMS experience with personalized user identities that showc
 
 * **Conversation Starter**: Start chats with 5 different people
 * **Social Butterfly**: Maintain active chats with 10+ people
-* **Daily Chatter**: Send messages for 7 consecutive days
-* **Weekly Warrior**: Active messaging for 4 consecutive weeks
-* **Monthly Master**: 30 days of consistent platform usage
+* **Daily Chatter**: Send messages regularly for a week
+* **Weekly Warrior**: Active messaging for multiple weeks
+* **Monthly Master**: Consistent platform usage over time
 
 #### Technical Achievements
 
@@ -201,7 +201,7 @@ Transform your Stork SMS experience with personalized user identities that showc
 
 #### Streak Achievements
 
-* **Message Streak**: Send messages for consecutive days (7, 30, 100, 365 days)
+* **Message Streak**: Send messages regularly over time
 * **Chat Creation Streak**: Create new chats regularly
 * **Login Streak**: Daily platform visits
 * **Activity Streak**: Maintain consistent platform engagement
@@ -235,7 +235,7 @@ Every achievement you unlock earns you **Stork Eggs** - special tokens that dire
 * **NFT Pioneer**: Create your first chat NFT  
 * **Media Maven**: Send first image or voice message
 * **Sticker Enthusiast**: Send 10 sticker messages
-* **Week Warrior**: Use platform for 7 consecutive days
+* **Week Warrior**: Use platform actively for a week
 
 **Reward**: 1 Bronze Egg each | **Airdrop Value**: 0.1% of personal allocation
 
@@ -246,7 +246,7 @@ Every achievement you unlock earns you **Stork Eggs** - special tokens that dire
 * **Message Master**: Send 1,000 total messages
 * **NFT Collector**: Own 5 different chat NFTs
 * **Social Butterfly**: Engage with 25 unique wallet addresses
-* **Monthly Veteran**: Active user for 30 consecutive days
+* **Monthly Veteran**: Active user for a month
 
 **Reward**: 1 Silver Egg each | **Airdrop Value**: 0.5% of personal allocation
 
@@ -257,7 +257,7 @@ Every achievement you unlock earns you **Stork Eggs** - special tokens that dire
 * **NFT Trader**: Successfully transfer chat access NFTs
 * **Community Builder**: Refer 10 new active users
 * **Feature Explorer**: Use all available message types
-* **Loyalty Legend**: Active user for 90 consecutive days
+* **Loyalty Legend**: Long-term active user
 
 **Reward**: 1 Gold Egg each | **Airdrop Value**: 1.0% of personal allocation
 
@@ -265,7 +265,7 @@ Every achievement you unlock earns you **Stork Eggs** - special tokens that dire
 **Requirement**: Exceptional dedication and extreme platform usage
 **Achievements Include**:
 * **Platform Pioneer**: Among first 100 users
-* **Message Titan**: Send 50,000+ messages
+* **Message Titan**: Send 10,000+ messages
 * **NFT Empire**: Create and send 150+ NFTs to others
 * **Community Architect**: Refer 100+ new active users
 * **Volume Legend**: Participate in 500+ different conversations
