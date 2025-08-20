@@ -21,8 +21,8 @@
     "path": "/Users/ryandimi/Documents/Projects/Stork-SMS-Web/android-build/android.keystore",
     "alias": "stork-sms-key"
   },
-  "appVersionName": "14",
-  "appVersionCode": 14,
+  "appVersionName": "18",
+  "appVersionCode": 18,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://dapp.stork-sms.net/manifest.json",
@@ -47,5 +47,5 @@
   "protocolHandlers": [],
   "fileHandlers": [],
   "launchHandlerClientMode": "",
-  "appVersion": "14"
+  "appVersion": "18"
 }

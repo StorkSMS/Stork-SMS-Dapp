@@ -66,3 +66,6 @@ next-env.d.ts
 Splashscreen-restore/
 android-build/seekerstorepub/
 android-build/publishing/
+
+# Development documentation (contains sensitive information)
+dev-docs/
