@@ -11,11 +11,15 @@ import {
   mintV2
 } from '@metaplex-foundation/mpl-bubblegum'
 import { 
+  mplCore 
+} from '@metaplex-foundation/mpl-core'
+import { 
   keypairIdentity,
   publicKey as umiPublicKey,
   transactionBuilder,
   generateSigner,
-  none
+  none,
+  some
 } from '@metaplex-foundation/umi'
 import { companyWallet, connection, companyWalletPublicKey } from './company-wallet'
 import { r2Storage } from './r2-storage'
@@ -39,9 +43,10 @@ export const NFT_CONFIG = {
   COLLECTION_FAMILY: 'Stork SMS'
 } as const
 
-// Initialize UMI instance with Bubblegum V2
+// Initialize UMI instance with Bubblegum V2 and Core
 const umi = createUmi(connection.rpcEndpoint)
   .use(mplBubblegum())
+  .use(mplCore())
 
 // Convert company wallet to UMI format
 const companyUmiKeypair = {
@@ -239,7 +244,8 @@ export class NFTService {
    */
   static async createNFT(
     metadata: MessageNFTMetadata,
-    recipientWallet: string
+    recipientWallet: string,
+    collectionType: 'sender' | 'recipient' = 'recipient'
   ): Promise<{ mintAddress: string; transactionSignature: string; metadataUri: string }> {
     try {
       // Get environment configuration
@@ -247,16 +253,22 @@ export class NFTService {
       const merkleTreeAddress = isMainnet 
         ? process.env.MERKLE_TREE_ADDRESS_MAINNET 
         : process.env.MERKLE_TREE_ADDRESS_DEVNET
-      const collectionAddress = isMainnet
-        ? process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS_MAINNET
-        : process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS_DEVNET
+      
+      // Get the appropriate collection address based on type
+      const collectionAddress = collectionType === 'sender'
+        ? (isMainnet
+            ? process.env.NEXT_PUBLIC_SENDER_COLLECTION_MAINNET
+            : process.env.NEXT_PUBLIC_SENDER_COLLECTION_DEVNET)
+        : (isMainnet
+            ? process.env.NEXT_PUBLIC_RECIPIENT_COLLECTION_MAINNET
+            : process.env.NEXT_PUBLIC_RECIPIENT_COLLECTION_DEVNET)
       
       if (!merkleTreeAddress) {
         throw new Error(`Merkle tree address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
       }
       
       if (!collectionAddress) {
-        throw new Error(`Collection address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
+        throw new Error(`${collectionType} collection address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
       }
       
       // Upload metadata to R2 storage (faster than Arweave)
@@ -269,24 +281,26 @@ export class NFTService {
       const metadataUri = metadataUpload.publicUrl
       
       console.log('🌳 Using Merkle Tree:', merkleTreeAddress)
-      console.log('🎨 Using Collection:', collectionAddress)
+      console.log(`🎨 Using ${collectionType} Collection:`, collectionAddress)
       console.log('📄 Metadata URI:', metadataUri)
       
       // Convert addresses to UMI format
       const merkleTree = umiPublicKey(merkleTreeAddress)
       const leafOwner = umiPublicKey(recipientWallet)
+      const collection = umiPublicKey(collectionAddress)
       
-      console.log('🚀 Minting compressed NFT with Bubblegum V2...')
+      console.log('🚀 Minting compressed NFT with Bubblegum V2 and collection verification...')
       
-      // Mint cNFT using Bubblegum V2
+      // Mint cNFT using Bubblegum V2 with collection verification
       const result = await mintV2(umi, {
         leafOwner,
         merkleTree,
+        coreCollection: collection,
         metadata: {
           name: metadata.name,
           uri: metadataUri,
           sellerFeeBasisPoints: NFT_CONFIG.ROYALTY_BASIS_POINTS,
-          collection: none(), // No on-chain collection verification
+          collection: some(collection),
           creators: [
             {
               address: companyUmiKeypair.publicKey,
@@ -463,8 +477,8 @@ export class NFTService {
         data.sender_wallet
       )
       
-      // Step 4: Create NFT on blockchain
-      const nftResult = await this.createNFT(metadata, data.recipient_wallet)
+      // Step 4: Create NFT on blockchain (recipient NFT)
+      const nftResult = await this.createNFT(metadata, data.recipient_wallet, 'recipient')
       
       // Step 5: Store in database
       const chatId = await this.storeNFTMessage(

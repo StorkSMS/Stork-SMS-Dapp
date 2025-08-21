@@ -18,7 +18,8 @@ import {
   keypairIdentity,
   publicKey as umiPublicKey,
   generateSigner,
-  none
+  none,
+  some
 } from '@metaplex-foundation/umi'
 import { r2Storage } from '@/lib/r2-storage'
 import { companyWallet, connection, companyWalletPublicKey } from '@/lib/company-wallet'
@@ -69,7 +70,7 @@ interface NFTCreationResult {
   error?: string
 }
 
-// Initialize UMI with Bubblegum V2
+// Initialize UMI with Bubblegum V2 and Core
 const umi = createUmi(connection.rpcEndpoint)
   .use(mplBubblegum())
 
@@ -363,7 +364,8 @@ async function collectFee(
 
 async function createNFT(
   metadata: MessageNFTMetadata,
-  ownerWallet: string
+  ownerWallet: string,
+  collectionType: 'sender' | 'recipient'
 ): Promise<{ mintAddress: string; transactionSignature: string }> {
   try {
     console.log('Starting cNFT creation process...')
@@ -384,16 +386,22 @@ async function createNFT(
     const merkleTreeAddress = isMainnet 
       ? process.env.MERKLE_TREE_ADDRESS_MAINNET 
       : process.env.MERKLE_TREE_ADDRESS_DEVNET
-    const collectionAddress = isMainnet
-      ? process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS_MAINNET
-      : process.env.NEXT_PUBLIC_COLLECTION_NFT_ADDRESS_DEVNET
+    
+    // Get the appropriate collection address based on type
+    const collectionAddress = collectionType === 'sender'
+      ? (isMainnet
+          ? process.env.NEXT_PUBLIC_SENDER_COLLECTION_MAINNET
+          : process.env.NEXT_PUBLIC_SENDER_COLLECTION_DEVNET)
+      : (isMainnet
+          ? process.env.NEXT_PUBLIC_RECIPIENT_COLLECTION_MAINNET
+          : process.env.NEXT_PUBLIC_RECIPIENT_COLLECTION_DEVNET)
     
     if (!merkleTreeAddress) {
       throw new Error(`Merkle tree address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
     }
     
     if (!collectionAddress) {
-      throw new Error(`Collection address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
+      throw new Error(`${collectionType} collection address not configured for ${isMainnet ? 'mainnet' : 'devnet'}`)
     }
     
     console.log('Using R2 storage for metadata (faster than Arweave)...')
@@ -410,26 +418,28 @@ async function createNFT(
     console.log('Metadata uploaded to public R2:', metadataUri)
     
     console.log('🌳 Using Merkle Tree:', merkleTreeAddress)
-    console.log('🎨 Using Collection:', collectionAddress)
+    console.log(`🎨 Using ${collectionType} Collection:`, collectionAddress)
     
     // Convert addresses to UMI format
     const merkleTree = umiPublicKey(merkleTreeAddress)
     const leafOwner = umiPublicKey(ownerWallet)
+    const collection = umiPublicKey(collectionAddress)
     
     // Generate asset ID (this will be the "mint address" equivalent for cNFTs)
     const assetId = generateSigner(umi)
     
-    console.log('🚀 Minting compressed NFT...')
+    console.log(`🚀 Minting compressed NFT with collection verification (${collectionType})...`)
     
-    // Mint cNFT using Bubblegum V2
+    // Mint cNFT using Bubblegum V2 with collection verification
     const result = await mintV2(umi, {
       leafOwner,
       merkleTree,
+      coreCollection: collection,
       metadata: {
         name: metadata.name,
         uri: metadataUri,
         sellerFeeBasisPoints: 500, // 5% royalty
-        collection: none(), // No on-chain collection verification
+        collection: some(collection),
         creators: [
           {
             address: companyUmiKeypair.publicKey,
@@ -467,10 +477,10 @@ async function createBatchNFTs(
   try {
     console.log('Starting batch NFT creation process...')
     
-    // Create both NFTs in parallel to optimize performance
+    // Create both NFTs in parallel to optimize performance with collection verification
     const [senderResult, recipientResult] = await Promise.all([
-      createNFT(senderMetadata, senderWallet),
-      createNFT(recipientMetadata, recipientWallet)
+      createNFT(senderMetadata, senderWallet, 'sender'),
+      createNFT(recipientMetadata, recipientWallet, 'recipient')
     ])
     
     console.log('Batch NFT creation completed successfully')
