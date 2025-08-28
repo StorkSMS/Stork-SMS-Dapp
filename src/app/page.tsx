@@ -50,6 +50,7 @@ interface NewChatData {
   from: string
   message: string
   selectedSticker?: string | null
+  paymentMethod?: 'SOL' | 'STORK'
 }
 
 interface PendingChat {
@@ -58,6 +59,7 @@ interface PendingChat {
   recipient: string
   message: string
   theme: string
+  paymentMethod?: 'SOL' | 'STORK'
   error?: string
   result?: {
     chatId: string
@@ -626,7 +628,8 @@ export default function ChatApp() {
           recipientWallet: newChatData.to,
           messageContent: effectiveMessage,
           selectedSticker: stickerState.selectedSticker,
-          theme: 'default'
+          theme: 'default',
+          paymentMethod: newChatData.paymentMethod || 'SOL'
         },
         (pendingChat) => {
           // Add pending chat to sidebar immediately
@@ -717,7 +720,8 @@ export default function ChatApp() {
         {
           recipientWallet: pendingChat.recipient,
           messageContent: pendingChat.message,
-          theme: pendingChat.theme
+          theme: pendingChat.theme,
+          paymentMethod: pendingChat.paymentMethod || 'SOL'
         },
         (updatedPendingChat) => {
           // Update callback - not needed for retry

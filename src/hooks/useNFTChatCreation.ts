@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { v4 as uuidv4 } from 'uuid'
+import { TokenService } from '@/lib/token-service'
+
+export type PaymentMethod = 'SOL' | 'STORK'
 
 interface NFTChatCreationState {
   isCreating: boolean
@@ -31,6 +34,7 @@ interface CreateNFTChatParams {
   messageContent: string
   selectedSticker?: string | null
   theme?: string
+  paymentMethod?: PaymentMethod
   customization?: {
     backgroundColor?: string
     textColor?: string
@@ -215,13 +219,16 @@ export const useNFTChatCreation = () => {
     }
   }
 
-  const collectFee = async (messageId: string) => {
+  const collectFee = async (messageId: string, paymentMethod: PaymentMethod = 'SOL') => {
     if (!publicKey || !connected || !sendTransaction) {
       throw new Error('Wallet not connected or does not support transactions')
     }
 
-    // Use public RPC for transaction creation (sensitive operations happen server-side)
-    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed')
+    // Use private RPC from environment to avoid rate limits
+    const connection = new Connection(
+      process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET || process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
+      'confirmed'
+    )
     const companyWalletPubkey = new PublicKey(process.env.NEXT_PUBLIC_COMPANY_WALLET_PUB || process.env.COMPANY_WALLET_PUB || 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
     
     // Skip payment collection if the sender is the company wallet
@@ -230,25 +237,56 @@ export const useNFTChatCreation = () => {
       return 'company-wallet-exempt'
     }
     
-    // Total cost for dual NFT creation
-    const totalAmount = 0.0033 // SOL for both NFTs
-    
-    console.log('💰 Payment collection details:', {
-      rpcUrl: 'https://api.mainnet-beta.solana.com',
-      companyWallet: companyWalletPubkey.toBase58(),
-      totalAmount: `${totalAmount} SOL`,
-      description: 'Dual NFT creation (sender + recipient)'
-    })
-    
-    const totalAmountLamports = totalAmount * LAMPORTS_PER_SOL
+    let transaction: Transaction
 
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: publicKey,
-        toPubkey: companyWalletPubkey,
-        lamports: totalAmountLamports,
+    if (paymentMethod === 'STORK') {
+      // STORK token payment
+      console.log('💰 Processing STORK token payment...')
+      
+      // Get current exchange rate
+      const solAmount = 0.0033
+      const { storkAmount } = await TokenService.calculateSTORKAmount(solAmount)
+      
+      console.log('💰 Payment collection details:', {
+        rpcUrl: 'https://api.mainnet-beta.solana.com',
+        companyWallet: companyWalletPubkey.toBase58(),
+        totalAmount: `${storkAmount.toFixed(2)} STORK (${solAmount} SOL equivalent)`,
+        description: 'Dual NFT creation (sender + recipient)',
+        paymentMethod: 'STORK'
       })
-    )
+
+      // Balance will be checked automatically when the transaction is sent
+      console.log('💰 Creating STORK payment transaction...')
+
+      // Create STORK transfer transaction
+      transaction = await TokenService.createSTORKTransferTransaction(
+        connection,
+        publicKey,
+        companyWalletPubkey,
+        storkAmount
+      )
+    } else {
+      // SOL payment (existing logic)
+      const totalAmount = 0.0033 // SOL for both NFTs
+      
+      console.log('💰 Payment collection details:', {
+        rpcUrl: 'https://api.mainnet-beta.solana.com',
+        companyWallet: companyWalletPubkey.toBase58(),
+        totalAmount: `${totalAmount} SOL`,
+        description: 'Dual NFT creation (sender + recipient)',
+        paymentMethod: 'SOL'
+      })
+      
+      const totalAmountLamports = totalAmount * LAMPORTS_PER_SOL
+
+      transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: companyWalletPubkey,
+          lamports: totalAmountLamports,
+        })
+      )
+    }
 
     // Get recent blockhash from API route (uses private RPC)
     const blockhashResponse = await fetch('/api/solana/blockhash')
@@ -397,7 +435,7 @@ export const useNFTChatCreation = () => {
       updateProgress(2, 0)
       
       console.log('💰 Starting fee collection for messageId:', messageId)
-      const feeTransactionSignature = await collectFee(messageId)
+      const feeTransactionSignature = await collectFee(messageId, params.paymentMethod)
       console.log('✅ Fee collection completed, signature:', feeTransactionSignature)
       updateProgress(2, 100)
       console.log('✅ Progress updated to step 3 (fee collection complete)')
@@ -481,7 +519,7 @@ export const useNFTChatCreation = () => {
       const senderWallet = publicKey.toString()
 
       // Immediately collect fee signature (this will trigger wallet popup)
-      const feeTransactionSignature = await collectFee(messageId)
+      const feeTransactionSignature = await collectFee(messageId, params.paymentMethod)
 
       // Create pending chat object to show in sidebar
       const pendingChat = {
@@ -492,6 +530,7 @@ export const useNFTChatCreation = () => {
         theme: params.theme || 'default',
         selectedSticker: params.selectedSticker,
         customization: params.customization,
+        paymentMethod: params.paymentMethod || 'SOL',
         createdAt: new Date(),
         feeTransactionSignature,
         senderWallet,

@@ -25,11 +25,13 @@ import { r2Storage } from '@/lib/r2-storage'
 import { companyWallet, connection, companyWalletPublicKey } from '@/lib/company-wallet'
 import { supabaseServer } from '@/lib/supabase-server'
 import { createAuthenticatedSupabaseClient } from '@/lib/supabase'
+import { TokenService } from '@/lib/token-service'
 import { v4 as uuidv4 } from 'uuid'
 import type { MessageNFTMetadata, NFTAttribute } from '@/types/nft'
 
 // NFT creation pricing
 const TOTAL_COST_SOL = 0.0033 // Total cost for dual NFT creation
+const STORK_DISCOUNT = 0.2 // 20% discount for STORK payments
 const NFT_CREATION_COST_SOL = 0.00165 // Per NFT (for legacy compatibility)
 const FEE_PERCENTAGE = 0 // No separate fee - flat pricing
 
@@ -46,6 +48,7 @@ interface CreateChatNFTRequest {
   recipientImageUrl: string
   messageId: string
   feeTransactionSignature?: string
+  paymentMethod?: 'SOL' | 'STORK'
   theme?: string
   selectedSticker?: string
   customization?: {
@@ -362,6 +365,99 @@ async function collectFee(
   }
 }
 
+async function verifySTORKPayment(
+  transactionSignature: string,
+  expectedSenderWallet: string,
+  expectedSOLAmount: number
+): Promise<boolean> {
+  try {
+    console.log('🔍 Verifying STORK token payment...')
+    console.log('Transaction signature:', transactionSignature)
+    console.log('Expected sender:', expectedSenderWallet)
+    console.log('Expected SOL amount equivalent:', expectedSOLAmount)
+
+    // Get the transaction details
+    const transactionResponse = await connection.getParsedTransaction(transactionSignature, {
+      maxSupportedTransactionVersion: 0
+    })
+
+    if (!transactionResponse || !transactionResponse.transaction) {
+      console.error('❌ Transaction not found or failed')
+      return false
+    }
+
+    const transaction = transactionResponse.transaction
+    const senderPublicKey = new PublicKey(expectedSenderWallet)
+    const companyWalletPubkey = new PublicKey(companyWalletPublicKey)
+
+    // Calculate expected STORK amount (already includes 20% discount)
+    const { storkAmount } = await TokenService.calculateSTORKAmount(expectedSOLAmount)
+    const expectedRawAmount = Math.floor(storkAmount * Math.pow(10, 6)) // PUMP_FUN_DECIMALS = 6
+
+    console.log('Expected STORK amount:', storkAmount)
+    console.log('Expected raw amount:', expectedRawAmount)
+
+    // Verify the transaction contains the expected STORK token transfer
+    let foundValidTransfer = false
+
+    if (transaction.message && transaction.message.instructions) {
+      for (const instruction of transaction.message.instructions) {
+        // Check if this is a token transfer instruction
+        if (instruction.programId.equals(new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'))) {
+          const parsedInstruction = instruction as any
+          
+          if (parsedInstruction.parsed && parsedInstruction.parsed.type === 'transfer') {
+            const transferInfo = parsedInstruction.parsed.info
+            const transferAmount = transferInfo.amount
+            const sourcePubkey = new PublicKey(transferInfo.source)
+            
+            // Get the associated token accounts
+            const storkTokenMint = new PublicKey(process.env.NEXT_PUBLIC_STORK_TOKEN_MINT || '51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump')
+            const senderTokenAccount = await TokenService.getAssociatedTokenAccount(
+              senderPublicKey, 
+              storkTokenMint
+            )
+            const companyTokenAccount = await TokenService.getAssociatedTokenAccount(
+              companyWalletPubkey, 
+              storkTokenMint
+            )
+
+            // Verify this is the correct transfer
+            if (sourcePubkey.equals(senderTokenAccount) && 
+                transferInfo.destination === companyTokenAccount.toBase58() &&
+                Math.abs(transferAmount - expectedRawAmount) < 1000) { // Allow for small rounding differences
+              
+              foundValidTransfer = true
+              console.log('✅ Valid STORK token transfer found')
+              console.log('Transfer amount:', transferAmount)
+              console.log('Expected amount:', expectedRawAmount)
+              break
+            }
+          }
+        }
+      }
+    }
+
+    if (!foundValidTransfer) {
+      console.error('❌ No valid STORK token transfer found in transaction')
+      return false
+    }
+
+    // Verify transaction is confirmed
+    if (transactionResponse.meta?.err) {
+      console.error('❌ Transaction failed with error:', transactionResponse.meta.err)
+      return false
+    }
+
+    console.log('✅ STORK payment verification successful')
+    return true
+
+  } catch (error) {
+    console.error('❌ STORK payment verification error:', error)
+    return false
+  }
+}
+
 async function createNFT(
   metadata: MessageNFTMetadata,
   ownerWallet: string,
@@ -512,7 +608,8 @@ async function storeChatRecord(
   senderTransactionSignature: string,
   recipientTransactionSignature: string,
   feeTransactionSignature: string,
-  authenticatedSupabase: any
+  authenticatedSupabase: any,
+  paymentMethod: 'SOL' | 'STORK' = 'SOL'
 ): Promise<string> {
   try {
     console.log('📝 Attempting to insert chat record...')
@@ -523,7 +620,8 @@ async function storeChatRecord(
       sender_wallet: senderWallet,
       recipient_wallet: recipientWallet,
       chat_title: `Chat: ${messageContent.substring(0, 50)}...`,
-      fee_amount: 1000000, // 0.001 SOL in lamports
+      fee_amount: paymentMethod === 'SOL' ? Math.floor(TOTAL_COST_SOL * LAMPORTS_PER_SOL) : 0, // Store SOL equivalent or 0 for STORK
+      payment_method: paymentMethod,
       fee_transaction_signature: feeTransactionSignature,
       fee_paid: true,
       created_at: new Date().toISOString(),
@@ -649,6 +747,31 @@ async function createChatNFTHandler(request: NextRequest) {
       }
       
       result.feeTransactionSignature = feeTransactionSignature
+
+      // Verify payment based on method
+      if (requestBody.paymentMethod === 'STORK' && requestBody.feeTransactionSignature) {
+        console.log('🔍 Verifying STORK token payment...')
+        const isValidSTORKPayment = await verifySTORKPayment(
+          requestBody.feeTransactionSignature,
+          requestBody.senderWallet,
+          TOTAL_COST_SOL
+        )
+        
+        if (!isValidSTORKPayment) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: 'Invalid STORK token payment. Please ensure you have paid the correct amount.' 
+            },
+            { status: 400 }
+          )
+        }
+        
+        console.log('✅ STORK token payment verified successfully')
+      } else if (requestBody.paymentMethod === 'SOL' || !requestBody.paymentMethod) {
+        // SOL payment verification (existing logic)
+        console.log('💰 SOL payment accepted (signature-based verification)')
+      }
       
       // Step 2: Generate NFT images using appropriate system
       let senderImageUrl = requestBody.senderImageUrl
@@ -775,7 +898,8 @@ async function createChatNFTHandler(request: NextRequest) {
         batchResult.senderResult.transactionSignature,
         batchResult.recipientResult.transactionSignature,
         feeTransactionSignature,
-        authenticatedSupabase
+        authenticatedSupabase,
+        requestBody.paymentMethod || 'SOL'
       )
       result.chatRecordId = chatRecordId
       

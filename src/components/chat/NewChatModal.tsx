@@ -4,12 +4,14 @@ import React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import NFTPreviewCanvas from "@/components/NFTPreviewCanvas"
+import PaymentToggle, { type PaymentMethod } from "@/components/ui/PaymentToggle"
 
 interface NewChatData {
   to: string
   from: string
   message: string
   selectedSticker?: string | null
+  paymentMethod?: PaymentMethod
 }
 
 interface StickerState {
@@ -281,6 +283,15 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                   </div>
                 </div>
 
+                {/* Payment Method Toggle - Mobile */}
+                <div>
+                  <PaymentToggle
+                    selectedPaymentMethod={newChatData.paymentMethod || 'SOL'}
+                    onPaymentMethodChange={(method) => onChatDataChange({ ...newChatData, paymentMethod: method })}
+                    isDarkMode={isDarkMode}
+                  />
+                </div>
+
                 {/* Action Button - Only Submit on Mobile */}
                 <div className="pt-1 mt-auto">
                   <Button
@@ -447,6 +458,15 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                       </svg>
                     </Button>
                   </div>
+                </div>
+
+                {/* Payment Method Toggle - Desktop */}
+                <div>
+                  <PaymentToggle
+                    selectedPaymentMethod={newChatData.paymentMethod || 'SOL'}
+                    onPaymentMethodChange={(method) => onChatDataChange({ ...newChatData, paymentMethod: method })}
+                    isDarkMode={isDarkMode}
+                  />
                 </div>
 
                 {/* Action Buttons */}
