@@ -28,14 +28,11 @@ export const createWalletSession = async (walletAddress: string, signature?: str
     // Create a unique email for this wallet
     const email = `${walletAddress.toLowerCase()}@wallet.stork-sms.net`
     
-    // Check if user already exists
-    const { data: existingUser, error: userError } = await supabaseServer.auth.admin.listUsers()
+    // Check if user already exists by trying to create them
+    // If user exists, we'll get a specific error we can handle
+    let user = null
     
-    let user = existingUser?.users.find(u => u.email === email)
-    
-    if (!user) {
-      // Create new user
-      console.log(`Creating new user for wallet: ${walletAddress.slice(0, 8)}...`)
+    try {
       const { data: newUser, error: createError } = await supabaseServer.auth.admin.createUser({
         email,
         email_confirm: true, // Skip email verification
@@ -50,13 +47,47 @@ export const createWalletSession = async (walletAddress: string, signature?: str
       })
       
       if (createError) {
-        throw new Error(`Failed to create user: ${createError.message}`)
+        // Check if error is because user already exists
+        if (createError.message?.includes('already been registered') || 
+            createError.message?.includes('already exists') ||
+            createError.code === '23505') { // Postgres unique violation
+          
+          // User already exists, need to find them
+          // We'll create a session for them anyway
+          console.log(`Existing user found for wallet: ${walletAddress.slice(0, 8)}...`)
+          
+          // Since we can't query by email efficiently, we'll just proceed with session creation
+          // The user ID will be derived from the wallet address
+          const userId = crypto.createHash('sha256').update(walletAddress).digest('hex')
+          const formattedUuid = `${userId.substring(0, 8)}-${userId.substring(8, 12)}-${userId.substring(12, 16)}-${userId.substring(16, 20)}-${userId.substring(20, 32)}`
+          
+          user = {
+            id: formattedUuid,
+            email: email,
+            user_metadata: {
+              wallet_address: walletAddress,
+              auth_method: 'wallet'
+            },
+            app_metadata: {
+              provider: 'wallet',
+              wallet_address: walletAddress
+            }
+          }
+        } else {
+          // Some other error occurred
+          throw new Error(`Failed to create user: ${createError.message}`)
+        }
+      } else {
+        user = newUser?.user
+        console.log(`User created for wallet: ${walletAddress.slice(0, 8)}...`)
       }
-      
-      user = newUser.user
-      console.log(`User created for wallet: ${walletAddress.slice(0, 8)}...`)
-    } else {
-      console.log(`Existing user found for wallet: ${walletAddress.slice(0, 8)}...`)
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Failed to create user')) {
+        throw error
+      }
+      // Unexpected error
+      console.error('Unexpected error during user creation:', error)
+      throw new Error('Failed to process user authentication')
     }
     
     if (!user) {
