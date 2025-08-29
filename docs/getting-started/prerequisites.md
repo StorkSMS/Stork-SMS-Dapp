@@ -27,7 +27,7 @@ We support the following wallets:
 ## 2. SOL for Transaction Fees
 
 You'll need a small amount of SOL to:
-- Create new conversations (0.0033 SOL per chat)
+- Create new conversations (0.001 SOL per chat)
 - Pay for network transaction fees
 
 ### Getting SOL

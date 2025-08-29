@@ -40,7 +40,7 @@ For the best mobile experience:
 ## Step 4: Confirm NFT Creation
 
 1. Review the transaction details
-2. The cost is 0.0033 SOL for both sender and recipient NFTs
+2. The cost is 0.001 SOL for both sender and recipient NFTs
 3. Click **"Approve"** in your wallet
 4. Wait for the transaction to confirm (usually 2-3 seconds)
 

@@ -70,7 +70,7 @@ export class TokenService {
   /**
    * Get the current SOL to STORK exchange rate using Jupiter API
    */
-  static async getSOLToSTORKRate(solAmount: number = 0.0033): Promise<{ rate: number; storkAmount: number }> {
+  static async getSOLToSTORKRate(solAmount: number = 0.001): Promise<{ rate: number; storkAmount: number }> {
     try {
       // Check cache first
       if (this.priceCache && Date.now() - this.priceCache.timestamp < TOKEN_CONFIG.PRICE_CACHE_DURATION) {

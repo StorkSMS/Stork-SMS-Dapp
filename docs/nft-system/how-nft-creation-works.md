@@ -17,7 +17,7 @@ When you initiate a new chat on Stork SMS:
 1. **Message Composition**: Write your first message and optionally select a sticker
 2. **Recipient Selection**: Enter the recipient's Solana wallet address
 3. **Preview Generation**: See a preview of your NFT design
-4. **Transaction Confirmation**: Approve the 0.0033 SOL transaction in your wallet
+4. **Transaction Confirmation**: Approve the 0.001 SOL transaction in your wallet
 
 ### Step 2: Dual NFT Minting
 
@@ -120,7 +120,7 @@ The system continuously monitors NFT ownership:
 
 ## Cost Breakdown
 
-### Transaction Fees (0.0033 SOL total)
+### Transaction Fees (0.001 SOL total)
 
 - **NFT Minting**: ~0.0015 SOL for both compressed NFTs
 - **Storage Costs**: ~0.0008 SOL for metadata and image storage

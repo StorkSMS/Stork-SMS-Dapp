@@ -30,7 +30,7 @@ import { v4 as uuidv4 } from 'uuid'
 import type { MessageNFTMetadata, NFTAttribute } from '@/types/nft'
 
 // NFT creation pricing
-const TOTAL_COST_SOL = 0.0033 // Total cost for dual NFT creation
+const TOTAL_COST_SOL = 0.001 // Total cost for dual NFT creation
 const STORK_DISCOUNT = 0.2 // 20% discount for STORK payments
 const NFT_CREATION_COST_SOL = 0.00165 // Per NFT (for legacy compatibility)
 const FEE_PERCENTAGE = 0 // No separate fee - flat pricing
@@ -940,7 +940,7 @@ export async function GET() {
     companyWallet: companyWalletPublicKey.toBase58(),
     network: 'Solana Devnet',
     process: [
-      '1. Collect payment from sender (0.0033 SOL)',
+      '1. Collect payment from sender (0.001 SOL)',
       '2. Generate NFT images using production systems (both sender and recipient)',
       '3. Generate NFT metadata for both sender and recipient NFTs',
       '4. Upload metadata to storage in parallel',

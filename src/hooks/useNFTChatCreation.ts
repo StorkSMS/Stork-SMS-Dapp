@@ -244,7 +244,7 @@ export const useNFTChatCreation = () => {
       console.log('💰 Processing STORK token payment...')
       
       // Get current exchange rate
-      const solAmount = 0.0033
+      const solAmount = 0.001
       const { storkAmount } = await TokenService.calculateSTORKAmount(solAmount)
       
       console.log('💰 Payment collection details:', {
@@ -267,7 +267,7 @@ export const useNFTChatCreation = () => {
       )
     } else {
       // SOL payment (existing logic)
-      const totalAmount = 0.0033 // SOL for both NFTs
+      const totalAmount = 0.001 // SOL for both NFTs
       
       console.log('💰 Payment collection details:', {
         rpcUrl: 'https://api.mainnet-beta.solana.com',

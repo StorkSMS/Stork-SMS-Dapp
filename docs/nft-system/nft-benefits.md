@@ -34,7 +34,7 @@ Stork SMS transforms every conversation into valuable digital assets, providing 
 
 #### Cost Efficiency
 - **No Subscription Fees**: Pay once per conversation, message unlimited times
-- **Lower Than Postage**: 0.0033 SOL cheaper than sending a physical letter
+- **Lower Than Postage**: 0.001 SOL cheaper than sending a physical letter
 - **Platform Independent**: Own your messages regardless of platform changes
 - **Zero Lock-in**: Your assets work across the entire Web3 ecosystem
 

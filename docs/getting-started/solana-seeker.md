@@ -172,7 +172,7 @@ Yes! Your NFTs and chat history are blockchain-based and work across all devices
 
 ### Does using Seeker cost extra?
 
-No additional cost for Seeker optimization. Same 0.0033 SOL for conversation creation.
+No additional cost for Seeker optimization. Same 0.001 SOL for conversation creation.
 
 ### What makes Seeker different from regular phones?
 

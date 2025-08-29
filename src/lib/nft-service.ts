@@ -35,7 +35,7 @@ import type { CreateNFTMessageData } from '@/types/messaging'
 
 // NFT Configuration
 export const NFT_CONFIG = {
-  TOTAL_COST_SOL: 0.0033, // Total for dual NFT creation
+  TOTAL_COST_SOL: 0.001, // Total for dual NFT creation
   CREATION_COST_SOL: 0.00165, // Per NFT (for legacy compatibility)
   FEE_PERCENTAGE: 0, // No separate fee - flat pricing
   ROYALTY_BASIS_POINTS: 500, // 5%

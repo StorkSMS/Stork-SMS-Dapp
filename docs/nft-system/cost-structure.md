@@ -12,7 +12,7 @@ Stork SMS uses a straightforward fee structure for NFT creation that covers prod
 
 ### NFT Creation Fee
 
-**0.0033 SOL per conversation (current rate)**
+**0.001 SOL per conversation (current rate)**
 - Covers both sender and recipient NFTs
 - Transparent pricing with network fee adjustments
 - One-time payment per conversation
@@ -20,7 +20,7 @@ Stork SMS uses a straightforward fee structure for NFT creation that covers prod
 
 ### What's Included
 
-Your 0.0033 SOL covers:
+Your 0.001 SOL covers:
 - **Dual NFT Creation**: Both sender and recipient receive unique NFTs
 - **Compressed NFT Technology**: Using Solana's efficient cNFT standard
 - **Secure Storage**: Metadata and images stored on decentralized infrastructure

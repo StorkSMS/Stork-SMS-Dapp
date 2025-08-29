@@ -143,7 +143,7 @@ Our custom Stork-themed sticker collection includes:
 1. Start a new chat
 2. Write your first message (this will be featured on the NFT!)
 3. Optionally add a sticker to the design
-4. Confirm transaction in wallet (0.0033 SOL)
+4. Confirm transaction in wallet (0.001 SOL)
 5. Two NFTs are minted: one for you, one for the recipient
 6. Both people now have access to continue the conversation with unlimited free messages
 
