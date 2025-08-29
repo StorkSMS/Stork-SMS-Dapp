@@ -310,24 +310,24 @@ export class TokenService {
     mint: PublicKey
   ): TransactionInstruction {
     const keys: AccountMeta[] = [
-      { pubkey: payer, isSigner: true, isWritable: true },
-      { pubkey: associatedToken, isSigner: false, isWritable: true },
-      { pubkey: owner, isSigner: false, isWritable: false },
-      { pubkey: mint, isSigner: false, isWritable: false },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }
+      { pubkey: payer, isSigner: true, isWritable: true }, // Funding account
+      { pubkey: associatedToken, isSigner: false, isWritable: true }, // Associated token account
+      { pubkey: owner, isSigner: false, isWritable: false }, // Wallet address for new account
+      { pubkey: mint, isSigner: false, isWritable: false }, // Token mint
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }, // System program
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false }, // SPL Token program
+      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false } // Sysvar rent
     ]
 
     return new TransactionInstruction({
       keys,
       programId: ASSOCIATED_TOKEN_PROGRAM_ID,
-      data: Buffer.alloc(0)
+      data: Buffer.alloc(0) // No instruction data needed for ATA creation
     })
   }
 
   /**
-   * Create SPL Token transfer instruction
+   * Create SPL Token transfer instruction using standard layout
    */
   static createTokenTransferInstruction(
     source: PublicKey,
@@ -335,31 +335,26 @@ export class TokenService {
     owner: PublicKey,
     amount: number
   ): TransactionInstruction {
-    // Token Transfer instruction layout:
-    // 0: Instruction discriminator (1 byte) = 3 for Transfer
-    // 1-8: Amount (8 bytes, little-endian)
-    const data = Buffer.alloc(9)
-    data.writeUInt8(3, 0) // Transfer instruction
-    
-    // Write amount as little-endian 64-bit integer
-    let amountBigInt = BigInt(amount)
-    const mask = BigInt(0xFF)
-    const shift = BigInt(8)
-    for (let i = 0; i < 8; i++) {
-      data.writeUInt8(Number(amountBigInt & mask), 1 + i)
-      amountBigInt >>= shift
-    }
-
+    // Standard SPL Token Transfer instruction
     const keys: AccountMeta[] = [
       { pubkey: source, isSigner: false, isWritable: true },
       { pubkey: destination, isSigner: false, isWritable: true },
       { pubkey: owner, isSigner: true, isWritable: false }
     ]
 
+    // Create instruction data for transfer (instruction 3)
+    const dataLayout = Buffer.alloc(9)
+    dataLayout[0] = 3 // Transfer instruction
+    
+    // Write amount as little-endian u64
+    const amountBuffer = Buffer.alloc(8)
+    amountBuffer.writeBigUInt64LE(BigInt(amount), 0)
+    amountBuffer.copy(dataLayout, 1)
+
     return new TransactionInstruction({
       keys,
       programId: TOKEN_PROGRAM_ID,
-      data
+      data: dataLayout
     })
   }
 
@@ -383,16 +378,7 @@ export class TokenService {
       const sourceAccount = await this.getAssociatedTokenAccount(fromWallet, mintPublicKey)
       const destinationAccount = await this.getAssociatedTokenAccount(toWallet, mintPublicKey)
 
-      // Always add create account instruction (will be ignored if account exists)
-      const createAccountInstruction = this.createAssociatedTokenAccountInstruction(
-        fromWallet, // Payer
-        destinationAccount,
-        toWallet, // Owner
-        mintPublicKey
-      )
-      transaction.add(createAccountInstruction)
-
-      // Add transfer instruction
+      // Add transfer instruction only (assume both accounts exist)
       const transferInstruction = this.createTokenTransferInstruction(
         sourceAccount,
         destinationAccount,
