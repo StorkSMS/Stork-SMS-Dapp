@@ -1,9 +1,9 @@
 "use client"
 
-import React from "react"
+import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus, AlertCircle } from "lucide-react"
+import { Plus, AlertCircle, MoreVertical } from "lucide-react"
 
 interface PendingChat {
   id: string
@@ -95,6 +95,27 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     bgSecondary: isDarkMode ? '#1A1A1A' : '#F9F9F9',
     textSecondary: isDarkMode ? '#CCC' : '#666'
   }
+
+  // Social menu dropdown state
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMenuOpen])
   
   return (
     <div 
@@ -117,23 +138,80 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     >
       {/* Logo Section - Desktop Only */}
       <div 
-        className="hidden md:flex p-6 border-b-4 items-center gap-4"
+        className="hidden md:flex p-6 border-b-4 items-center justify-between relative"
         style={{ borderBottomColor: colors.border }}
       >
-        <Image src="/stork-logo.svg" alt="Stork Logo" width={120} height={40} className="h-10 w-auto" />
-        <div className="text-lg" style={{ color: colors.text }}>
-          <span style={{ 
-            fontFamily: "Helvetica Neue, sans-serif",
-            fontWeight: 500,
-            fontSize: "1.25rem"
-          }}>
-            Stork-
-          </span>
-          <span style={{ 
-            fontFamily: "SelfWritten-Regular, Helvetica Neue, sans-serif"
-          }}>
-            SMS
-          </span>
+        {/* Logo and Text - Left Side */}
+        <div className="flex items-center gap-4">
+          <Image src="/stork-logo.svg" alt="Stork Logo" width={120} height={40} className="h-10 w-auto" />
+          <div className="text-lg" style={{ color: colors.text }}>
+            <span style={{ 
+              fontFamily: "Helvetica Neue, sans-serif",
+              fontWeight: 500,
+              fontSize: "1.25rem"
+            }}>
+              Stork-
+            </span>
+            <span style={{ 
+              fontFamily: "SelfWritten-Regular, Helvetica Neue, sans-serif"
+            }}>
+              SMS
+            </span>
+          </div>
+        </div>
+
+        {/* Social Menu - Right Side */}
+        <div className="absolute top-2 right-2" ref={menuRef}>
+          <Button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="h-8 w-8 p-0 hover:opacity-80 bg-transparent border-0 shadow-none"
+            style={{ 
+              backgroundColor: "transparent", 
+              color: colors.text,
+              border: "none",
+              boxShadow: "none"
+            }}
+          >
+            <MoreVertical className="w-4 h-4" />
+          </Button>
+
+          {/* Dropdown Menu */}
+          {isMenuOpen && (
+            <div 
+              className="absolute right-0 top-10 z-50 min-w-[140px] border-2 shadow-md rounded-sm"
+              style={{ 
+                backgroundColor: colors.bg, 
+                borderColor: colors.border 
+              }}
+            >
+              <a 
+                href="https://discord.gg/AdCKQAhe" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
+                style={{ color: colors.text }}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Image src="/discordlogo.svg" alt="Discord" width={16} height={16} className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Discord</span>
+              </a>
+              <div 
+                className="h-px mx-2" 
+                style={{ backgroundColor: colors.border, opacity: 0.3 }} 
+              />
+              <a 
+                href="https://x.com/StorkSMS" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
+                style={{ color: colors.text }}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Image src="/xlogo.svg" alt="X.com" width={16} height={16} className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>X.com</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
 

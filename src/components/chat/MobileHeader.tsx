@@ -1,12 +1,11 @@
 "use client"
 
-import React from "react"
+import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, MoreVertical } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
-import { usePushNotifications } from "@/hooks/usePushNotifications"
 
 interface MobileHeaderProps {
   isMobileMenuOpen: boolean
@@ -34,8 +33,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   onMenuToggle,
   onCopyWalletAddress,
 }) => {
-  const { sendTestNotification, subscription, permission } = usePushNotifications()
-  
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
     text: isDarkMode ? '#FFF' : '#000',
@@ -43,6 +40,27 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
     bgSecondary: isDarkMode ? '#1A1A1A' : '#F9F9F9',
     textSecondary: isDarkMode ? '#CCC' : '#666'
   }
+
+  // Social menu dropdown state
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMenuOpen])
   
   return (
     <div 
@@ -111,24 +129,63 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2">
-        <WalletButton />
+        <div className="[&>div>button]:!px-6">
+          <WalletButton />
+        </div>
         
-        {/* Development Test Button */}
-        {(process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) && (
+        {/* Social Menu */}
+        <div className="relative" ref={menuRef}>
           <Button
-            onClick={sendTestNotification}
-            className="rounded-none h-10 px-3 hover:opacity-80"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="h-4 w-4 p-0 hover:opacity-80 bg-transparent border-0 shadow-none"
             style={{ 
-              backgroundColor: '#3388FF', 
-              color: '#FFF', 
-              border: `2px solid #3388FF`,
-              fontFamily: "Helvetica Neue, sans-serif",
-              fontSize: "12px"
+              backgroundColor: "transparent", 
+              color: colors.text,
+              border: "none",
+              boxShadow: "none"
             }}
           >
-            Test Push
+            <MoreVertical className="w-3 h-3" />
           </Button>
-        )}
+
+          {/* Dropdown Menu */}
+          {isMenuOpen && (
+            <div 
+              className="absolute right-0 top-10 z-50 min-w-[140px] border-2 shadow-md rounded-sm"
+              style={{ 
+                backgroundColor: colors.bg, 
+                borderColor: colors.border 
+              }}
+            >
+              <a 
+                href="https://discord.gg/AdCKQAhe" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
+                style={{ color: colors.text }}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Image src="/discordlogo.svg" alt="Discord" width={16} height={16} className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Discord</span>
+              </a>
+              <div 
+                className="h-px mx-2" 
+                style={{ backgroundColor: colors.border, opacity: 0.3 }} 
+              />
+              <a 
+                href="https://x.com/StorkSMS" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
+                style={{ color: colors.text }}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Image src="/xlogo.svg" alt="X.com" width={16} height={16} className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>X.com</span>
+              </a>
+            </div>
+          )}
+        </div>
       </div>
       
     </div>
