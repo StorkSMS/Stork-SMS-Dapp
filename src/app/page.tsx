@@ -1449,8 +1449,8 @@ export default function ChatApp() {
         colors={colors}
       />
 
-      {/* Development Test Button */}
-      {process.env.NODE_ENV === 'development' && subscription && permission === 'granted' && (
+      {/* Development Test Button - Hidden */}
+      {false && process.env.NODE_ENV === 'development' && subscription && permission === 'granted' && (
         <button
           onClick={sendTestNotification}
           className="fixed bottom-4 right-4 z-[200] px-4 py-2 bg-blue-500 text-white rounded border-2 border-white"

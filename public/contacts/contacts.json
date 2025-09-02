@@ -1,0 +1,550 @@
+{
+  "contacts": [
+    {
+      "id": "1",
+      "name": "Toly",
+      "publicAddress": "86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY",
+      "twitterLink": "https://x.com/aeyakovenko",
+      "pfp": "/contacts/pfps/toly_64x64.jpg"
+    },
+    {
+      "id": "2", 
+      "name": "Alon",
+      "publicAddress": "3vkpy5YHqnqJTnA5doWTpcgKyZiYsaXYzYM9wm8s3WTi",
+      "twitterLink": "https://x.com/a1lon9",
+      "pfp": "/contacts/pfps/Alon_64x64.jpg"
+    },
+    {
+      "id": "3",
+      "name": "Thread Guy", 
+      "publicAddress": "XLeKWM6VeAuJURKCygUhss5E7ewMaZkF4AWJpDyQHfa",
+      "twitterLink": "https://x.com/notthreadguy",
+      "pfp": "/contacts/pfps/threadguy_64x64.jpg"
+    },
+    {
+      "id": "4",
+      "name": "Atitty",
+      "publicAddress": "2camhmXwvDnfDCnoSDuv6jQWEgR6kUNz6JiaNXqoWnxf",
+      "twitterLink": "https://x.com/Atitty",
+      "pfp": "/contacts/pfps/atitty.jpeg"
+    },
+    {
+      "id": "5",
+      "name": "EddyXBT",
+      "publicAddress": "791FqduegwAG16TqGdpAvFcuKQGct5Tv38yfDSUcGuLg",
+      "twitterLink": "https://x.com/EddyXBT",
+      "pfp": "/contacts/pfps/eddy.jpg"
+    },
+    {
+      "id": "6",
+      "name": "Uncle Eddie",
+      "publicAddress": "FRt6jxfrvyDmg6Aq1SWWxY8oqptH9GnNjgUUcGKf1659",
+      "twitterLink": "https://x.com/MediaGiraffes",
+      "pfp": "/contacts/pfps/UncleEddy.jpg"
+    },
+    {
+      "id": "7",
+      "name": "Ape",
+      "publicAddress": "3johuWx1LS51yn1cpR1n4BdK8SURyiHFiirQbReWLpov",
+      "twitterLink": "https://x.com/apemp5",
+      "pfp": "/contacts/pfps/Ape.jpg"
+    },
+    {
+      "id": "8",
+      "name": "DefiMoonShots",
+      "publicAddress": "A8MvBSMAbdnJ9w9c3Q4vF8r6kM2p7zG1sH4jL5tP",
+      "twitterLink": "https://x.com/defianalyst",
+      "pfp": "/contacts/pfps/DefiMoonShots.jpg"
+    },
+    {
+      "id": "9",
+      "name": "Ted",
+      "publicAddress": "CsQsE6J1o2XzF3GqP7N8Y5J6gLpM1kZ5T7H3jU8tP4S",
+      "twitterLink": "https://x.com/TedPillows",
+      "pfp": "/contacts/pfps/Ted.jpg"
+    },
+    {
+      "id": "10",
+      "name": "Anglio",
+      "publicAddress": "8wYtV1mJYyJ8kZ9aL4jN7bM5pG3tC2d8vX4qF9eT6H",
+      "twitterLink": "https://x.com/CryptoAnglio",
+      "pfp": "/contacts/pfps/Angelio.jpg"
+    },
+    {
+      "id": "11",
+      "name": "Helen Crypto",
+      "publicAddress": "D3E9S5n5u4V2r1k7vL6m9jH8sC4bN1wY5Z3tG8sJ2f",
+      "twitterLink": "https://x.com/helencrypt",
+      "pfp": "/contacts/pfps/HelenCrypto.png"
+    },
+    {
+      "id": "12",
+      "name": "Finish",
+      "publicAddress": "4s3P5g6hJ2k8V9f1mN7wB3qX4zY6tA5pG9hK7jL",
+      "twitterLink": "https://x.com/0xFinish",
+      "pfp": "/contacts/pfps/Finish.jpg"
+    },
+    {
+      "id": "13",
+      "name": "Megs",
+      "publicAddress": "GzpedUaTCd2pBfJNPnJqBGmy7MBSsGLmP56gUoPZz1qhuuucz1h",
+      "twitterLink": "https://x.com/deviled_meggs",
+      "pfp": "/contacts/pfps/Megs.jpg"
+    },
+    {
+      "id": "14",
+      "name": "Azyra",
+      "publicAddress": "2dTRsP4xDmNDiDiQfsNmPWmMAFGMLaXZCBjPaYRN9UN",
+      "twitterLink": "https://x.com/cryptoazyra",
+      "pfp": "/contacts/pfps/Azyra.jpg"
+    },
+    {
+      "id": "15",
+      "name": "Dyor",
+      "publicAddress": "ZxWirM7N6eJtmQD5Fy32n5eg6XjGawJNBHnALtGgEt3",
+      "twitterLink": "https://x.com/dyorwgmi",
+      "pfp": "/contacts/pfps/dyor.jpg"
+    },
+    {
+      "id": "16",
+      "name": "DegenApe",
+      "publicAddress": "BwjpavntsHRkApAPSaqA5VVaCmqzepCwEyNNbNQQDA",
+      "twitterLink": "https://x.com/degen_ape",
+      "pfp": "/contacts/pfps/DegenApe.jpg"
+    },
+    {
+      "id": "17",
+      "name": "Block",
+      "publicAddress": "f2jPPMTshgMurTchEnaoSuQYGiNbEgENFS6Fp8GfJ",
+      "twitterLink": "https://x.com/block100x",
+      "pfp": "/contacts/pfps/Block.jpg"
+    },
+    {
+      "id": "18",
+      "name": "Gravano",
+      "publicAddress": "FUnGfF6gWqRfUkTDsaseD5YGyQUeA97pSYzC2AUeQ43",
+      "twitterLink": "https://x.com/bullrun_gravano",
+      "pfp": "/contacts/pfps/Gravano.jpg"
+    },
+    {
+      "id": "19",
+      "name": "MrTardy",
+      "publicAddress": "9oWTBRHWJHyAbYgZXump9jPEJTDSyjU2GBeCMUNPZEVJ",
+      "twitterLink": "https://x.com/itshurstxn",
+      "pfp": "/contacts/pfps/MrTardy.jpg"
+    },
+    {
+      "id": "20",
+      "name": "Stork Dev",
+      "publicAddress": "9xSgqzF2YXoCQVHVJxeGZWiKgEGKGGa16ESbP2CStork",
+      "twitterLink": "https://x.com/StorkSMS",
+      "pfp": "/contacts/pfps/stork.jpg"
+    },
+    {
+      "id": "21",
+      "name": "Gake",
+      "publicAddress": "DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm",
+      "twitterLink": "https://x.com/Ga__ke",
+      "pfp": "/contacts/pfps/gake.jpg"
+    },
+    {
+      "id": "22",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "23",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "24",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "25",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "26",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "27",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "28",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "29",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "30",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "31",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "32",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "33",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "34",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "35",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "36",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "37",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "38",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "39",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "40",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "41",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "42",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "43",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "44",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "45",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "46",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "47",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "48",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "49",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "50",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "51",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "52",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "53",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "54",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "55",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "56",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "57",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "58",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "59",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "60",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "61",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "62",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "63",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "64",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "65",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "66",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "67",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "68",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "69",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "70",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "71",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "72",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "73",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "74",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "75",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "76",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "77",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    },
+    {
+      "id": "78",
+      "name": "",
+      "publicAddress": "",
+      "twitterLink": "",
+      "pfp": ""
+    }
+  ]
+}

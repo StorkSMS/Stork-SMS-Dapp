@@ -1,10 +1,13 @@
 "use client"
 
-import React from "react"
+import React, { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import NFTPreviewCanvas from "@/components/NFTPreviewCanvas"
 import PaymentToggle, { type PaymentMethod } from "@/components/ui/PaymentToggle"
+import ContactPicker from "@/components/ContactPicker"
+import type { Contact } from "@/types/contacts"
+import { useContacts } from "@/hooks/useContacts"
 
 interface NewChatData {
   to: string
@@ -62,6 +65,14 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
   onStickerPickerOpen,
   onCanvasReady,
 }) => {
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [isContactPickerOpen, setIsContactPickerOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const contactButtonRef = useRef<HTMLButtonElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const { contacts, loading: contactsLoading, error: contactsError, filterContacts } = useContacts()
+  
   if (!isOpen) return null
   
   const colors = {
@@ -76,6 +87,95 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     if (e.target === e.currentTarget) {
       onClose()
     }
+  }
+  
+  const handleContactSelect = (contact: Contact | null) => {
+    setSelectedContact(contact)
+    if (contact) {
+      onChatDataChange({ ...newChatData, to: contact.publicAddress })
+    } else {
+      onChatDataChange({ ...newChatData, to: '' })
+    }
+  }
+  
+  const handleClearContact = () => {
+    setSelectedContact(null)
+    onChatDataChange({ ...newChatData, to: '' })
+    setSearchQuery('')
+    setIsContactPickerOpen(false)
+    setHighlightedIndex(-1)
+  }
+  
+  const handleInputChange = (value: string) => {
+    setSearchQuery(value)
+    onChatDataChange({ ...newChatData, to: value })
+    
+    // Clear selected contact if user starts typing
+    if (selectedContact && value !== selectedContact.publicAddress) {
+      setSelectedContact(null)
+    }
+    
+    // Show dropdown if user is typing
+    if (value.trim().length > 0 && !selectedContact) {
+      setIsContactPickerOpen(true)
+      setHighlightedIndex(-1)
+    } else if (value.trim().length === 0) {
+      setIsContactPickerOpen(false)
+      setHighlightedIndex(-1)
+    }
+  }
+  
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    const filteredContacts = filterContacts(searchQuery)
+    
+    if (!isContactPickerOpen || filteredContacts.length === 0) return
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setHighlightedIndex(prev => 
+          prev < filteredContacts.length - 1 ? prev + 1 : 0
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setHighlightedIndex(prev => 
+          prev > 0 ? prev - 1 : filteredContacts.length - 1
+        )
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (highlightedIndex >= 0 && highlightedIndex < filteredContacts.length) {
+          handleContactSelect(filteredContacts[highlightedIndex])
+          setIsContactPickerOpen(false)
+          setHighlightedIndex(-1)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setIsContactPickerOpen(false)
+        setHighlightedIndex(-1)
+        break
+    }
+  }
+  
+  const handleContactPickerToggle = () => {
+    setIsContactPickerOpen(!isContactPickerOpen)
+    if (!isContactPickerOpen) {
+      setHighlightedIndex(-1)
+    }
+  }
+  
+  // We need this function to calculate filtered contacts for keyboard navigation
+  const getFilteredContacts = (allContacts: Contact[], query: string) => {
+    return allContacts.filter(contact =>
+      contact.name.toLowerCase().includes(query.toLowerCase()) ||
+      contact.publicAddress.toLowerCase().includes(query.toLowerCase())
+    )
+  }
+  
+  const handleContactPickerClose = () => {
+    setIsContactPickerOpen(false)
   }
   
   const canSubmit = connected && publicKey && isAuthenticated && !isAuthenticating && !isWaitingForSignature && newChatData.to && stickerState.getEffectiveMessage()
@@ -164,20 +264,121 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                   >
                     To
                   </label>
-                  <div 
-                    className="border-2"
-                    style={{ borderColor: colors.border }}
-                  >
-                    <Input
-                      value={newChatData.to}
-                      onChange={(e) => onChatDataChange({ ...newChatData, to: e.target.value })}
-                      placeholder="Enter wallet address or username..."
-                      className="border-none rounded-none focus:ring-0 focus:border-none h-12"
-                      style={{ 
-                        fontFamily: "Helvetica Neue, sans-serif",
-                        backgroundColor: colors.bg,
-                        color: colors.text
+                  <div className="flex items-center gap-3 relative">
+                    <div 
+                      className="flex-1 border-2"
+                      style={{ borderColor: colors.border }}
+                    >
+                      {selectedContact ? (
+                        /* Contact Card */
+                        <div 
+                          className="h-12 flex items-center justify-between px-3"
+                          style={{ 
+                            fontFamily: "Helvetica Neue, sans-serif",
+                            backgroundColor: colors.bg,
+                            color: colors.text
+                          }}
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {/* Profile Picture */}
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                              {selectedContact.pfp ? (
+                                <img
+                                  src={selectedContact.pfp}
+                                  alt={`${selectedContact.name}'s profile picture`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none'
+                                    const placeholder = e.currentTarget.parentElement?.querySelector('.placeholder-icon') as HTMLElement
+                                    if (placeholder) placeholder.classList.remove('hidden')
+                                  }}
+                                />
+                              ) : null}
+                              <svg className={`w-4 h-4 text-gray-400 placeholder-icon ${selectedContact.pfp ? 'hidden' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                              </svg>
+                            </div>
+                            
+                            {/* Contact Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">
+                                {selectedContact.name}
+                              </div>
+                              <div 
+                                className="text-xs truncate"
+                                style={{ color: colors.textSecondary }}
+                              >
+                                {selectedContact.publicAddress.slice(0, 6)}...{selectedContact.publicAddress.slice(-4)}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Clear Button */}
+                          <button
+                            onClick={handleClearContact}
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+                            style={{ color: colors.textSecondary }}
+                            aria-label="Clear selected contact"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <Input
+                          ref={inputRef}
+                          value={searchQuery || newChatData.to}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          onKeyDown={handleInputKeyDown}
+                          placeholder="Enter wallet address or search contacts..."
+                          className="border-none rounded-none focus:ring-0 focus:border-none h-12"
+                          style={{ 
+                            fontFamily: "Helvetica Neue, sans-serif",
+                            backgroundColor: colors.bg,
+                            color: colors.text
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Contacts Button */}
+                    <Button
+                      ref={contactButtonRef}
+                      type="button"
+                      onClick={handleContactPickerToggle}
+                      className={`rounded-none h-12 w-12 p-0 hover:opacity-80 ${
+                        isContactPickerOpen ? 'bg-blue-50 border-blue-500' : ''
+                      }`}
+                      style={{
+                        backgroundColor: isContactPickerOpen ? '#EFF6FF' : colors.bg,
+                        color: isContactPickerOpen ? '#3B82F6' : colors.text,
+                        border: `2px solid ${isContactPickerOpen ? '#3B82F6' : colors.border}`
                       }}
+                    >
+                      {/* Contacts icon */}
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </Button>
+                    
+                    {/* Contact Picker Dropdown */}
+                    <ContactPicker
+                      selectedContact={selectedContact}
+                      onContactSelect={handleContactSelect}
+                      isOpen={isContactPickerOpen}
+                      onClose={handleContactPickerClose}
+                      isDarkMode={isDarkMode}
+                      triggerRef={contactButtonRef}
+                      searchQuery={searchQuery}
+                      highlightedIndex={highlightedIndex}
+                      contacts={contacts}
+                      loading={contactsLoading}
+                      error={contactsError}
                     />
                   </div>
                 </div>
@@ -274,10 +475,10 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                         border: `2px solid ${stickerState.selectedSticker ? '#3B82F6' : colors.border}`
                       }}
                     >
+                      {/* Sticker icon - sticky note design */}
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M16 8l-4 4-4-4" />
-                        <path d="M20 4l-4 4" />
+                        <path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/>
+                        <path d="M15 3v4a2 2 0 0 0 2 2h4"/>
                       </svg>
                     </Button>
                   </div>
@@ -342,19 +543,122 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                   >
                     To
                   </label>
-                  <div 
-                    className="border-2"
-                    style={{ borderColor: colors.border }}
-                  >
-                    <Input
-                      value={newChatData.to}
-                      onChange={(e) => onChatDataChange({ ...newChatData, to: e.target.value })}
-                      placeholder="Enter wallet address or username..."
-                      className="border-none rounded-none focus:ring-0 focus:border-none h-12"
-                      style={{ 
-                      fontFamily: "Helvetica Neue, sans-serif",
-                      color: colors.text
-                    }}
+                  <div className="flex items-center gap-3 relative">
+                    <div 
+                      className="flex-1 border-2"
+                      style={{ borderColor: colors.border }}
+                    >
+                      {selectedContact ? (
+                        /* Contact Card */
+                        <div 
+                          className="h-12 flex items-center justify-between px-3"
+                          style={{ 
+                            fontFamily: "Helvetica Neue, sans-serif",
+                            backgroundColor: colors.bg,
+                            color: colors.text
+                          }}
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {/* Profile Picture */}
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                              {selectedContact.pfp ? (
+                                <img
+                                  src={selectedContact.pfp}
+                                  alt={`${selectedContact.name}'s profile picture`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none'
+                                    const placeholder = e.currentTarget.parentElement?.querySelector('.placeholder-icon') as HTMLElement
+                                    if (placeholder) placeholder.classList.remove('hidden')
+                                  }}
+                                />
+                              ) : null}
+                              <svg className={`w-4 h-4 text-gray-400 placeholder-icon ${selectedContact.pfp ? 'hidden' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                              </svg>
+                            </div>
+                            
+                            {/* Contact Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">
+                                {selectedContact.name}
+                              </div>
+                              <div 
+                                className="text-xs truncate"
+                                style={{ color: colors.textSecondary }}
+                              >
+                                {selectedContact.publicAddress.slice(0, 6)}...{selectedContact.publicAddress.slice(-4)}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Clear Button */}
+                          <button
+                            onClick={handleClearContact}
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+                            style={{ color: colors.textSecondary }}
+                            aria-label="Clear selected contact"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <Input
+                          value={searchQuery || newChatData.to}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          onKeyDown={(e) => {
+                            const filteredContacts: Contact[] = [] // This will be updated
+                            handleInputKeyDown(e, filteredContacts)
+                          }}
+                          placeholder="Enter wallet address or search contacts..."
+                          className="border-none rounded-none focus:ring-0 focus:border-none h-12"
+                          style={{ 
+                          fontFamily: "Helvetica Neue, sans-serif",
+                          color: colors.text
+                        }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Contacts Button */}
+                    <Button
+                      ref={contactButtonRef}
+                      type="button"
+                      onClick={handleContactPickerToggle}
+                      className={`rounded-none h-12 w-12 p-0 hover:opacity-80 ${
+                        isContactPickerOpen ? 'bg-blue-50 border-blue-500' : ''
+                      }`}
+                      style={{
+                        backgroundColor: isContactPickerOpen ? '#EFF6FF' : colors.bg,
+                        color: isContactPickerOpen ? '#3B82F6' : colors.text,
+                        border: `2px solid ${isContactPickerOpen ? '#3B82F6' : colors.border}`
+                      }}
+                    >
+                      {/* Contacts icon */}
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </Button>
+                    
+                    {/* Contact Picker Dropdown */}
+                    <ContactPicker
+                      selectedContact={selectedContact}
+                      onContactSelect={handleContactSelect}
+                      isOpen={isContactPickerOpen}
+                      onClose={handleContactPickerClose}
+                      isDarkMode={isDarkMode}
+                      triggerRef={contactButtonRef}
+                      searchQuery={searchQuery}
+                      highlightedIndex={highlightedIndex}
+                      contacts={contacts}
+                      loading={contactsLoading}
+                      error={contactsError}
                     />
                   </div>
                 </div>
@@ -451,10 +755,10 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                         border: `2px solid ${stickerState.selectedSticker ? '#3B82F6' : colors.border}`
                       }}
                     >
+                      {/* Sticker icon - sticky note design */}
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M16 8l-4 4-4-4" />
-                        <path d="M20 4l-4 4" />
+                        <path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/>
+                        <path d="M15 3v4a2 2 0 0 0 2 2h4"/>
                       </svg>
                     </Button>
                   </div>
