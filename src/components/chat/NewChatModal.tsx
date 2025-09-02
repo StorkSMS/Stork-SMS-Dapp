@@ -609,10 +609,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                         <Input
                           value={searchQuery || newChatData.to}
                           onChange={(e) => handleInputChange(e.target.value)}
-                          onKeyDown={(e) => {
-                            const filteredContacts: Contact[] = [] // This will be updated
-                            handleInputKeyDown(e, filteredContacts)
-                          }}
+                          onKeyDown={handleInputKeyDown}
                           placeholder="Enter wallet address or search contacts..."
                           className="border-none rounded-none focus:ring-0 focus:border-none h-12"
                           style={{ 
