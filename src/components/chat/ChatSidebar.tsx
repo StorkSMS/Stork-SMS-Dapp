@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Plus, AlertCircle, MoreVertical } from "lucide-react"
+import DomainDisplay from "@/components/DomainDisplay"
 
 interface PendingChat {
   id: string
@@ -99,6 +100,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   // Social menu dropdown state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  
+  // Note: Domain resolution temporarily disabled for main chat list for debugging
+  // Only pending chats still use domain resolution via DomainDisplay component
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -272,7 +276,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   color: colors.text
                 }}
               >
-                {pendingChat.recipient.slice(0, 8)}...{pendingChat.recipient.slice(-4)}
+{/* Temporarily disabled domain resolution to prevent rate limiting */}
+                {pendingChat.recipient && pendingChat.recipient.length > 12 
+                  ? `${pendingChat.recipient.slice(0, 8)}...${pendingChat.recipient.slice(-4)}`
+                  : pendingChat.recipient || 'Unknown'
+                }
               </div>
               <div className="flex items-center gap-1">
                 {pendingChat.status === 'processing' && (
@@ -416,7 +424,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         color: colors.text
                       }}
                     >
-                      {chat.title}
+                      {chat.title && chat.title.length > 12 
+                        ? `${chat.title.slice(0, 8)}...${chat.title.slice(-4)}`
+                        : chat.title || 'Unknown'
+                      }
                     </div>
                     {/* Unread indicator dot - moved to be inline with address */}
                     {unreadThreads.has(chat.id) && (

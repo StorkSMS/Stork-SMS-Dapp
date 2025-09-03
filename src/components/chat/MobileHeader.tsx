@@ -96,23 +96,19 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
               
               return (
                 <div className="flex flex-col items-center">
-                  <h2 
-                    className="text-sm font-medium cursor-pointer transition-colors duration-200"
-                    style={{ 
-                      color: colors.text,
-                      fontFamily: "Helvetica Neue, sans-serif"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#38F'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = colors.text
+                  <div 
+                    className="text-sm font-medium cursor-pointer hover:opacity-70"
+                    style={{
+                      fontFamily: "Helvetica Neue, sans-serif",
+                      color: colors.text
                     }}
                     onClick={() => onCopyWalletAddress(otherParticipant)}
-                    title="Click to copy wallet address"
                   >
-                    {otherParticipant.slice(0, 8)}...{otherParticipant.slice(-4)}
-                  </h2>
+                    {otherParticipant.length > 16 
+                      ? `${otherParticipant.slice(0, 8)}...${otherParticipant.slice(-4)}`
+                      : otherParticipant
+                    }
+                  </div>
                   
                   {/* Online Status */}
                   <OnlineStatus 

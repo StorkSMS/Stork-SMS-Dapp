@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Connection, PublicKey } from '@solana/web3.js'
+import { getMainnetConnection } from '@/lib/solana-connection'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,10 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Public key is required' }, { status: 400 })
     }
 
-    const connection = new Connection(
-      process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
-      'confirmed'
-    )
+    const connection = getMainnetConnection()
 
     const pubkey = new PublicKey(publicKey)
     const balance = await connection.getBalance(pubkey)

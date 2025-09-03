@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import DomainDisplay from "@/components/DomainDisplay"
 import { Plus, Menu, X, Send, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { useWallet } from "@solana/wallet-adapter-react"
@@ -560,7 +561,8 @@ export default function ChatApp() {
       })
       .map(conv => {
         const otherParticipant = conv.participants.find(p => p !== (publicKey?.toString() || ''))
-        const title = otherParticipant ? `${otherParticipant.slice(0, 8)}...${otherParticipant.slice(-4)}` : 'Unknown'
+        // Keep title as address - DomainDisplay component will handle domain resolution in UI
+        const title = otherParticipant || 'Unknown'
         const lastMessage = conv.last_message?.message_content || 'No messages yet'
         
         return {
@@ -1285,23 +1287,18 @@ export default function ChatApp() {
                   
                   return (
                     <>
-                      <h2 
-                        className="text-lg font-medium cursor-pointer transition-colors duration-200"
-                        style={{ 
-                          color: colors.text,
+                      <DomainDisplay 
+                        address={otherParticipant}
+                        onClick={handleCopyWalletAddress}
+                        showCopyToast={showCopyToast}
+                        isDarkMode={isDarkMode}
+                        className="text-lg font-medium"
+                        style={{
                           fontFamily: "Helvetica Neue, sans-serif"
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#38F'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = colors.text
-                        }}
-                        onClick={() => handleCopyWalletAddress(otherParticipant)}
-                        title="Click to copy wallet address"
-                      >
-                        {otherParticipant.slice(0, 8)}...{otherParticipant.slice(-4)}
-                      </h2>
+                        showLoadingSkeleton={true}
+                        maxLength={24}
+                      />
                       
                       {/* Online Status - positioned beneath receiver wallet address on far left */}
                       <OnlineStatus 

@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { getMainnetConnection } from '../lib/solana-connection'
 import { v4 as uuidv4 } from 'uuid'
 import { TokenService } from '@/lib/token-service'
+import { resolveInput } from '@/lib/domain-resolver'
 
 export type PaymentMethod = 'SOL' | 'STORK'
 
@@ -224,11 +226,8 @@ export const useNFTChatCreation = () => {
       throw new Error('Wallet not connected or does not support transactions')
     }
 
-    // Use private RPC from environment to avoid rate limits
-    const connection = new Connection(
-      process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET || process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
-      'confirmed'
-    )
+    // Use centralized connection factory for consistent RPC configuration
+    const connection = getMainnetConnection()
     const companyWalletPubkey = new PublicKey(process.env.NEXT_PUBLIC_COMPANY_WALLET_PUB || process.env.COMPANY_WALLET_PUB || 'EwktyJpVe1ge9K4CP6hBq7w755RWgZ2z6c9zP2Stork')
     
     // Skip payment collection if the sender is the company wallet
@@ -248,7 +247,7 @@ export const useNFTChatCreation = () => {
       const { storkAmount } = await TokenService.calculateSTORKAmount(solAmount)
       
       console.log('💰 Payment collection details:', {
-        rpcUrl: 'https://api.mainnet-beta.solana.com',
+        rpcUrl: connection.rpcEndpoint,
         companyWallet: companyWalletPubkey.toBase58(),
         totalAmount: `${storkAmount.toFixed(2)} STORK (${solAmount} SOL equivalent)`,
         description: 'Dual NFT creation (sender + recipient)',
@@ -270,7 +269,7 @@ export const useNFTChatCreation = () => {
       const totalAmount = 0.001 // SOL for both NFTs
       
       console.log('💰 Payment collection details:', {
-        rpcUrl: 'https://api.mainnet-beta.solana.com',
+        rpcUrl: connection.rpcEndpoint,
         companyWallet: companyWalletPubkey.toBase58(),
         totalAmount: `${totalAmount} SOL`,
         description: 'Dual NFT creation (sender + recipient)',
@@ -393,6 +392,28 @@ export const useNFTChatCreation = () => {
     if (!params.recipientWallet || !params.messageContent) {
       throw new Error('Recipient wallet and message content are required')
     }
+    
+    // Resolve recipient wallet if it's a domain
+    let resolvedRecipientWallet = params.recipientWallet
+    try {
+      const resolutionResult = await resolveInput(params.recipientWallet)
+      if (resolutionResult.isValid && resolutionResult.address) {
+        resolvedRecipientWallet = resolutionResult.address
+        console.log(`🔗 Resolved recipient: ${params.recipientWallet} -> ${resolvedRecipientWallet}`)
+      } else if (!resolutionResult.isValid) {
+        throw new Error(resolutionResult.error || 'Invalid recipient address or domain')
+      }
+    } catch (error) {
+      console.error('Domain resolution failed:', error)
+      throw new Error(error instanceof Error ? error.message : 'Failed to resolve recipient address')
+    }
+    
+    // Validate the final recipient wallet is a valid Solana address
+    try {
+      new PublicKey(resolvedRecipientWallet)
+    } catch {
+      throw new Error('Invalid recipient wallet address format')
+    }
 
     setState({
       isCreating: true,
@@ -403,6 +424,8 @@ export const useNFTChatCreation = () => {
       success: false,
       result: null
     })
+    
+    console.log(`📬 Creating chat with resolved recipient: ${resolvedRecipientWallet}`)
 
     try {
       const messageId = uuidv4()
@@ -448,7 +471,7 @@ export const useNFTChatCreation = () => {
       const nftResult = await createChatNFT({
         messageContent: params.messageContent,
         senderWallet,
-        recipientWallet: params.recipientWallet,
+        recipientWallet: resolvedRecipientWallet,
         senderImageUrl,
         recipientImageUrl,
         messageId,
@@ -513,6 +536,28 @@ export const useNFTChatCreation = () => {
     if (!params.recipientWallet || !params.messageContent) {
       throw new Error('Recipient wallet and message content are required')
     }
+    
+    // Resolve recipient wallet if it's a domain
+    let resolvedRecipientWallet = params.recipientWallet
+    try {
+      const resolutionResult = await resolveInput(params.recipientWallet)
+      if (resolutionResult.isValid && resolutionResult.address) {
+        resolvedRecipientWallet = resolutionResult.address
+        console.log(`🔗 Resolved recipient (immediate): ${params.recipientWallet} -> ${resolvedRecipientWallet}`)
+      } else if (!resolutionResult.isValid) {
+        throw new Error(resolutionResult.error || 'Invalid recipient address or domain')
+      }
+    } catch (error) {
+      console.error('Domain resolution failed (immediate):', error)
+      throw new Error(error instanceof Error ? error.message : 'Failed to resolve recipient address')
+    }
+    
+    // Validate the final recipient wallet is a valid Solana address
+    try {
+      new PublicKey(resolvedRecipientWallet)
+    } catch {
+      throw new Error('Invalid recipient wallet address format')
+    }
 
     try {
       const messageId = uuidv4()
@@ -525,7 +570,7 @@ export const useNFTChatCreation = () => {
       const pendingChat = {
         id: messageId,
         type: 'pending',
-        recipient: params.recipientWallet,
+        recipient: resolvedRecipientWallet,
         message: params.messageContent,
         theme: params.theme || 'default',
         selectedSticker: params.selectedSticker,
@@ -581,7 +626,7 @@ export const useNFTChatCreation = () => {
           const nftResult = await createChatNFT({
             messageContent: params.messageContent,
             senderWallet,
-            recipientWallet: params.recipientWallet,
+            recipientWallet: resolvedRecipientWallet,
             senderImageUrl,
             recipientImageUrl,
             messageId,

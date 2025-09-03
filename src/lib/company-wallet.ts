@@ -7,6 +7,7 @@ import {
   LAMPORTS_PER_SOL,
   sendAndConfirmTransaction,
 } from '@solana/web3.js'
+import { getMainnetConnection } from './solana-connection'
 
 // Company wallet configuration
 const COMPANY_WALLET_PUBLIC_KEY = process.env.COMPANY_WALLET_PUB
@@ -42,11 +43,8 @@ if (derivedPublicKey !== COMPANY_WALLET_PUBLIC_KEY) {
 export const companyWallet = companyWalletKeypair
 export const companyWalletPublicKey = new PublicKey(COMPANY_WALLET_PUBLIC_KEY)
 
-// Solana connection (using private RPC for server-side operations)
-export const connection = new Connection(
-  process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
-  'confirmed'
-)
+// Solana connection (using centralized connection factory for consistency)
+export const connection = getMainnetConnection()
 
 // Company wallet utilities
 export const companyWalletUtils = {

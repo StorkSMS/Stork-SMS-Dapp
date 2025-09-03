@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
 import { Connection } from '@solana/web3.js'
+import { getMainnetConnection } from '@/lib/solana-connection'
 
 export async function GET() {
   try {
-    const connection = new Connection(
-      process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
-      'confirmed'
-    )
+    const connection = getMainnetConnection()
 
     const { blockhash } = await connection.getLatestBlockhash()
 

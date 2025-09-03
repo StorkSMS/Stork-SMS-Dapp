@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import NFTPreviewCanvas from "@/components/NFTPreviewCanvas"
@@ -8,6 +8,7 @@ import PaymentToggle, { type PaymentMethod } from "@/components/ui/PaymentToggle
 import ContactPicker from "@/components/ContactPicker"
 import type { Contact } from "@/types/contacts"
 import { useContacts } from "@/hooks/useContacts"
+import { useDomainResolution } from "@/hooks/useDomainResolution"
 
 interface NewChatData {
   to: string
@@ -73,6 +74,18 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
   const inputRef = useRef<HTMLInputElement>(null)
   const { contacts, loading: contactsLoading, error: contactsError, filterContacts } = useContacts()
   
+  // Domain resolution hook
+  const {
+    isResolving: isDomainResolving,
+    result: domainResult,
+    error: domainError,
+    debouncedResolveInput,
+    clearResult: clearDomainResult,
+    getDisplayAddress,
+    getValidationMessage,
+    isDomainFormat
+  } = useDomainResolution()
+  
   if (!isOpen) return null
   
   const colors = {
@@ -104,22 +117,37 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     setSearchQuery('')
     setIsContactPickerOpen(false)
     setHighlightedIndex(-1)
+    clearDomainResult()
   }
   
   const handleInputChange = (value: string) => {
     setSearchQuery(value)
-    onChatDataChange({ ...newChatData, to: value })
     
     // Clear selected contact if user starts typing
     if (selectedContact && value !== selectedContact.publicAddress) {
       setSelectedContact(null)
     }
     
-    // Show dropdown if user is typing
-    if (value.trim().length > 0 && !selectedContact) {
+    // Always update the input value first
+    onChatDataChange({ ...newChatData, to: value })
+    
+    // Handle domain resolution
+    if (isDomainFormat(value)) {
+      // This looks like a domain - resolve it
+      debouncedResolveInput(value, 300)
+    } else if (value.length >= 32) {
+      // This might be a wallet address - resolve it to validate
+      debouncedResolveInput(value, 300)
+    } else {
+      // Regular input - clear domain result
+      clearDomainResult()
+    }
+    
+    // Show dropdown if user is typing and it's not a domain format
+    if (value.trim().length > 0 && !selectedContact && !isDomainFormat(value)) {
       setIsContactPickerOpen(true)
       setHighlightedIndex(-1)
-    } else if (value.trim().length === 0) {
+    } else if (value.trim().length === 0 || isDomainFormat(value)) {
       setIsContactPickerOpen(false)
       setHighlightedIndex(-1)
     }
@@ -178,7 +206,74 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     setIsContactPickerOpen(false)
   }
   
-  const canSubmit = connected && publicKey && isAuthenticated && !isAuthenticating && !isWaitingForSignature && newChatData.to && stickerState.getEffectiveMessage()
+  // Custom form submission that uses resolved addresses
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Get the resolved address (could be from domain resolution, contact, or direct input)
+    const resolvedAddress = getResolvedAddress()
+    
+    if (!resolvedAddress) {
+      console.warn('No resolved address available for submission')
+      return
+    }
+    
+    // Always ensure the chat data has the final resolved address
+    if (resolvedAddress !== newChatData.to) {
+      console.log(`📝 Updating chat data with resolved address: ${newChatData.to} -> ${resolvedAddress}`)
+      onChatDataChange({ ...newChatData, to: resolvedAddress })
+      
+      // Use setTimeout to ensure state updates before submission
+      setTimeout(() => {
+        onSubmit(e)
+      }, 10)
+    } else {
+      onSubmit(e)
+    }
+  }
+  
+  // Enhanced submit validation that considers domain resolution
+  const getResolvedAddress = () => {
+    if (selectedContact) {
+      return selectedContact.publicAddress
+    }
+    if (domainResult && domainResult.isValid) {
+      return domainResult.address
+    }
+    return newChatData.to
+  }
+  
+  // Enhanced submit validation that considers domain resolution
+  const canSubmit = (() => {
+    // Basic authentication checks
+    if (!connected || !publicKey || !isAuthenticated || isAuthenticating || isWaitingForSignature) {
+      return false
+    }
+    
+    // Must have a message
+    if (!stickerState.getEffectiveMessage()) {
+      return false
+    }
+    
+    // Must have a recipient
+    const resolvedAddress = getResolvedAddress()
+    if (!resolvedAddress) {
+      return false
+    }
+    
+    // If we're currently resolving a domain, don't allow submit yet
+    if (isDomainResolving) {
+      return false
+    }
+    
+    // If we have a domain result, it must be valid
+    if (domainResult) {
+      return domainResult.isValid
+    }
+    
+    // For non-domain inputs, just check we have something valid
+    return resolvedAddress.length > 0
+  })()
   
   const getSubmitButtonText = () => {
     if (!connected) return "Connect Wallet First"
@@ -186,6 +281,10 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     if (isAuthenticating) return "Authenticating..."
     if (!isAuthenticated) return "Authentication Required"
     if (isWaitingForSignature) return "Waiting for Signature..."
+    if (isDomainResolving) return "Resolving Domain..."
+    if (domainResult && !domainResult.isValid) return "Invalid Domain"
+    if (!getResolvedAddress()) return "Enter Recipient"
+    if (!stickerState.getEffectiveMessage()) return "Enter Message"
     return "Create NFT Chat"
   }
   
@@ -252,7 +351,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
 
             {/* Mobile: Form Section Below */}
             <div className="flex-1 p-6 flex flex-col relative z-[2]">
-              <form onSubmit={onSubmit} className="flex flex-col gap-2 h-full">
+              <form onSubmit={handleFormSubmit} className="flex flex-col gap-2 h-full">
                 {/* To Field */}
                 <div>
                   <label
@@ -332,7 +431,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                           value={searchQuery || newChatData.to}
                           onChange={(e) => handleInputChange(e.target.value)}
                           onKeyDown={handleInputKeyDown}
-                          placeholder="Enter wallet address or search contacts..."
+                          placeholder="Enter wallet address, .sol/.skr domain, or search contacts..."
                           className="border-none rounded-none focus:ring-0 focus:border-none h-12"
                           style={{ 
                             fontFamily: "Helvetica Neue, sans-serif",
@@ -381,6 +480,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                       error={contactsError}
                     />
                   </div>
+                  
                 </div>
 
                 {/* From Field */}
@@ -531,7 +631,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
 
             {/* Desktop: Form Section */}
             <div className="flex-1 p-4 flex flex-col relative z-[2]">
-              <form onSubmit={onSubmit} className="flex flex-col gap-3 h-full">
+              <form onSubmit={handleFormSubmit} className="flex flex-col gap-3 h-full">
                 {/* To Field */}
                 <div>
                   <label
@@ -610,7 +710,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                           value={searchQuery || newChatData.to}
                           onChange={(e) => handleInputChange(e.target.value)}
                           onKeyDown={handleInputKeyDown}
-                          placeholder="Enter wallet address or search contacts..."
+                          placeholder="Enter wallet address, .sol/.skr domain, or search contacts..."
                           className="border-none rounded-none focus:ring-0 focus:border-none h-12"
                           style={{ 
                           fontFamily: "Helvetica Neue, sans-serif",
@@ -658,6 +758,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                       error={contactsError}
                     />
                   </div>
+                  
                 </div>
 
                 {/* From Field */}
