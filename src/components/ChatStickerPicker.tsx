@@ -22,6 +22,7 @@ const CHAT_STICKER_OPTIONS = [
   'Bonk.png',
   'Envy.png',
   'Gib alpha.png',
+  'Mattle.png',
   'Poke.png',
   'Rugarugruuug.png',
   'Stork.png',
