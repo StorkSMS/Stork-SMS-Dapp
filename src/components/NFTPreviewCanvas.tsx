@@ -64,7 +64,7 @@ const STICKER_OPTIONS = [
   'Bonk 1.png',
   'Envy 1.png',
   'Gib alpha 1.png',
-  'Mattle 1.png',
+  'Mattle 12.png',
   'Poke 1.png',
   'Rugarugruuug 1.png',
   'Stork 1.png',
