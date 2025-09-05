@@ -11,6 +11,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     console.log('🧹 Starting voice message cleanup process...')
     
+    if (!r2Client) {
+      return NextResponse.json(
+        { error: 'R2 storage not configured' },
+        { status: 503 }
+      )
+    }
+    
     // Verify this is an authorized cleanup request
     const authHeader = request.headers.get('Authorization')
     const cleanupKey = process.env.VOICE_CLEANUP_SECRET || 'cleanup-secret-key'
@@ -120,6 +127,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 export async function GET(): Promise<NextResponse> {
   try {
     const now = new Date()
+    
+    if (!r2Client) {
+      return NextResponse.json(
+        { error: 'R2 storage not configured' },
+        { status: 503 }
+      )
+    }
     
     // Count current voice files
     const listCommand = new ListObjectsV2Command({

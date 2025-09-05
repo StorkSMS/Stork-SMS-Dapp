@@ -21,12 +21,13 @@ const supabaseAdmin = createClient(
  */
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: NextRequest, context: RouteParams) {
+  const params = await context.params
   try {
     const contactId = params.id
     
@@ -143,7 +144,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, context: RouteParams) {
+  const params = await context.params
   try {
     const contactId = params.id
     

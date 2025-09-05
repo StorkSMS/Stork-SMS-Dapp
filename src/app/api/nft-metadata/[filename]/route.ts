@@ -12,6 +12,13 @@ export async function GET(
     // Construct the R2 key for metadata files
     const key = `uploads/${filename}`
     
+    if (!r2Client) {
+      return NextResponse.json(
+        { error: 'R2 storage not configured' },
+        { status: 503 }
+      )
+    }
+    
     // Get the file from R2
     const command = new GetObjectCommand({
       Bucket: BUCKET_NAME,
