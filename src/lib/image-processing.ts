@@ -557,3 +557,106 @@ export function formatFileSize(bytes: number): string {
 export function calculateCompressionPercentage(originalSize: number, compressedSize: number): number {
   return Math.round(((originalSize - compressedSize) / originalSize) * 100)
 }
+
+/**
+ * Process image for contact avatar (64x64 with high quality)
+ */
+export async function processContactAvatar(
+  file: File,
+  onProgress?: (progress: number, message: string) => void
+): Promise<Blob> {
+  if (!isCanvasSupported()) {
+    throw new Error('Canvas API not supported in this browser')
+  }
+  
+  if (onProgress) onProgress(10, 'Validating image...')
+
+  // Validate input
+  const validation = await validateImageFile(file)
+  if (!validation.valid) {
+    throw new Error(validation.error)
+  }
+
+  if (onProgress) onProgress(30, 'Loading image...')
+
+  // Load image
+  const img = await loadImageFromFile(file)
+  
+  if (onProgress) onProgress(60, 'Processing avatar...')
+
+  // Create 64x64 square avatar with cropping to center
+  const avatarBlob = await createSquareAvatar(img, 64, 0.9) // High quality for avatars
+  
+  if (onProgress) onProgress(100, 'Complete!')
+
+  return avatarBlob
+}
+
+/**
+ * Create a square avatar by cropping to center and resizing
+ */
+function createSquareAvatar(
+  img: HTMLImageElement,
+  size: number,
+  quality: number = 0.9
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+
+    if (!ctx) {
+      reject(new Error('Canvas context not available'))
+      return
+    }
+
+    canvas.width = size
+    canvas.height = size
+
+    // Calculate crop area (center square from original image)
+    const originalWidth = img.naturalWidth
+    const originalHeight = img.naturalHeight
+    const minDimension = Math.min(originalWidth, originalHeight)
+    
+    const cropX = (originalWidth - minDimension) / 2
+    const cropY = (originalHeight - minDimension) / 2
+
+    // Apply image smoothing for better quality
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+
+    // Draw cropped and resized image
+    ctx.drawImage(
+      img,
+      cropX, cropY, minDimension, minDimension, // Source crop
+      0, 0, size, size // Destination size
+    )
+
+    // Convert to blob with high quality
+    const format = isWebPSupported() ? 'image/webp' : 'image/png'
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob)
+        } else {
+          reject(new Error('Failed to convert canvas to blob'))
+        }
+      },
+      format,
+      quality
+    )
+  })
+}
+
+/**
+ * Generate unique contact avatar filename
+ */
+export function generateContactAvatarFilename(
+  walletAddress: string,
+  contactId: string,
+  format: string = 'webp'
+): string {
+  const timestamp = Date.now()
+  const walletShort = walletAddress.slice(0, 8)
+  const extension = format.replace('image/', '')
+  return `contact_avatar_${timestamp}_${contactId}_${walletShort}.${extension}`
+}

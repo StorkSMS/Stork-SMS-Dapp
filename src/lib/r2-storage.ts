@@ -11,15 +11,17 @@ const r2Config = {
   },
 }
 
-// Validate required environment variables
-if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_ACCOUNT_ID) {
-  throw new Error(
-    'Missing R2 environment variables. Please add R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_ACCOUNT_ID to your .env file.'
-  )
+// Validate required environment variables (server-side only)
+if (typeof window === 'undefined') { // Only check on server-side
+  if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_ACCOUNT_ID) {
+    throw new Error(
+      'Missing R2 environment variables. Please add R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_ACCOUNT_ID to your .env file.'
+    )
+  }
 }
 
-// Create S3 client for R2
-export const r2Client = new S3Client(r2Config)
+// Create S3 client for R2 (server-side only)
+export const r2Client = typeof window === 'undefined' ? new S3Client(r2Config) : null
 
 // Bucket name from environment
 export const BUCKET_NAME = process.env.R2_BUCKET || 'stork-nft'
@@ -65,6 +67,10 @@ export const r2Storage = {
     contentType: string = 'application/octet-stream',
     metadata: FileMetadata = {}
   ): Promise<UploadResult> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       // Generate unique key with timestamp and UUID
       const timestamp = Date.now()
@@ -157,6 +163,10 @@ export const r2Storage = {
     messageId: string,
     duration: number
   ): Promise<UploadResult> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       // Generate unique key in voice directory with timestamp and metadata
       const timestamp = Date.now()
@@ -213,6 +223,10 @@ export const r2Storage = {
     originalFormat?: string,
     compressionRatio?: number
   ): Promise<UploadResult> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       // Generate unique key in images directory with timestamp and metadata
       const timestamp = Date.now()
@@ -276,6 +290,10 @@ export const r2Storage = {
     dimensions: { width: number; height: number },
     parentImageKey: string
   ): Promise<UploadResult> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       // Generate unique key in thumbnails directory
       const timestamp = Date.now()
@@ -326,6 +344,10 @@ export const r2Storage = {
    * Download a file from R2 storage
    */
   async downloadFile(key: string): Promise<Buffer> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       const command = new GetObjectCommand({
         Bucket: BUCKET_NAME,
@@ -359,6 +381,10 @@ export const r2Storage = {
    * Delete a file from R2 storage
    */
   async deleteFile(key: string): Promise<void> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       const command = new DeleteObjectCommand({
         Bucket: BUCKET_NAME,
@@ -376,6 +402,10 @@ export const r2Storage = {
    * Check if a file exists in R2 storage
    */
   async fileExists(key: string): Promise<boolean> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
     try {
       const command = new GetObjectCommand({
         Bucket: BUCKET_NAME,
@@ -386,6 +416,63 @@ export const r2Storage = {
       return true
     } catch (error) {
       return false
+    }
+  },
+
+  /**
+   * Upload contact avatar with specific naming convention for contacts/ directory
+   */
+  async uploadContactAvatar(
+    avatarFile: Blob | File,
+    walletAddress: string,
+    contactId: string
+  ): Promise<UploadResult> {
+    if (!r2Client) {
+      throw new Error('R2 client not available. This function can only be used server-side.')
+    }
+    
+    try {
+      // Generate unique key in contacts directory
+      const timestamp = Date.now()
+      const uuid = uuidv4().substring(0, 8)
+      const walletShort = walletAddress.slice(0, 8)
+      const key = `contacts/${timestamp}_${contactId}_${walletShort}.webp`
+
+      // Convert Blob/File to Buffer
+      const arrayBuffer = await avatarFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      // Prepare metadata for S3 with contact avatar information
+      const s3Metadata: Record<string, string> = {
+        originalName: `contact_avatar_${contactId}.webp`,
+        contentType: 'image/webp',
+        walletAddress,
+        contactId,
+        type: 'contact-avatar',
+        size: '64x64',
+        uploadedAt: new Date().toISOString()
+      }
+
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/webp',
+        Metadata: s3Metadata,
+        ACL: 'public-read', // Make files publicly accessible
+        CacheControl: 'public, max-age=31536000' // Cache for 1 year
+      })
+
+      await r2Client.send(command)
+
+      return {
+        key,
+        publicUrl: getPublicUrl(key),
+        size: buffer.length,
+      }
+    } catch (error) {
+      console.error('R2 contact avatar upload error:', error)
+      throw new Error(`Failed to upload contact avatar to R2: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   },
 

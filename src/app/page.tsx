@@ -10,12 +10,14 @@ import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DomainDisplay from "@/components/DomainDisplay"
+import ContactHeader from "@/components/ContactHeader"
 import { Plus, Menu, X, Send, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useNFTChatCreation } from "@/hooks/useNFTChatCreation"
 import { useRealtimeMessaging } from "@/hooks/useRealtimeMessaging"
 import { useAuth } from "@/contexts/AuthContext"
+import { useContacts } from "@/hooks/useContacts"
 import { useNFTVerification } from "@/hooks/useNFTVerification"
 import { MessageStatus, useMessageStatus } from "@/components/MessageStatus"
 import StickerPicker, { useStickerState } from "@/components/StickerPicker"
@@ -130,6 +132,9 @@ export default function ChatApp() {
   const authState = useAuth()
   const { sendTestNotification, subscription, permission } = usePushNotifications()
   
+  // Load contacts for displaying names instead of wallet addresses
+  const { contacts, refreshUserContacts } = useContacts()
+  
   // Access properties directly from the context
   const isAuthenticated = authState.isAuthenticated
   const isAuthenticating = authState.isAuthenticating
@@ -137,6 +142,30 @@ export default function ChatApp() {
   
   // Single authentication check to prevent multiple reactive dependencies
   const isActuallyAuthenticated = authState.authStatus === 'authenticated'
+  
+  // Helper function to find contact name by wallet address
+  const findContactByAddress = useCallback((walletAddress: string) => {
+    if (!walletAddress) return null
+    
+    // Search through all contacts (hardcoded + user contacts)
+    const contact = contacts.find(contact => 
+      contact.publicAddress === walletAddress
+    )
+    
+    return contact?.name || null
+  }, [contacts])
+
+  // Helper function to find full contact by wallet address
+  const findFullContactByAddress = useCallback((walletAddress: string) => {
+    if (!walletAddress) return null
+    
+    // Search through all contacts (hardcoded + user contacts)
+    const contact = contacts.find(contact => 
+      contact.publicAddress === walletAddress
+    )
+    
+    return contact || null
+  }, [contacts])
   
   // Track if conversations have been loaded for current auth session
   const hasLoadedConversationsRef = useRef(false)
@@ -561,8 +590,20 @@ export default function ChatApp() {
       })
       .map(conv => {
         const otherParticipant = conv.participants.find(p => p !== (publicKey?.toString() || ''))
-        // Keep title as address - DomainDisplay component will handle domain resolution in UI
-        const title = otherParticipant || 'Unknown'
+        
+        // Check if we have a saved contact for this wallet address
+        const contactName = findContactByAddress(otherParticipant || '')
+        
+        // Use contact name if available, otherwise use formatted wallet address
+        let title = 'Unknown'
+        if (contactName) {
+          title = contactName
+        } else if (otherParticipant && otherParticipant.length > 12) {
+          title = `${otherParticipant.slice(0, 8)}...${otherParticipant.slice(-4)}`
+        } else {
+          title = otherParticipant || 'Unknown'
+        }
+        
         const lastMessage = conv.last_message?.message_content || 'No messages yet'
         
         return {
@@ -572,9 +613,10 @@ export default function ChatApp() {
           lastActivity: conv.last_activity
         }
       })
-  }, [conversations, publicKey, timestampUpdate])
+  }, [conversations, publicKey, timestampUpdate, contacts, findContactByAddress])
 
   const handleNewChat = () => {
+    refreshUserContacts() // Refresh contacts from server
     setIsCreatingNewChat(true)
   }
 
@@ -1213,6 +1255,7 @@ export default function ChatApp() {
           showCopyToast={showCopyToast}
           onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           onCopyWalletAddress={handleCopyWalletAddress}
+          onContactRefresh={refreshUserContacts}
         />
       </div>
 
@@ -1265,6 +1308,7 @@ export default function ChatApp() {
             onChatSelect={handleChatSelect}
             onNewChat={handleNewChat}
             onRetryPendingChat={handleRetryPendingChat}
+            onContactRefresh={refreshUserContacts}
             formatRelativeTime={formatRelativeTime}
           />
 
@@ -1285,20 +1329,38 @@ export default function ChatApp() {
                   
                   if (!otherParticipant) return null
                   
+                  const contact = findFullContactByAddress(otherParticipant)
+                  
                   return (
                     <>
-                      <DomainDisplay 
-                        address={otherParticipant}
-                        onClick={handleCopyWalletAddress}
-                        showCopyToast={showCopyToast}
-                        isDarkMode={isDarkMode}
-                        className="text-lg font-medium"
-                        style={{
-                          fontFamily: "Helvetica Neue, sans-serif"
-                        }}
-                        showLoadingSkeleton={true}
-                        maxLength={24}
-                      />
+                      {contact ? (
+                        <ContactHeader
+                          contactName={contact.name}
+                          contactAddress={otherParticipant}
+                          profilePictureUrl={contact.pfp}
+                          onClick={handleCopyWalletAddress}
+                          showCopyToast={showCopyToast}
+                          isDarkMode={isDarkMode}
+                          className="text-lg font-medium"
+                          style={{
+                            fontFamily: "Helvetica Neue, sans-serif"
+                          }}
+                          isMobile={false}
+                        />
+                      ) : (
+                        <DomainDisplay 
+                          address={otherParticipant}
+                          onClick={handleCopyWalletAddress}
+                          showCopyToast={showCopyToast}
+                          isDarkMode={isDarkMode}
+                          className="text-lg font-medium"
+                          style={{
+                            fontFamily: "Helvetica Neue, sans-serif"
+                          }}
+                          showLoadingSkeleton={true}
+                          maxLength={24}
+                        />
+                      )}
                       
                       {/* Online Status - positioned beneath receiver wallet address on far left */}
                       <OnlineStatus 

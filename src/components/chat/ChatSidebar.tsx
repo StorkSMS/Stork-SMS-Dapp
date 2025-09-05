@@ -3,8 +3,12 @@
 import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus, AlertCircle, MoreVertical } from "lucide-react"
+import { Plus, AlertCircle, MoreVertical, UserPlus, Users } from "lucide-react"
 import DomainDisplay from "@/components/DomainDisplay"
+import AddContactModal from "@/components/AddContactModal"
+import ContactManagementModal from "@/components/ContactManagementModal"
+import { useAuth } from "@/contexts/AuthContext"
+import { useContacts } from "@/hooks/useContacts"
 
 interface PendingChat {
   id: string
@@ -60,6 +64,7 @@ interface ChatSidebarProps {
   onChatSelect: (chatId: string) => void
   onNewChat: () => void
   onRetryPendingChat: (pendingChatId: string) => void
+  onContactRefresh?: () => void
   
   // Helper
   formatRelativeTime: (timestamp: string) => string
@@ -87,8 +92,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onChatSelect,
   onNewChat,
   onRetryPendingChat,
+  onContactRefresh,
   formatRelativeTime,
 }) => {
+  const { isAuthenticated } = useAuth()
+  const { refreshUserContacts } = useContacts()
+  
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
     text: isDarkMode ? '#FFF' : '#000',
@@ -99,6 +108,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   // Social menu dropdown state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
+  const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
   // Note: Domain resolution temporarily disabled for main chat list for debugging
@@ -120,6 +131,34 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isMenuOpen])
+
+  const handleAddContactClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to add contacts')
+      return
+    }
+    setIsMenuOpen(false)
+    setIsAddContactModalOpen(true)
+  }
+
+  const handleManageContactsClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to manage contacts')
+      return
+    }
+    setIsMenuOpen(false)
+    setIsManageContactsModalOpen(true)
+  }
+
+  const handleContactAdded = (contact: any) => {
+    console.log('✅ Contact added, refreshing list...', contact.name)
+    // Small delay to ensure database transaction is complete
+    setTimeout(() => {
+      refreshUserContacts()
+      // Also refresh parent's contacts (for NewChatModal)
+      onContactRefresh?.()
+    }, 100)
+  }
   
   return (
     <div 
@@ -182,12 +221,32 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           {/* Dropdown Menu */}
           {isMenuOpen && (
             <div 
-              className="absolute right-0 top-10 z-50 min-w-[140px] border-2 shadow-md rounded-sm"
+              className="absolute right-0 top-10 z-50 min-w-[180px] border-2 shadow-md rounded-sm"
               style={{ 
                 backgroundColor: colors.bg, 
                 borderColor: colors.border 
               }}
             >
+              <button
+                onClick={handleAddContactClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <UserPlus className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Add Contact</span>
+              </button>
+              <button
+                onClick={handleManageContactsClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Users className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
+              </button>
+              <div 
+                className="h-px mx-2" 
+                style={{ backgroundColor: colors.border, opacity: 0.3 }} 
+              />
               <a 
                 href="https://discord.gg/AdCKQAhe" 
                 target="_blank" 
@@ -516,6 +575,21 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           {!connected ? 'Connect Wallet' : isAuthenticating ? 'Authenticating...' : 'New NFT Chat'}
         </Button>
       </div>
+
+      {/* Add Contact Modal */}
+      <AddContactModal
+        isOpen={isAddContactModalOpen}
+        onClose={() => setIsAddContactModalOpen(false)}
+        onContactAdded={handleContactAdded}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Manage Contacts Modal */}
+      <ContactManagementModal
+        isOpen={isManageContactsModalOpen}
+        onClose={() => setIsManageContactsModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
     </div>
   )
 }

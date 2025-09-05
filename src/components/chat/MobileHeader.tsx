@@ -1,11 +1,16 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Menu, X, MoreVertical } from "lucide-react"
+import { Menu, X, MoreVertical, UserPlus, Users } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
+import AddContactModal from "@/components/AddContactModal"
+import ContactManagementModal from "@/components/ContactManagementModal"
+import ContactHeader from "@/components/ContactHeader"
+import { useAuth } from "@/contexts/AuthContext"
+import { useContacts } from "@/hooks/useContacts"
 
 interface MobileHeaderProps {
   isMobileMenuOpen: boolean
@@ -19,6 +24,7 @@ interface MobileHeaderProps {
   
   onMenuToggle: () => void
   onCopyWalletAddress: (address: string) => void
+  onContactRefresh?: () => void
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -32,7 +38,19 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   showCopyToast,
   onMenuToggle,
   onCopyWalletAddress,
+  onContactRefresh,
 }) => {
+  const { isAuthenticated } = useAuth()
+  const { contacts, refreshUserContacts } = useContacts()
+  
+  const findContactByAddress = useCallback((walletAddress: string) => {
+    if (!walletAddress) return null
+    const contact = contacts.find(contact => 
+      contact.publicAddress === walletAddress
+    )
+    return contact || null
+  }, [contacts])
+  
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
     text: isDarkMode ? '#FFF' : '#000',
@@ -43,6 +61,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   // Social menu dropdown state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
+  const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -61,6 +81,34 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isMenuOpen])
+
+  const handleAddContactClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to add contacts')
+      return
+    }
+    setIsMenuOpen(false)
+    setIsAddContactModalOpen(true)
+  }
+
+  const handleContactAdded = (contact: any) => {
+    console.log('✅ Contact added, refreshing list...', contact.name)
+    // Small delay to ensure database transaction is complete
+    setTimeout(() => {
+      refreshUserContacts()
+      // Also refresh parent's contacts (for NewChatModal)
+      onContactRefresh?.()
+    }, 100)
+  }
+
+  const handleManageContactsClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to manage contacts')
+      return
+    }
+    setIsMenuOpen(false)
+    setIsManageContactsModalOpen(true)
+  }
   
   return (
     <div 
@@ -94,21 +142,39 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <Image src="/stork-logo.svg" alt="Stork Logo" width={100} height={33} className="h-8 w-auto" />
               )
               
+              const contact = findContactByAddress(otherParticipant)
+              
               return (
                 <div className="flex flex-col items-center">
-                  <div 
-                    className="text-sm font-medium cursor-pointer hover:opacity-70"
-                    style={{
-                      fontFamily: "Helvetica Neue, sans-serif",
-                      color: colors.text
-                    }}
-                    onClick={() => onCopyWalletAddress(otherParticipant)}
-                  >
-                    {otherParticipant.length > 16 
-                      ? `${otherParticipant.slice(0, 8)}...${otherParticipant.slice(-4)}`
-                      : otherParticipant
-                    }
-                  </div>
+                  {contact ? (
+                    <ContactHeader
+                      contactName={contact.name}
+                      contactAddress={otherParticipant}
+                      profilePictureUrl={contact.pfp}
+                      onClick={onCopyWalletAddress}
+                      showCopyToast={showCopyToast}
+                      isDarkMode={isDarkMode}
+                      className="text-sm font-medium"
+                      style={{
+                        fontFamily: "Helvetica Neue, sans-serif"
+                      }}
+                      isMobile={true}
+                    />
+                  ) : (
+                    <div 
+                      className="text-sm font-medium cursor-pointer hover:opacity-70"
+                      style={{
+                        fontFamily: "Helvetica Neue, sans-serif",
+                        color: colors.text
+                      }}
+                      onClick={() => onCopyWalletAddress(otherParticipant)}
+                    >
+                      {otherParticipant.length > 16 
+                        ? `${otherParticipant.slice(0, 8)}...${otherParticipant.slice(-4)}`
+                        : otherParticipant
+                      }
+                    </div>
+                  )}
                   
                   {/* Online Status */}
                   <OnlineStatus 
@@ -147,12 +213,32 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
           {/* Dropdown Menu */}
           {isMenuOpen && (
             <div 
-              className="absolute right-0 top-10 z-50 min-w-[140px] border-2 shadow-md rounded-sm"
+              className="absolute right-0 top-10 z-50 min-w-[180px] border-2 shadow-md rounded-sm"
               style={{ 
                 backgroundColor: colors.bg, 
                 borderColor: colors.border 
               }}
             >
+              <button
+                onClick={handleAddContactClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <UserPlus className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Add Contact</span>
+              </button>
+              <button
+                onClick={handleManageContactsClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Users className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
+              </button>
+              <div 
+                className="h-px mx-2" 
+                style={{ backgroundColor: colors.border, opacity: 0.3 }} 
+              />
               <a 
                 href="https://discord.gg/AdCKQAhe" 
                 target="_blank" 
@@ -184,6 +270,20 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       </div>
       
+      {/* Add Contact Modal */}
+      <AddContactModal
+        isOpen={isAddContactModalOpen}
+        onClose={() => setIsAddContactModalOpen(false)}
+        onContactAdded={handleContactAdded}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Manage Contacts Modal */}
+      <ContactManagementModal
+        isOpen={isManageContactsModalOpen}
+        onClose={() => setIsManageContactsModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
     </div>
   )
 }
