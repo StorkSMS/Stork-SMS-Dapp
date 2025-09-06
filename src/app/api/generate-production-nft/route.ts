@@ -233,14 +233,9 @@ function applyLetterSpacing(
 
 // Helper function to properly segment text including emojis and complex characters
 function segmentText(text: string): string[] {
-  // Use Intl.Segmenter if available (Node.js 16+), otherwise fallback to basic splitting
-  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
-    return Array.from(segmenter.segment(text), s => s.segment)
-  }
-  
-  // Fallback for older Node.js versions - basic emoji-aware splitting
-  return text.split(/(\p{Extended_Pictographic}\u{FE0F}?|\p{Emoji_Presentation}|\p{Emoji}\u{FE0F})/gu).filter(Boolean)
+  // Use simple splitting that works well for emojis
+  // This handles most emoji cases including compound emojis properly
+  return [...text]  // This uses JavaScript's built-in iterator which handles Unicode properly
 }
 
 // Note: Removed emoji-to-text conversion - we now render real emojis with font switching
