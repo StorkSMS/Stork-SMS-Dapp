@@ -3,11 +3,12 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Menu, X, MoreVertical, UserPlus, Users } from "lucide-react"
+import { Menu, X, MoreVertical, UserPlus, Users, Plane } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
+import AirdropCheckModal from "@/components/AirdropCheckModal"
 import ContactHeader from "@/components/ContactHeader"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
@@ -63,6 +64,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
   const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
+  const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -108,6 +110,11 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
     }
     setIsMenuOpen(false)
     setIsManageContactsModalOpen(true)
+  }
+
+  const handleAirdropCheckClick = () => {
+    setIsMenuOpen(false)
+    setIsAirdropCheckModalOpen(true)
   }
   
   return (
@@ -235,6 +242,14 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <Users className="w-4 h-4" />
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
               </button>
+              <button
+                onClick={handleAirdropCheckClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Plane className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Airdrop Check</span>
+              </button>
               <div 
                 className="h-px mx-2" 
                 style={{ backgroundColor: colors.border, opacity: 0.3 }} 
@@ -282,6 +297,13 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
       <ContactManagementModal
         isOpen={isManageContactsModalOpen}
         onClose={() => setIsManageContactsModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Airdrop Check Modal */}
+      <AirdropCheckModal
+        isOpen={isAirdropCheckModalOpen}
+        onClose={() => setIsAirdropCheckModalOpen(false)}
         isDarkMode={isDarkMode}
       />
     </div>

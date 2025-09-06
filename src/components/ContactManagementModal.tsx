@@ -206,11 +206,11 @@ const ContactManagementModal: React.FC<ContactManagementModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[120]"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[9999] p-4 pt-16 sm:pt-4 overflow-y-auto"
       onClick={handleOverlayClick}
     >
       <div
-        className="border-4 relative w-[600px] max-w-[95vw] max-h-[85vh] overflow-y-auto mx-4 my-8 sm:mx-0 sm:my-0"
+        className="border-4 relative w-[600px] max-w-[95vw] max-h-[80vh] overflow-y-auto my-auto"
         style={{
           backgroundColor: colors.bg,
           borderColor: colors.border

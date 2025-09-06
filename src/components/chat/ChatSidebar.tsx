@@ -3,10 +3,11 @@
 import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus, AlertCircle, MoreVertical, UserPlus, Users } from "lucide-react"
+import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Plane } from "lucide-react"
 import DomainDisplay from "@/components/DomainDisplay"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
+import AirdropCheckModal from "@/components/AirdropCheckModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
 
@@ -110,6 +111,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
   const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
+  const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
   // Note: Domain resolution temporarily disabled for main chat list for debugging
@@ -148,6 +150,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     }
     setIsMenuOpen(false)
     setIsManageContactsModalOpen(true)
+  }
+
+  const handleAirdropCheckClick = () => {
+    setIsMenuOpen(false)
+    setIsAirdropCheckModalOpen(true)
   }
 
   const handleContactAdded = (contact: any) => {
@@ -242,6 +249,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               >
                 <Users className="w-4 h-4" />
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
+              </button>
+              <button
+                onClick={handleAirdropCheckClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Plane className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Airdrop Check</span>
               </button>
               <div 
                 className="h-px mx-2" 
@@ -588,6 +603,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <ContactManagementModal
         isOpen={isManageContactsModalOpen}
         onClose={() => setIsManageContactsModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Airdrop Check Modal */}
+      <AirdropCheckModal
+        isOpen={isAirdropCheckModalOpen}
+        onClose={() => setIsAirdropCheckModalOpen(false)}
         isDarkMode={isDarkMode}
       />
     </div>

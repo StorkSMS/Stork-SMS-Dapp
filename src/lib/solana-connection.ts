@@ -1,4 +1,5 @@
 import { Connection } from '@solana/web3.js'
+import { rateLimitedRequest, getRateLimiterStats } from './global-rate-limiter'
 
 /**
  * Centralized Solana RPC Connection Factory
@@ -141,6 +142,51 @@ export function validateRpcConfiguration(): {
     warnings,
     recommendations
   }
+}
+
+/**
+ * Rate-limited RPC client for making API calls through the global rate limiter
+ */
+export async function rateLimitedRpcCall(
+  requestData: any,
+  options: {
+    priority?: 'high' | 'normal' | 'low'
+    requestId?: string
+    endpoint?: string
+  } = {}
+): Promise<any> {
+  const {
+    priority = 'normal',
+    requestId = `rpc-${Date.now()}-${Math.random()}`,
+    endpoint = getRpcEndpointUrl('mainnet')
+  } = options
+
+  return rateLimitedRequest(
+    requestId,
+    async () => {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      if (!response.ok) {
+        throw new Error(`RPC error: ${response.status} ${response.statusText}`)
+      }
+
+      return response.json()
+    },
+    priority
+  )
+}
+
+/**
+ * Get rate limiter statistics for monitoring
+ */
+export function getSolanaRpcStats() {
+  return getRateLimiterStats()
 }
 
 // Validate configuration on module load in development

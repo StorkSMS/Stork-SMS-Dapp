@@ -1,0 +1,31 @@
+{
+  "manualWallets": [
+    {
+      "address": "GmWM7hZEBfsZAynLMq8RjgpApQ6mj92VKyiw57SZ1y8t",
+      "reason": "Report-a-bug",
+      "addedDate": "2025-01-06"
+    },
+    {
+      "address": "GmWM7hZEBfsZAynLMq8RjgpApQ6mj92VKyiw57SZ1y8t",
+      "reason": "Request-a-feature",
+      "addedDate": "2025-01-06"
+    },
+    {
+      "address": "aBaG7vsdyjevjcG3BFqE24dRUeJBe7ynSaaAjZAgNcm",
+      "reason": "Request-a-feature",
+      "addedDate": "2025-01-06"
+    },
+    {
+      "address": "2zdv89Djt7CYE8noEwqU1GJftT8GZHhkeJySdtvP2HSR",
+      "reason": "Report-a-bug",
+      "addedDate": "2025-01-06"
+    },
+    {
+      "address": "placeholder_wallet_address_5",
+      "reason": "Partner wallet",
+      "addedDate": "2025-01-06"
+    }
+  ],
+  "lastUpdated": "2025-01-06",
+  "notes": "Add actual wallet addresses here. Remove placeholder entries when adding real addresses."
+}

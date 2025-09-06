@@ -1,7 +1,9 @@
 import { Connection, PublicKey } from '@solana/web3.js'
 import { resolve, getDomainKey, NameRegistryState } from '@bonfida/spl-name-service'
 import { TldParser } from '@onsol/tldparser'
-import { getMainnetConnection } from './solana-connection'
+import { getMainnetConnection, rateLimitedRpcCall } from './solana-connection'
+import { rateLimitedRequest } from './global-rate-limiter'
+import { reverseDomainService, getReverseDomain } from './reverse-domain-service'
 
 export interface DomainResolutionResult {
   address: string
@@ -34,21 +36,13 @@ class DomainResolver {
   private connection: Connection
   private cache = new Map<string, { result: DomainResolutionResult; timestamp: number }>()
   private reverseCache = new Map<string, { result: DomainInfo; timestamp: number }>()
-  private readonly CACHE_DURATION = 60 * 60 * 1000 // 1 hour - longer cache due to rate limits
+  private readonly CACHE_DURATION = process.env.ENABLE_AGGRESSIVE_CACHING === 'true' 
+    ? 24 * 60 * 60 * 1000  // 24 hours - aggressive caching to reduce API calls
+    : 60 * 60 * 1000       // 1 hour - default
   private tldParser: TldParser
   
-  // Rate limiting
-  private requestQueue: string[] = []
-  private isProcessing = false
-  private readonly MAX_REQUESTS_PER_SECOND = 2
-  private readonly REQUEST_DELAY = 1000 / this.MAX_REQUESTS_PER_SECOND // 500ms between requests
-  private lastRequestTime = 0
-  
-  // Circuit breaker for rate limit failures
-  private rateLimitFailures = 0
-  private readonly MAX_RATE_LIMIT_FAILURES = 5
-  private circuitBreakerResetTime = 0
-  private readonly CIRCUIT_BREAKER_DURATION = 30 * 1000 // 30 seconds
+  // Global rate limiter coordination (local rate limiting removed)
+  private lastActivity = 0
 
   constructor() {
     // Use centralized connection factory for consistent RPC configuration
@@ -56,9 +50,11 @@ class DomainResolver {
     this.tldParser = new TldParser(this.connection)
     
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔧 DomainResolver: Initialized with centralized connection:', {
+      console.log('🔧 DomainResolver: Initialized with global rate limiter coordination:', {
         rpcEndpoint: this.connection.rpcEndpoint,
-        commitment: this.connection.commitment
+        commitment: this.connection.commitment,
+        cacheDuration: this.CACHE_DURATION / (60 * 60 * 1000) + ' hours',
+        aggressiveCaching: process.env.ENABLE_AGGRESSIVE_CACHING === 'true'
       })
     }
   }
@@ -285,74 +281,32 @@ class DomainResolver {
   }
 
   /**
-   * Check if circuit breaker is open (too many rate limit failures)
+   * Track domain resolver activity for monitoring
    */
-  private isCircuitBreakerOpen(): boolean {
-    if (this.rateLimitFailures >= this.MAX_RATE_LIMIT_FAILURES) {
-      if (Date.now() < this.circuitBreakerResetTime) {
-        return true // Circuit breaker still open
-      } else {
-        // Reset circuit breaker
-        this.rateLimitFailures = 0
-        this.circuitBreakerResetTime = 0
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 DomainResolver: Circuit breaker reset')
-        }
-      }
-    }
-    return false
+  private updateActivity(): void {
+    this.lastActivity = Date.now()
   }
   
   /**
-   * Rate limited API call wrapper
+   * Rate limited API call wrapper using global rate limiter
    */
-  private async makeRateLimitedCall<T>(operation: () => Promise<T>): Promise<T> {
-    // Check circuit breaker
-    if (this.isCircuitBreakerOpen()) {
-      throw new Error('Domain resolution temporarily disabled due to rate limits')
-    }
+  private async makeRateLimitedCall<T>(
+    operation: () => Promise<T>, 
+    requestId: string,
+    priority: 'high' | 'normal' | 'low' = 'normal'
+  ): Promise<T> {
+    this.updateActivity()
     
-    // Enforce rate limiting
-    const now = Date.now()
-    const timeSinceLastRequest = now - this.lastRequestTime
-    
-    if (timeSinceLastRequest < this.REQUEST_DELAY) {
-      const delayNeeded = this.REQUEST_DELAY - timeSinceLastRequest
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`⏱️ DomainResolver: Rate limiting - waiting ${delayNeeded}ms`)
-      }
-      await new Promise(resolve => setTimeout(resolve, delayNeeded))
-    }
-    
-    this.lastRequestTime = Date.now()
-    
-    try {
-      const result = await operation()
-      // Reset rate limit failure counter on success
-      this.rateLimitFailures = 0
-      return result
-    } catch (error) {
-      // Check if this is a rate limit error
-      if (error instanceof Error && (error.message.includes('429') || error.message.includes('Too Many Requests'))) {
-        this.rateLimitFailures++
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🚫 DomainResolver: Rate limit failure ${this.rateLimitFailures}/${this.MAX_RATE_LIMIT_FAILURES}`)
-        }
-        
-        if (this.rateLimitFailures >= this.MAX_RATE_LIMIT_FAILURES) {
-          this.circuitBreakerResetTime = Date.now() + this.CIRCUIT_BREAKER_DURATION
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`⛔ DomainResolver: Circuit breaker activated for ${this.CIRCUIT_BREAKER_DURATION / 1000}s`)
-          }
-        }
-      }
-      throw error
-    }
+    return rateLimitedRequest(
+      `domain-resolver-${requestId}`,
+      operation,
+      priority
+    )
   }
 
   /**
    * Reverse resolve: get domain name from wallet address
-   * Uses AllDomains SDK to find all domains owned by an address
+   * Uses new reverse domain service with fallback to old implementation
    * Priority: .skr domains > .sol domains > null
    */
   async reverseResolveAddress(address: string): Promise<DomainInfo> {
@@ -362,11 +316,56 @@ class DomainResolver {
 
     const trimmed = address.trim()
 
-    // Check cache first
-    const cached = this.reverseCache.get(trimmed)
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      return cached.result
+    // Try new reverse domain service first if enabled
+    if (reverseDomainService.isEnabled()) {
+      try {
+        const result = await getReverseDomain(trimmed)
+        
+        if (result.domain) {
+          // Determine domain type
+          let type: 'sol' | 'skr' | null = null
+          if (result.domain.endsWith('.sol')) type = 'sol'
+          else if (result.domain.endsWith('.skr')) type = 'skr'
+
+          const domainInfo: DomainInfo = { domain: result.domain, type }
+          
+          // Cache the result in the old cache for compatibility
+          this.reverseCache.set(trimmed, { result: domainInfo, timestamp: Date.now() })
+          
+          return domainInfo
+        }
+
+        // If new service returned null (no domain found), cache that too
+        if (result.source === 'api' || result.source === 'cache') {
+          const domainInfo: DomainInfo = { domain: null, type: null }
+          this.reverseCache.set(trimmed, { result: domainInfo, timestamp: Date.now() })
+          return domainInfo
+        }
+
+        // If rate limited or error, fall back to old implementation
+        if (result.source === 'truncated' && result.error?.includes('Rate limited')) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 New reverse service rate limited, falling back to old implementation')
+          }
+          // Continue to old implementation below
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 New reverse service error, falling back to old implementation:', error)
+        }
+        // Continue to old implementation below
+      }
     }
+
+    // OLD IMPLEMENTATION DISABLED - AllDomains SDK causes too many 429 errors
+    // Return null result to show truncated addresses instead
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔄 Old reverse resolver disabled for ${trimmed.slice(0, 8)}...${trimmed.slice(-4)} - showing truncated address`)
+    }
+    
+    const result: DomainInfo = { domain: null, type: null }
+    this.reverseCache.set(trimmed, { result, timestamp: Date.now() })
+    return result
 
     try {
       // Debug logging (only in development)
@@ -400,15 +399,19 @@ class DomainResolver {
         }
         
         // Use rate limited call to prevent API abuse
-        allDomains = await this.makeRateLimitedCall(async () => {
-          return await this.tldParser.getParsedAllUserDomains(ownerPublicKey)
-        })
+        allDomains = await this.makeRateLimitedCall(
+          async () => {
+            return await this.tldParser.getParsedAllUserDomains(ownerPublicKey)
+          },
+          `reverse-resolve-${trimmed}`,
+          'high' // User-initiated domain resolution gets high priority
+        )
       } catch (sdkError) {
         if (process.env.NODE_ENV === 'development') {
           console.log(`❌ DomainResolver: AllDomains SDK call failed for ${trimmed.slice(0, 8)}...${trimmed.slice(-4)}`)
-          console.log(`❌ DomainResolver: SDK Error type:`, sdkError instanceof Error ? sdkError.constructor.name : typeof sdkError)
+          console.log(`❌ DomainResolver: SDK Error type:`, sdkError instanceof Error ? (sdkError as Error).constructor.name : typeof sdkError)
           if (sdkError instanceof Error) {
-            console.log(`❌ DomainResolver: SDK Error message:`, sdkError.message)
+            console.log(`❌ DomainResolver: SDK Error message:`, (sdkError as Error).message)
           }
         }
         throw sdkError // Re-throw to be caught by outer try-catch
@@ -418,7 +421,7 @@ class DomainResolver {
         console.log(`📦 DomainResolver: AllDomains SDK response:`, {
           address: `${trimmed.slice(0, 8)}...${trimmed.slice(-4)}`,
           domainsFound: allDomains ? allDomains.length : 0,
-          domains: allDomains?.map(d => d.domain) || []
+          domains: allDomains?.map((d: any) => d.domain) || []
         })
       }
       
@@ -432,15 +435,15 @@ class DomainResolver {
       }
 
       // Filter and prioritize domains: .skr > .sol > others
-      const skrDomains = allDomains.filter(d => d.domain && d.domain.endsWith('.skr'))
-      const solDomains = allDomains.filter(d => d.domain && d.domain.endsWith('.sol'))
+      const skrDomains = allDomains.filter((d: any) => d.domain && d.domain.endsWith('.skr'))
+      const solDomains = allDomains.filter((d: any) => d.domain && d.domain.endsWith('.sol'))
       
       if (process.env.NODE_ENV === 'development') {
         console.log(`🔍 DomainResolver: Domain filtering results:`, {
           address: `${trimmed.slice(0, 8)}...${trimmed.slice(-4)}`,
           totalDomains: allDomains.length,
-          skrDomains: skrDomains.map(d => d.domain),
-          solDomains: solDomains.map(d => d.domain)
+          skrDomains: skrDomains.map((d: any) => d.domain),
+          solDomains: solDomains.map((d: any) => d.domain)
         })
       }
       
@@ -484,8 +487,8 @@ class DomainResolver {
           console.log(`❌ DomainResolver: Error reverse resolving ${trimmed.slice(0, 8)}...${trimmed.slice(-4)}`)
           console.log(`❌ DomainResolver: Basic error info:`, {
             hasError: !!error,
-            errorType: error instanceof Error ? error.constructor.name : typeof error,
-            errorMessage: error instanceof Error ? error.message : 'Non-error object'
+            errorType: error instanceof Error ? (error as Error).constructor.name : typeof error,
+            errorMessage: error instanceof Error ? (error as Error).message : 'Non-error object'
           })
           
           // Try to safely log connection details
@@ -513,12 +516,40 @@ class DomainResolver {
 
   /**
    * Batch reverse resolve multiple addresses for efficiency
-   * Used by sidebar that shows many addresses at once
+   * Uses new reverse domain service when available for better performance
    */
   async batchReverseResolve(addresses: string[]): Promise<Map<string, DomainInfo>> {
     const results = new Map<string, DomainInfo>()
     
-    // Process addresses in parallel for better performance
+    // Try new service first if enabled
+    if (reverseDomainService.isEnabled()) {
+      try {
+        const batchResult = await reverseDomainService.batchGetDomains(addresses)
+        
+        for (const address of addresses) {
+          const result = batchResult.results.get(address)
+          
+          if (result?.domain) {
+            let type: 'sol' | 'skr' | null = null
+            if (result.domain.endsWith('.sol')) type = 'sol'
+            else if (result.domain.endsWith('.skr')) type = 'skr'
+            
+            results.set(address, { domain: result.domain, type })
+          } else {
+            results.set(address, { domain: null, type: null })
+          }
+        }
+        
+        return results
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 Batch reverse resolve via new service failed, falling back to individual lookups:', error)
+        }
+        // Fall through to old implementation
+      }
+    }
+    
+    // Fallback: individual lookups
     const promises = addresses.map(async (address) => {
       const result = await this.reverseResolveAddress(address)
       return { address, result }
