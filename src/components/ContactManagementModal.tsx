@@ -206,7 +206,7 @@ const ContactManagementModal: React.FC<ContactManagementModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[9999] p-4 pt-16 sm:pt-4 overflow-y-auto"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[10000] p-4 pt-16 sm:pt-4 overflow-y-auto"
       onClick={handleOverlayClick}
     >
       <div

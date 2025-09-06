@@ -46,6 +46,9 @@ import MessageDisplay from "@/components/chat/MessageDisplay"
 import MessageInput from "@/components/chat/MessageInput"
 import NewChatModal from "@/components/chat/NewChatModal"
 import MobileHeader from "@/components/chat/MobileHeader"
+import AddContactModal from "@/components/AddContactModal"
+import ContactManagementModal from "@/components/ContactManagementModal"
+import AirdropCheckModal from "@/components/AirdropCheckModal"
 import { getThemeColors, formatRelativeTime } from "@/components/chat/utils"
 
 interface NewChatData {
@@ -111,6 +114,11 @@ export default function ChatApp() {
   const [isAppLoaded, setIsAppLoaded] = useState(false)
   const [hideWelcomeScreen, setHideWelcomeScreen] = useState(false)
   const [hasEverAuthenticated, setHasEverAuthenticated] = useState(false)
+  
+  // Modal states for contact management
+  const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
+  const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
+  const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
   
   // Typing detection refs
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -1184,6 +1192,27 @@ export default function ChatApp() {
     stickerState.handleStickerSelect(null)
     stickerState.setCurrentMessage("")
   }, [connected, publicKey, stickerState])
+  
+  // Modal callback functions
+  const handleAddContactClick = useCallback(() => {
+    setIsAddContactModalOpen(true)
+  }, [])
+  
+  const handleManageContactsClick = useCallback(() => {
+    setIsManageContactsModalOpen(true)
+  }, [])
+  
+  const handleAirdropCheckClick = useCallback(() => {
+    setIsAirdropCheckModalOpen(true)
+  }, [])
+  
+  const handleContactAdded = useCallback((contact: any) => {
+    console.log('✅ Contact added, refreshing list...', contact.name)
+    // Small delay to ensure database transaction is complete
+    setTimeout(() => {
+      refreshUserContacts()
+    }, 100)
+  }, [refreshUserContacts])
 
   return (
     <div className="h-screen w-screen relative overflow-hidden">
@@ -1256,6 +1285,9 @@ export default function ChatApp() {
           onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           onCopyWalletAddress={handleCopyWalletAddress}
           onContactRefresh={refreshUserContacts}
+          onAddContactClick={handleAddContactClick}
+          onManageContactsClick={handleManageContactsClick}
+          onAirdropCheckClick={handleAirdropCheckClick}
         />
       </div>
 
@@ -1506,6 +1538,26 @@ export default function ChatApp() {
         onClose={() => setIsStickerPickerOpen(false)}
         onStickerSelect={stickerState.handleStickerSelect}
         colors={colors}
+      />
+
+      {/* Contact Management Modals - Rendered at root level to avoid stacking context issues */}
+      <AddContactModal
+        isOpen={isAddContactModalOpen}
+        onClose={() => setIsAddContactModalOpen(false)}
+        onContactAdded={handleContactAdded}
+        isDarkMode={isDarkMode}
+      />
+
+      <ContactManagementModal
+        isOpen={isManageContactsModalOpen}
+        onClose={() => setIsManageContactsModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
+      <AirdropCheckModal
+        isOpen={isAirdropCheckModalOpen}
+        onClose={() => setIsAirdropCheckModalOpen(false)}
+        isDarkMode={isDarkMode}
       />
 
       {/* Development Test Button - Hidden */}

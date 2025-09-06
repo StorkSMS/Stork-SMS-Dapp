@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, MoreVertical, UserPlus, Users, Plane } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
-import AddContactModal from "@/components/AddContactModal"
-import ContactManagementModal from "@/components/ContactManagementModal"
-import AirdropCheckModal from "@/components/AirdropCheckModal"
 import ContactHeader from "@/components/ContactHeader"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
@@ -26,6 +23,9 @@ interface MobileHeaderProps {
   onMenuToggle: () => void
   onCopyWalletAddress: (address: string) => void
   onContactRefresh?: () => void
+  onAddContactClick: () => void
+  onManageContactsClick: () => void
+  onAirdropCheckClick: () => void
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -40,6 +40,9 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   onMenuToggle,
   onCopyWalletAddress,
   onContactRefresh,
+  onAddContactClick,
+  onManageContactsClick,
+  onAirdropCheckClick,
 }) => {
   const { isAuthenticated } = useAuth()
   const { contacts, refreshUserContacts } = useContacts()
@@ -62,9 +65,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   // Social menu dropdown state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
-  const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
-  const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -84,37 +84,27 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
     }
   }, [isMenuOpen])
 
-  const handleAddContactClick = () => {
+  const handleAddContactClickInternal = () => {
     if (!isAuthenticated) {
       alert('Please connect and authenticate your wallet to add contacts')
       return
     }
     setIsMenuOpen(false)
-    setIsAddContactModalOpen(true)
+    onAddContactClick()
   }
 
-  const handleContactAdded = (contact: any) => {
-    console.log('✅ Contact added, refreshing list...', contact.name)
-    // Small delay to ensure database transaction is complete
-    setTimeout(() => {
-      refreshUserContacts()
-      // Also refresh parent's contacts (for NewChatModal)
-      onContactRefresh?.()
-    }, 100)
-  }
-
-  const handleManageContactsClick = () => {
+  const handleManageContactsClickInternal = () => {
     if (!isAuthenticated) {
       alert('Please connect and authenticate your wallet to manage contacts')
       return
     }
     setIsMenuOpen(false)
-    setIsManageContactsModalOpen(true)
+    onManageContactsClick()
   }
 
-  const handleAirdropCheckClick = () => {
+  const handleAirdropCheckClickInternal = () => {
     setIsMenuOpen(false)
-    setIsAirdropCheckModalOpen(true)
+    onAirdropCheckClick()
   }
   
   return (
@@ -227,7 +217,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
               }}
             >
               <button
-                onClick={handleAddContactClick}
+                onClick={handleAddContactClickInternal}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
                 style={{ color: colors.text }}
               >
@@ -235,7 +225,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Add Contact</span>
               </button>
               <button
-                onClick={handleManageContactsClick}
+                onClick={handleManageContactsClickInternal}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
                 style={{ color: colors.text }}
               >
@@ -243,7 +233,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
               </button>
               <button
-                onClick={handleAirdropCheckClick}
+                onClick={handleAirdropCheckClickInternal}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
                 style={{ color: colors.text }}
               >
@@ -285,27 +275,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       </div>
       
-      {/* Add Contact Modal */}
-      <AddContactModal
-        isOpen={isAddContactModalOpen}
-        onClose={() => setIsAddContactModalOpen(false)}
-        onContactAdded={handleContactAdded}
-        isDarkMode={isDarkMode}
-      />
-
-      {/* Manage Contacts Modal */}
-      <ContactManagementModal
-        isOpen={isManageContactsModalOpen}
-        onClose={() => setIsManageContactsModalOpen(false)}
-        isDarkMode={isDarkMode}
-      />
-
-      {/* Airdrop Check Modal */}
-      <AirdropCheckModal
-        isOpen={isAirdropCheckModalOpen}
-        onClose={() => setIsAirdropCheckModalOpen(false)}
-        isDarkMode={isDarkMode}
-      />
     </div>
   )
 }
