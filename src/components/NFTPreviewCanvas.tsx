@@ -163,7 +163,166 @@ function wrapText(
   return lines
 }
 
-// Apply letter spacing - same as backend
+// Function to convert emojis to text representations - same as backend
+function emojiToText(emoji: string): string {
+  const emojiMap: Record<string, string> = {
+    '😊': 'SMILE',
+    '😂': 'LOL',
+    '❤️': 'HEART',
+    '🚀': 'ROCKET',
+    '🎉': 'PARTY',
+    '💎': 'GEM',
+    '🔥': 'FIRE',
+    '🌙': 'MOON',
+    '🎵': 'MUSIC',
+    '🍕': 'PIZZA',
+    '👨‍💻': ':man_technologist:',
+    '👩‍🚀': ':woman_astronaut:',
+    '🏴‍☠️': ':pirate_flag:',
+    '💯': ':100:',
+    '✨': ':sparkles:',
+    '🎯': ':direct_hit:',
+    '🎨': ':art:',
+    '🔮': ':crystal_ball:',
+    '⚡': ':zap:',
+    '🌟': ':star2:',
+    '🎪': ':circus_tent:',
+    '🎭': ':performing_arts:',
+    '😀': ':grinning:',
+    '😃': ':smiley:',
+    '😄': ':smile:',
+    '😁': ':grin:',
+    '😅': ':sweat_smile:',
+    '😆': ':laughing:',
+    '🤣': ':rofl:',
+    '😇': ':innocent:',
+    '😍': ':heart_eyes:',
+    '🥰': ':smiling_face_with_hearts:',
+    '😘': ':kissing_heart:',
+    '😗': ':kissing:',
+    '😙': ':kissing_smiling_eyes:',
+    '😚': ':kissing_closed_eyes:',
+    '😋': ':yum:',
+    '😛': ':stuck_out_tongue:',
+    '😜': ':stuck_out_tongue_winking_eye:',
+    '🤪': ':zany_face:',
+    '😝': ':stuck_out_tongue_closed_eyes:',
+    '🤑': ':money_mouth_face:',
+    '🤗': ':hugs:',
+    '🤭': ':hand_over_mouth:',
+    '🤫': ':shushing_face:',
+    '🤔': ':thinking:',
+    '🤐': ':zipper_mouth_face:',
+    '🤨': ':raised_eyebrow:',
+    '😐': ':neutral_face:',
+    '😑': ':expressionless:',
+    '😶': ':no_mouth:',
+    '😏': ':smirk:',
+    '😒': ':unamused:',
+    '🙄': ':roll_eyes:',
+    '😬': ':grimacing:',
+    '🤥': ':lying_face:',
+    '😔': ':pensive:',
+    '😕': ':confused:',
+    '🙁': ':slightly_frowning_face:',
+    '☹️': ':frowning_face:',
+    '😣': ':persevere:',
+    '😖': ':confounded:',
+    '😫': ':tired_face:',
+    '😩': ':weary:',
+    '🥺': ':pleading_face:',
+    '😢': ':cry:',
+    '😭': ':sob:',
+    '😤': ':huffing:',
+    '😠': ':angry:',
+    '😡': ':rage:',
+    '🤬': ':face_with_symbols_over_mouth:',
+    '🤯': ':exploding_head:',
+    '😳': ':flushed:',
+    '🥵': ':hot_face:',
+    '🥶': ':cold_face:',
+    '😱': ':scream:',
+    '😨': ':fearful:',
+    '😰': ':cold_sweat:',
+    '😥': ':disappointed_relieved:',
+    '😓': ':sweat:',
+    '🤗': ':hugs:',
+    '🤡': ':clown_face:',
+    '🥳': ':partying_face:',
+    '🥴': ':woozy_face:',
+    '🥸': ':disguised_face:',
+    '😷': ':mask:',
+    '🤒': ':thermometer_face:',
+    '🤕': ':head_bandage:',
+    '🤢': ':nauseated_face:',
+    '🤮': ':vomiting_face:',
+    '🤧': ':sneezing_face:',
+    '😵': ':dizzy_face:',
+    '😵‍💫': ':face_with_spiral_eyes:',
+    '🤠': ':cowboy_hat_face:',
+    '🥺': ':pleading_face:',
+    '🫠': ':melting_face:',
+    '🫡': ':saluting_face:',
+    '🫢': ':face_with_open_eyes_and_hand_over_mouth:',
+    '🫣': ':face_with_peeking_eye:',
+    '🫤': ':face_with_diagonal_mouth:',
+    '🫥': ':dotted_line_face:'
+  }
+  
+  const result = emojiMap[emoji] || 'EMOJI'
+  console.log(`🔄 Frontend emoji mapping: ${emoji} -> ${result}`)
+  return result
+}
+
+// Function to replace emojis with text representations - same as backend
+function replaceEmojisWithText(text: string): string {
+  return text.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}]/gu, (emoji) => {
+    const replacement = emojiToText(emoji)
+    console.log(`🔄 Frontend: Replacing emoji '${emoji}' with '${replacement}'`)
+    return replacement
+  })
+}
+
+// Smart text rendering with emoji font switching - same as backend
+function renderTextWithEmojiSupport(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  letterSpacing: number
+): void {
+  // Split text into proper grapheme clusters
+  const chars = [...text]  // This handles emoji properly in modern browsers
+  let currentX = x
+  
+  // Store fonts
+  const textFont = `500 ${fontSize}px "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
+  const emojiFont = `500 ${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Helvetica Neue", system-ui, sans-serif`
+  
+  for (const char of chars) {
+    // Check if character is an emoji
+    const isEmoji = /[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}]/u.test(char)
+    
+    if (isEmoji) {
+      // Switch to emoji font for this character
+      ctx.font = emojiFont
+      console.log(`🎨 Frontend: Rendering emoji: ${char} with emoji font`)
+    } else {
+      // Use original Helvetica Neue font for text
+      ctx.font = textFont
+    }
+    
+    ctx.fillText(char, currentX, y)
+    const charWidth = ctx.measureText(char).width
+    currentX += charWidth + letterSpacing
+  }
+  
+  // Restore original font
+  ctx.font = textFont
+}
+
+// Keep original letter spacing function as fallback
 function applyLetterSpacing(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -279,14 +438,22 @@ export default function NFTPreviewCanvas({
     // Only draw text if it's not faded (i.e., when no sticker is selected)
     const paperRipLayer = LAYER_ASSETS.find(layer => layer.name === 'paper-rip')
     if (paperRipLayer && messageContent.trim() && !isTextFaded) {
-      const truncatedMessage = messageContent.length > TEXT_AREA.maxChars 
-        ? messageContent.substring(0, TEXT_AREA.maxChars) + '...'
-        : messageContent
+      // Check for emojis - in browser canvas, we can try native emoji rendering first
+      const containsEmoji = /\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}/u.test(messageContent)
+      console.log('🖼️ Frontend preview: Contains emojis:', containsEmoji)
+      
+      // Keep original message with emojis - we'll render them with smart font switching
+      const processedMessage = messageContent
+      console.log('🎭 Frontend preview: Original message with emojis:', processedMessage.substring(0, 100))
+      
+      const truncatedMessage = processedMessage.length > TEXT_AREA.maxChars 
+        ? processedMessage.substring(0, TEXT_AREA.maxChars) + '...'
+        : processedMessage
 
       const fontSize = calculateFontSize(truncatedMessage.length)
       const letterSpacing = fontSize * TEXT_AREA.letterSpacing
       
-      // Set font - using Helvetica Neue with fallbacks (same as backend)
+      // Set font - using Helvetica Neue (same as original)
       ctx.font = `500 ${fontSize}px "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
       ctx.fillStyle = '#000000'
       ctx.textAlign = 'left'
@@ -305,12 +472,12 @@ export default function NFTPreviewCanvas({
       const totalTextHeight = lines.length * lineHeight
       const startY = textBoxCenterY - (totalTextHeight / 2)
       
-      // Draw each line left-aligned
+      // Draw each line with smart emoji font switching
       lines.forEach((line, index) => {
         const currentY = startY + (index * lineHeight)
         if (currentY >= 0 && currentY < CANVAS_HEIGHT) {
-          // Left-aligned text with letter spacing
-          applyLetterSpacing(ctx, line, textBoxLeftX, currentY, letterSpacing)
+          // Use smart font switching for emojis
+          renderTextWithEmojiSupport(ctx, line, textBoxLeftX, currentY, fontSize, letterSpacing)
         }
       })
     }

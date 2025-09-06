@@ -39,6 +39,33 @@ function calculateFontSize(characterCount: number): number {
   return baseSize * 0.35 // For 250+ characters
 }
 
+// Function to convert emojis to text representations - same as backend
+function emojiToText(emoji: string): string {
+  const emojiMap: Record<string, string> = {
+    '😊': ':smile:',
+    '😂': ':joy:',
+    '❤️': ':heart:',
+    '🚀': ':rocket:',
+    '🎉': ':tada:',
+    '💎': ':gem:',
+    '🔥': ':fire:',
+    '🌙': ':moon:',
+    '🎵': ':musical_note:',
+    '🍕': ':pizza:'
+  }
+  
+  return emojiMap[emoji] || emoji
+}
+
+// Function to replace emojis with text representations - same as backend
+function replaceEmojisWithText(text: string): string {
+  return text.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}]/gu, (emoji) => {
+    const replacement = emojiToText(emoji)
+    console.log(`🔄 Sender Frontend: Replacing emoji '${emoji}' with '${replacement}'`)
+    return replacement
+  })
+}
+
 function applyLetterSpacing(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -145,7 +172,10 @@ export default function SenderNFTPreviewCanvas({
 
     // Generate sender message
     const last5Chars = recipientWallet.slice(-5)
-    const senderMessage = `You started a conversation with ...${last5Chars}`
+    const rawSenderMessage = `You started a conversation with ...${last5Chars}`
+    
+    // Convert any emojis in the message (though unlikely in this generated text)
+    const senderMessage = replaceEmojisWithText(rawSenderMessage)
 
     console.log('📝 Sender: Message:', senderMessage)
 
@@ -157,7 +187,7 @@ export default function SenderNFTPreviewCanvas({
     console.log('🔤 Sender: Calculated font size:', fontSize, 'px')
     console.log('📐 Sender: Letter spacing:', letterSpacing, 'px')
 
-    // Set font - using Helvetica Neue medium weight with more specific name
+    // Set font - using Helvetica Neue medium weight (same as original)
     ctx.font = `500 ${fontSize}px "HelveticaNeue-Medium", "Helvetica Neue", "Helvetica", Arial, sans-serif`
     ctx.fillStyle = '#000000'
     ctx.textAlign = 'left'

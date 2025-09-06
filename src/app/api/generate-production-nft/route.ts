@@ -147,6 +147,9 @@ function wrapText(
   text: string,
   maxWidth: number
 ): string[] {
+  // Handle empty text
+  if (!text.trim()) return []
+  
   const words = text.split(' ')
   const lines: string[] = []
   let currentLine = words[0] || ''
@@ -156,7 +159,7 @@ function wrapText(
     const testLine = currentLine + ' ' + word
     const metrics = ctx.measureText(testLine)
     
-    if (metrics.width > maxWidth) {
+    if (metrics.width > maxWidth && currentLine.length > 0) {
       lines.push(currentLine)
       currentLine = word
     } else {
@@ -164,8 +167,50 @@ function wrapText(
     }
   }
   
-  lines.push(currentLine)
+  if (currentLine.length > 0) {
+    lines.push(currentLine)
+  }
+  
   return lines
+}
+
+// Smart text rendering with emoji font switching
+function renderTextWithEmojiSupport(
+  ctx: any,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  letterSpacing: number
+): void {
+  // Split text into grapheme clusters to properly handle emojis
+  const chars = segmentText(text)
+  let currentX = x
+  
+  // Store original font for text
+  const textFont = `500 ${fontSize}px "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
+  const emojiFont = `500 ${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Helvetica Neue", system-ui, sans-serif`
+  
+  for (const char of chars) {
+    // Check if character is an emoji
+    const isEmoji = /[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}]/u.test(char)
+    
+    if (isEmoji) {
+      // Switch to emoji font for this character
+      ctx.font = emojiFont
+      console.log(`🎨 Rendering emoji: ${char} with emoji font`)
+    } else {
+      // Use original Helvetica Neue font for text
+      ctx.font = textFont
+    }
+    
+    ctx.fillText(char, currentX, y)
+    const charWidth = ctx.measureText(char).width
+    currentX += charWidth + letterSpacing
+  }
+  
+  // Restore original font
+  ctx.font = textFont
 }
 
 function applyLetterSpacing(
@@ -175,7 +220,8 @@ function applyLetterSpacing(
   y: number,
   letterSpacing: number
 ): void {
-  const chars = text.split('')
+  // Split text into grapheme clusters to properly handle emojis and multi-codepoint characters
+  const chars = segmentText(text)
   let currentX = x
   
   chars.forEach((char) => {
@@ -185,16 +231,41 @@ function applyLetterSpacing(
   })
 }
 
+// Helper function to properly segment text including emojis and complex characters
+function segmentText(text: string): string[] {
+  // Use Intl.Segmenter if available (Node.js 16+), otherwise fallback to basic splitting
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
+    return Array.from(segmenter.segment(text), s => s.segment)
+  }
+  
+  // Fallback for older Node.js versions - basic emoji-aware splitting
+  return text.split(/(\p{Extended_Pictographic}\u{FE0F}?|\p{Emoji_Presentation}|\p{Emoji}\u{FE0F})/gu).filter(Boolean)
+}
+
+// Note: Removed emoji-to-text conversion - we now render real emojis with font switching
+
+// Note: Removed complex emoji image loading and text parsing - now using simple font switching
+
 async function generateProductionNFT(request: GenerateProductionNFTRequest): Promise<Buffer> {
   const { messageContent, senderWallet, recipientWallet, sticker } = request
   
   console.log('🖼️ Starting production NFT generation...')
   console.log('📏 Original message length:', messageContent.length)
+  console.log('🎭 Message preview:', messageContent.substring(0, 100))
   
-  // Truncate message if too long
-  const truncatedMessage = messageContent.length > TEXT_AREA.maxChars 
-    ? messageContent.substring(0, TEXT_AREA.maxChars) + '...'
-    : messageContent
+  // Check for emojis in the message and convert them
+  const containsEmoji = /\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}/u.test(messageContent)
+  console.log('😀 Contains emojis:', containsEmoji)
+  
+  // Keep original message with emojis - we'll render them properly with font switching
+  const processedMessage = messageContent
+  console.log('🎭 Original message with emojis preserved:', processedMessage.substring(0, 100))
+  
+  // Truncate processed message if too long
+  const truncatedMessage = processedMessage.length > TEXT_AREA.maxChars 
+    ? processedMessage.substring(0, TEXT_AREA.maxChars) + '...'
+    : processedMessage
     
   console.log('✂️ Final message for NFT:', truncatedMessage)
   console.log('🎨 Text area specs:', TEXT_AREA)
@@ -255,7 +326,7 @@ async function generateProductionNFT(request: GenerateProductionNFTRequest): Pro
     console.log('🔤 Font size:', fontSize)
     console.log('📐 Letter spacing:', letterSpacing)
     
-    // Set font - using Helvetica Neue with fallbacks (same as frontend)
+    // Set font - using Helvetica Neue (same as original)
     ctx.font = `500 ${fontSize}px "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`
     ctx.fillStyle = '#000000'
     ctx.textAlign = 'left'
@@ -285,14 +356,14 @@ async function generateProductionNFT(request: GenerateProductionNFTRequest): Pro
     console.log('📏 Total text height:', totalTextHeight)
     console.log('🎯 Final startY:', startY)
     
-    // Draw each line left-aligned
-    console.log('📄 Drawing', lines.length, 'lines of text')
+    // Draw each line with smart emoji font switching
+    console.log('📄 Drawing', lines.length, 'lines with emoji support')
     lines.forEach((line, index) => {
       const currentY = startY + (index * lineHeight)
       console.log(`📍 Line ${index + 1}: "${line}" at Y=${currentY}`)
       if (currentY >= 0 && currentY < CANVAS_HEIGHT) {
-        // Left-aligned text with letter spacing
-        applyLetterSpacing(ctx, line, textBoxLeftX, currentY, letterSpacing)
+        // Use smart font switching for emojis
+        renderTextWithEmojiSupport(ctx, line, textBoxLeftX, currentY, fontSize, letterSpacing)
       } else {
         console.log('⚠️ Line outside canvas bounds')
       }

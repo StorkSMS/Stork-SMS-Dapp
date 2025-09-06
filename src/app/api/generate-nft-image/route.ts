@@ -101,6 +101,9 @@ const themes: Record<string, CanvasTheme> = {
 }
 
 function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  // Handle empty text
+  if (!text || !text.trim()) return []
+  
   const words = text.split(' ')
   const lines: string[] = []
   let currentLine = words[0]
@@ -108,14 +111,18 @@ function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: num
   for (let i = 1; i < words.length; i++) {
     const word = words[i]
     const width = context.measureText(currentLine + ' ' + word).width
-    if (width < maxWidth) {
+    if (width < maxWidth && currentLine.length > 0) {
       currentLine += ' ' + word
     } else {
       lines.push(currentLine)
       currentLine = word
     }
   }
-  lines.push(currentLine)
+  
+  if (currentLine && currentLine.length > 0) {
+    lines.push(currentLine)
+  }
+  
   return lines
 }
 
@@ -205,24 +212,66 @@ async function generateNFTImage(request: GenerateNFTImageRequest): Promise<Buffe
   ctx.shadowOffsetX = 0
   ctx.shadowOffsetY = 0
   
-  // Set up text styling
+  // Set up text styling (original font)
   ctx.fillStyle = config.textColor
   ctx.font = `${config.fontSize}px ${config.fontFamily}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'top'
   
+  // Note: For simple NFT generation, we'll convert emojis to text for now
+  // The production NFT system handles emoji images properly
+  function emojiToText(emoji: string): string {
+    const emojiMap: Record<string, string> = {
+      '😊': '☺',  // Use simple smiley face
+      '😂': 'LOL',
+      '❤️': '♥',   // Simple heart
+      '🚀': '^',     // Arrow up
+      '🎉': '*',     // Star
+      '💎': '◆',  // Diamond
+      '🔥': '~',     // Tilde
+      '🌙': '☽',  // Moon
+      '🎵': '♫',  // Musical note
+      '🍕': 'pizza',
+      '👨‍💻': 'dev',
+      '👩‍🚀': 'astronaut',
+      '🏴‍☠️': 'pirate',
+      '💯': '100',
+      '✨': '★',      // Star
+      '🎯': '•',  // Bullet
+      '🎨': 'art',
+      '🔮': 'crystal',
+      '⚡': '↯',      // Lightning
+      '🌟': '★'   // Star
+    }
+    
+    return emojiMap[emoji] || '[emoji]'
+  }
+  
+  // Function to replace emojis with simple text/symbol representations
+  function replaceEmojisWithText(text: string): string {
+    return text.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}]/gu, (emoji) => {
+      const replacement = emojiToText(emoji)
+      console.log(`🔄 Simple NFT: Replacing emoji '${emoji}' with '${replacement}'`)
+      return replacement
+    })
+  }
+
   // Prepare message content based on NFT type
-  let displayMessage: string
+  let rawDisplayMessage: string
   let headerText: string
   
   if (nftType === 'sender') {
     const truncatedRecipient = truncateWalletAddress(recipientWallet, 6, 4)
-    displayMessage = `you started a chat with ${truncatedRecipient}`
+    rawDisplayMessage = `you started a chat with ${truncatedRecipient}`
     headerText = 'Stork Chat Initiated'
   } else {
-    displayMessage = truncateMessage(messageContent, 400)
+    rawDisplayMessage = truncateMessage(messageContent, 400)
     headerText = 'Stork Message'
   }
+  
+  // Convert emojis to simple symbols for Canvas compatibility
+  const displayMessage = replaceEmojisWithText(rawDisplayMessage)
+  console.log('🎨 Simple NFT: Using emoji-to-symbol conversion for compatibility')
   
   // Calculate text area
   const textPadding = 60
@@ -249,6 +298,7 @@ async function generateNFTImage(request: GenerateNFTImageRequest): Promise<Buffe
   lines.forEach((line, index) => {
     const y = textY + (index * lineHeight)
     if (y + lineHeight <= contentY + contentHeight - textPadding) {
+      // Render with simple emoji-to-symbol conversion
       ctx.fillText(line, width / 2, y)
     }
   })
