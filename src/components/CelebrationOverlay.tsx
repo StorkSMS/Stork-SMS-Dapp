@@ -18,7 +18,6 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
 }) => {
   const [mounted, setMounted] = useState(false)
   const confettiTimeout = useRef<NodeJS.Timeout | null>(null)
-  const autoCloseTimeout = useRef<NodeJS.Timeout | null>(null)
 
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
