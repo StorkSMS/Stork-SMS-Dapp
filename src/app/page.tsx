@@ -49,6 +49,7 @@ import MobileHeader from "@/components/chat/MobileHeader"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
 import AirdropCheckModal from "@/components/AirdropCheckModal"
+import CelebrationOverlay from "@/components/CelebrationOverlay"
 import { getThemeColors, formatRelativeTime } from "@/components/chat/utils"
 
 interface NewChatData {
@@ -119,6 +120,7 @@ export default function ChatApp() {
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
   const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
   const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
+  const [isCelebrationOverlayOpen, setIsCelebrationOverlayOpen] = useState(false)
   
   // Typing detection refs
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -129,6 +131,11 @@ export default function ChatApp() {
     navigator.clipboard.writeText(address)
     setShowCopyToast(true)
     setTimeout(() => setShowCopyToast(false), 2000)
+  }, [])
+
+  // Celebration overlay handler
+  const handleCloseCelebrationOverlay = useCallback(() => {
+    setIsCelebrationOverlayOpen(false)
   }, [])
   
   // Initialize sticker state for new chat
@@ -228,6 +235,11 @@ export default function ChatApp() {
       if (!isMobile) {
         // Desktop: immediate animation
         setIsAppLoaded(true)
+        
+        // Show celebration overlay on every page load
+        setTimeout(() => {
+          setIsCelebrationOverlayOpen(true)
+        }, 1000)
       }
       // Mobile: wait for wallet connection (don't set isAppLoaded)
     }, 100) // Small delay to ensure mobile detection is complete
@@ -245,6 +257,10 @@ export default function ChatApp() {
   // Trigger mobile animation after wallet connects AND authenticates
   useEffect(() => {
     if (isMobile && connected && isActuallyAuthenticated) {
+      // Show celebration overlay on every page load (mobile)
+      setTimeout(() => {
+        setIsCelebrationOverlayOpen(true)
+      }, 1500) // Slightly longer delay for mobile
       const animationTimer = setTimeout(() => {
         setIsAppLoaded(true)
         // Open sidebar by default on mobile after wallet connection
@@ -1557,6 +1573,12 @@ export default function ChatApp() {
       <AirdropCheckModal
         isOpen={isAirdropCheckModalOpen}
         onClose={() => setIsAirdropCheckModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
+      <CelebrationOverlay
+        isOpen={isCelebrationOverlayOpen}
+        onClose={handleCloseCelebrationOverlay}
         isDarkMode={isDarkMode}
       />
 

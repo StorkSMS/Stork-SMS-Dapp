@@ -85,6 +85,44 @@ class AirdropService {
   }
 
   /**
+   * Check if wallet participated in the 7-Day Developer Updates promotional campaign
+   */
+  private async isPromotionalParticipant(address: string): Promise<{ isParticipant: boolean; reason?: string }> {
+    try {
+      console.log(`🎉 Checking promotional participation for wallet: ${address.slice(0, 8)}...${address.slice(-4)}`)
+      
+      // Make API call to check promotional participation
+      const response = await fetch(`/api/check-promotional-participant?wallet=${encodeURIComponent(address)}`)
+      
+      if (!response.ok) {
+        console.error('❌ API error checking promotional participation:', response.status)
+        return { isParticipant: false }
+      }
+
+      const result = await response.json()
+
+      if (result.isParticipant) {
+        console.log('✅ Found promotional participant:', {
+          firstChatAt: result.firstChatAt,
+          chatCount: result.chatCount
+        })
+        
+        return {
+          isParticipant: true,
+          reason: `7-Day Developer Updates Campaign Participant (${result.chatCount} chat${result.chatCount === 1 ? '' : 's'} created)`
+        }
+      }
+
+      console.log('📝 Wallet did not participate in promotional campaign')
+      return { isParticipant: false }
+      
+    } catch (error) {
+      console.error('❌ Error checking promotional participation:', error)
+      return { isParticipant: false }
+    }
+  }
+
+  /**
    * Check if wallet address is in manual whitelist
    */
   private async isWhitelisted(address: string): Promise<{ isWhitelisted: boolean; reason?: string }> {
@@ -326,6 +364,23 @@ class AirdropService {
             }
           }
           
+          // Check promotional participation (no API call needed, database query)
+          const promotionalCheck = await this.isPromotionalParticipant(walletAddress)
+          if (promotionalCheck.isParticipant) {
+            // Skip Genesis Token checks if already eligible through promotional campaign
+            hasSeeker = false
+            
+            // Cache the negative results to avoid future API calls
+            this.setCachedGenesisTokens(walletAddress, false)
+            
+            return {
+              isEligible: true,
+              address: walletAddress,
+              domain,
+              reason: promotionalCheck.reason
+            }
+          }
+          
           // Check Genesis Tokens sequentially to avoid hitting rate limits
           hasSeeker = await this.hasSeekerGenesisToken(walletAddress)
           
@@ -369,6 +424,17 @@ class AirdropService {
             domain,
             reason: `Successful report-a-bug and request-a-feature wallet: ${whitelistCheck.reason}`
           }
+        }
+      }
+
+      // Check promotional campaign participation
+      const promotionalCheck = await this.isPromotionalParticipant(walletAddress)
+      if (promotionalCheck.isParticipant) {
+        return {
+          isEligible: true,
+          address: walletAddress,
+          domain,
+          reason: promotionalCheck.reason
         }
       }
 

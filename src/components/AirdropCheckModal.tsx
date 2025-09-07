@@ -327,7 +327,7 @@ const AirdropCheckModal: React.FC<AirdropCheckModalProps> = ({
               fontFamily: "Helvetica Neue, sans-serif" 
             }}
           >
-            Eligible wallets: Seeker device owners (.skr domains) and successful report-a-bug and request-a-feature wallets
+            Eligible wallets: Seeker device owners (.skr domains), successful report-a-bug and request-a-feature wallets, and 7-Day Developer Updates Campaign participants
           </p>
         </div>
       </div>

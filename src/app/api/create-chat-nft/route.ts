@@ -30,7 +30,7 @@ import { v4 as uuidv4 } from 'uuid'
 import type { MessageNFTMetadata, NFTAttribute } from '@/types/nft'
 
 // NFT creation pricing
-const TOTAL_COST_SOL = 0.001 // Total cost for dual NFT creation
+const TOTAL_COST_SOL = 0.0033 // Total cost for dual NFT creation
 const STORK_DISCOUNT = 0.2 // 20% discount for STORK payments
 const NFT_CREATION_COST_SOL = 0.00165 // Per NFT (for legacy compatibility)
 const FEE_PERCENTAGE = 0 // No separate fee - flat pricing
@@ -673,6 +673,67 @@ async function storeChatRecord(
   }
 }
 
+// Promotional tracking helper function
+async function trackPromotionalParticipation(walletAddress: string, authenticatedSupabase: any) {
+  try {
+    // Check if we're in the promotional period (configurable for testing)
+    const now = new Date()
+    
+    // For testing purposes, we'll track all new chats created from now on
+    // In production, you would set specific start/end dates:
+    // const promotionStart = new Date('2025-09-08T01:00:00Z')
+    // const promotionEnd = new Date('2025-09-09T00:59:59Z')
+    // if (now < promotionStart || now > promotionEnd) return
+    
+    console.log('🎉 Attempting to track promotional participation for wallet:', walletAddress.slice(0, 8) + '...')
+    
+    // Try to insert or update the promotional participant record
+    const { data, error } = await authenticatedSupabase
+      .from('promotional_participants')
+      .upsert(
+        {
+          wallet_address: walletAddress,
+          first_chat_created_at: now.toISOString(),
+          chat_count: 1
+        },
+        {
+          onConflict: 'wallet_address',
+          ignoreDuplicates: false
+        }
+      )
+      .select()
+
+    if (error) {
+      console.error('❌ Failed to track promotional participation:', error)
+      // Don't fail the main request if promotional tracking fails
+      return
+    }
+
+    console.log('✅ Successfully tracked promotional participation for wallet:', walletAddress.slice(0, 8) + '...')
+    
+    // If this is an existing participant, increment their chat count
+    if (data && data.length > 0) {
+      const { error: updateError } = await authenticatedSupabase
+        .from('promotional_participants')
+        .update({ 
+          chat_count: data[0].chat_count + 1,
+          updated_at: now.toISOString()
+        })
+        .eq('wallet_address', walletAddress)
+      
+      if (updateError) {
+        console.error('❌ Failed to update chat count:', updateError)
+      } else {
+        console.log('✅ Updated chat count for existing participant')
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Promotional tracking error:', error)
+    // Don't fail the main request if promotional tracking fails
+  }
+}
+
 async function createChatNFTHandler(request: NextRequest) {
   console.log('🟢🟢🟢 MAIN CREATE-CHAT-NFT ROUTE CALLED 🟢🟢🟢')
   
@@ -903,6 +964,9 @@ async function createChatNFTHandler(request: NextRequest) {
       )
       result.chatRecordId = chatRecordId
       
+      // Track promotional participation after successful chat creation
+      await trackPromotionalParticipation(requestBody.senderWallet, authenticatedSupabase)
+      
       result.success = true
       
       return NextResponse.json(result)
@@ -940,7 +1004,7 @@ export async function GET() {
     companyWallet: companyWalletPublicKey.toBase58(),
     network: 'Solana Devnet',
     process: [
-      '1. Collect payment from sender (0.001 SOL)',
+      '1. Collect payment from sender (0.0033 SOL)',
       '2. Generate NFT images using production systems (both sender and recipient)',
       '3. Generate NFT metadata for both sender and recipient NFTs',
       '4. Upload metadata to storage in parallel',
