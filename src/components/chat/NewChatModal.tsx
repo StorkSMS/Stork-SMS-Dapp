@@ -128,8 +128,9 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
       setSelectedContact(null)
     }
     
-    // Always update the input value first
-    onChatDataChange({ ...newChatData, to: value })
+    // Always update the input value first, but trim spaces for wallet addresses
+    const trimmedValue = value.trim()
+    onChatDataChange({ ...newChatData, to: trimmedValue })
     
     // Handle domain resolution
     if (isDomainFormat(value)) {

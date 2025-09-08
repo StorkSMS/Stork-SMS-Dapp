@@ -152,7 +152,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
             }}
           >
             <p className="mb-4">
-              From <strong>1:00am UTC September 8th</strong> to <strong>00:59am UTC September 9th</strong>, 
+              From <strong>1:00am UTC September 8th</strong> to <strong>00:59am UTC September 10th</strong>, 
               any user who sends a Stork SMS to any of our preloaded contacts (KOLs and Sol developers) 
               will be added to the <strong>Seeker Airdrop whitelist</strong>!
             </p>

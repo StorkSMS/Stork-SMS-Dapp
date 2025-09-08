@@ -682,7 +682,7 @@ async function trackPromotionalParticipation(walletAddress: string, authenticate
     // For testing purposes, we'll track all new chats created from now on
     // In production, you would set specific start/end dates:
     // const promotionStart = new Date('2025-09-08T01:00:00Z')
-    // const promotionEnd = new Date('2025-09-09T00:59:59Z')
+    // const promotionEnd = new Date('2025-09-10T00:59:59Z')
     // if (now < promotionStart || now > promotionEnd) return
     
     console.log('🎉 Attempting to track promotional participation for wallet:', walletAddress.slice(0, 8) + '...')
