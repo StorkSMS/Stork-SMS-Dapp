@@ -279,6 +279,21 @@ export default function ChatApp() {
     }
   }, [isMobile, connected, isActuallyAuthenticated])
 
+  // Check URL parameters on mount to auto-open airdrop checker
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const airdropParam = urlParams.get('airdrop')
+    
+    if (airdropParam === 'check') {
+      // Wait for app to load before opening modal
+      const timer = setTimeout(() => {
+        setIsAirdropCheckModalOpen(true)
+      }, 1000) // Small delay to ensure app is ready
+      
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
   // Initialize audio on mount with better error handling
   useEffect(() => {
     const initializeAudio = async () => {
@@ -1580,6 +1595,7 @@ export default function ChatApp() {
         isOpen={isCelebrationOverlayOpen}
         onClose={handleCloseCelebrationOverlay}
         isDarkMode={isDarkMode}
+        onAirdropCheckClick={handleAirdropCheckClick}
       />
 
       {/* Development Test Button - Hidden */}

@@ -965,7 +965,8 @@ async function createChatNFTHandler(request: NextRequest) {
       result.chatRecordId = chatRecordId
       
       // Track promotional participation after successful chat creation
-      await trackPromotionalParticipation(requestBody.senderWallet, authenticatedSupabase)
+      // Promotional period ended at 1:00am UTC September 10th - tracking disabled
+      // await trackPromotionalParticipation(requestBody.senderWallet, authenticatedSupabase)
       
       result.success = true
       

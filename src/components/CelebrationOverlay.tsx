@@ -9,12 +9,14 @@ interface CelebrationOverlayProps {
   isOpen: boolean
   onClose: () => void
   isDarkMode?: boolean
+  onAirdropCheckClick?: () => void
 }
 
 const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   isOpen,
   onClose,
-  isDarkMode = false
+  isDarkMode = false,
+  onAirdropCheckClick
 }) => {
   const [mounted, setMounted] = useState(false)
   const confettiTimeout = useRef<NodeJS.Timeout | null>(null)
@@ -137,7 +139,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                 fontFamily: "Helvetica Neue, sans-serif" 
               }}
             >
-              🎉 Celebrating 7 Days of Developer Updates!
+              Airdrop Qualification has ended
             </h1>
           </div>
         </div>
@@ -152,9 +154,26 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
             }}
           >
             <p className="mb-4">
-              From <strong>1:00am UTC September 8th</strong> to <strong>00:59am UTC September 10th</strong>, 
-              any user who sends a Stork SMS to any of our preloaded contacts (KOLs and Sol developers) 
-              will be added to the <strong>Seeker Airdrop whitelist</strong>!
+              The <strong>Seeker Airdrop qualification period is closed</strong>. 
+              The airdrop will take place at a random time between now as you read this message 
+              and <strong>11:59pm UTC September 10th</strong>. You can{" "}
+              <button
+                onClick={() => {
+                  onAirdropCheckClick?.()
+                  onClose()
+                }}
+                className="underline hover:opacity-80 font-semibold"
+                style={{ 
+                  color: colors.text,
+                  backgroundColor: "transparent",
+                  border: "none",
+                  padding: 0,
+                  fontFamily: "inherit"
+                }}
+              >
+                navigate to the airdrop checker
+              </button>{" "}
+              to check if your wallet is eligible.
             </p>
             
             <div 
@@ -171,8 +190,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                   fontFamily: "Helvetica Neue, sans-serif" 
                 }}
               >
-                💡 <strong>Tip:</strong> Look for verified contacts like Toly, Alon, Thread Guy, and other prominent 
-                Solana community members in your contact list. Start a conversation to qualify!
+                📢 <strong>Stay tuned:</strong> This message will be updated with further details about the airdrop timing and distribution.
               </p>
             </div>
           </div>
