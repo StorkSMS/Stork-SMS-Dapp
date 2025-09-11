@@ -398,9 +398,9 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
                         )}
                       </Button>
                       
-                      {!signTransaction && (
+                      {!sendTransaction && (
                         <p className="mt-2 text-xs" style={{ color: colors.error, fontFamily: "Helvetica Neue, sans-serif" }}>
-                          Wallet does not support transaction signing
+                          Wallet does not support sending transactions
                         </p>
                       )}
                     </div>
