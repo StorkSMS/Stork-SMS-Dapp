@@ -220,11 +220,12 @@ async function submitSignedTransaction(
       )
     }
 
-    // Start confirmation process (async)
+    // Start confirmation process (async) - use legacy approach
     confirmTransactionAsync(
       transactionBuilder,
       submitResult.signature!,
-      claimRecord.id
+      claimRecord.id,
+      undefined // expectedAmount not needed for legacy approach
     )
 
     const explorerUrl = AirdropTransactionBuilder.getExplorerUrl(
