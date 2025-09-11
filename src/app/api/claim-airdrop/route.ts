@@ -12,7 +12,7 @@ const supabaseServer = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
-    const { walletAddress, signedTransaction, action = 'build' } = await request.json()
+    const { walletAddress, signedTransaction, transactionSignature, action = 'build' } = await request.json()
     
     if (!walletAddress) {
       return NextResponse.json(
@@ -72,11 +72,14 @@ export async function POST(request: NextRequest) {
       // Build unsigned transaction for user to sign
       return await buildUnsignedTransaction(walletAddress, claimAmount, eligibilitySource)
     } else if (action === 'submit') {
-      // Submit signed transaction and record claim
+      // Submit signed transaction and record claim (legacy)
       return await submitSignedTransaction(walletAddress, signedTransaction, claimAmount, eligibilitySource)
+    } else if (action === 'record') {
+      // Record claim with transaction signature (new approach)
+      return await recordTransactionClaim(walletAddress, transactionSignature, claimAmount, eligibilitySource)
     } else {
       return NextResponse.json(
-        { error: 'Invalid action. Must be "build" or "submit"' },
+        { error: 'Invalid action. Must be "build", "submit", or "record"' },
         { status: 400 }
       )
     }
@@ -286,6 +289,186 @@ async function confirmTransactionAsync(
         transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
       })
       .eq('id', claimId)
+  }
+}
+
+// Overloaded confirmTransactionAsync for the new record approach (no transaction builder needed)
+async function confirmTransactionAsync(
+  signature: string,
+  claimId: string,
+  walletAddress: string,
+  expectedAmount: number
+): Promise<void>
+async function confirmTransactionAsync(
+  transactionBuilderOrSignature: AirdropTransactionBuilder | string,
+  signatureOrClaimId: string,
+  claimIdOrWalletAddress?: string,
+  expectedAmount?: number
+) {
+  // Handle the new signature-only approach
+  if (typeof transactionBuilderOrSignature === 'string' && claimIdOrWalletAddress) {
+    const signature = transactionBuilderOrSignature
+    const claimId = signatureOrClaimId
+    const walletAddress = claimIdOrWalletAddress
+
+    try {
+      // Create a minimal connection to verify the transaction
+      const { Connection } = await import('@solana/web3.js')
+      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET!, 'confirmed')
+      
+      console.log('🔍 Confirming transaction:', signature)
+      
+      // Wait for confirmation (with timeout)
+      const confirmed = await Promise.race([
+        connection.confirmTransaction(signature, 'confirmed').then(result => !result.value.err),
+        new Promise<boolean>((_, reject) => 
+          setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
+        )
+      ])
+
+      // Update database with confirmation status
+      await supabaseServer
+        .from('airdrop_claims')
+        .update({
+          transaction_status: confirmed ? 'confirmed' : 'failed',
+          confirmed_at: confirmed ? new Date().toISOString() : null
+        })
+        .eq('id', claimId)
+
+      console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
+
+    } catch (error) {
+      console.error('Error confirming transaction:', error)
+      
+      // Mark as failed in database
+      await supabaseServer
+        .from('airdrop_claims')
+        .update({
+          transaction_status: 'failed',
+          transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
+        })
+        .eq('id', claimId)
+    }
+  } else {
+    // Handle the legacy transaction builder approach
+    const transactionBuilder = transactionBuilderOrSignature as AirdropTransactionBuilder
+    const signature = signatureOrClaimId
+    const claimId = claimIdOrWalletAddress!
+
+    try {
+      // Wait for confirmation (with timeout)
+      const confirmed = await Promise.race([
+        transactionBuilder.confirmTransaction(signature),
+        new Promise<boolean>((_, reject) => 
+          setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
+        )
+      ])
+
+      // Update database with confirmation status
+      await supabaseServer
+        .from('airdrop_claims')
+        .update({
+          transaction_status: confirmed ? 'confirmed' : 'failed',
+          confirmed_at: confirmed ? new Date().toISOString() : null
+        })
+        .eq('id', claimId)
+
+      console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
+
+    } catch (error) {
+      console.error('Error confirming transaction:', error)
+      
+      // Mark as failed in database
+      await supabaseServer
+        .from('airdrop_claims')
+        .update({
+          transaction_status: 'failed',
+          transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
+        })
+        .eq('id', claimId)
+    }
+  }
+}
+
+// Record claim with transaction signature (new approach)
+async function recordTransactionClaim(
+  walletAddress: string,
+  transactionSignature: string,
+  claimAmount: number,
+  eligibilitySource: string
+) {
+  try {
+    if (!transactionSignature) {
+      return NextResponse.json(
+        { error: 'Transaction signature is required' },
+        { status: 400 }
+      )
+    }
+
+    console.log('📝 Recording claim for transaction:', transactionSignature)
+
+    // Record the claim in database
+    const { data: claimRecord, error: insertError } = await supabaseServer
+      .from('airdrop_claims')
+      .insert({
+        wallet_address: walletAddress,
+        claim_transaction_signature: transactionSignature,
+        claim_amount: claimAmount,
+        eligibility_source: eligibilitySource,
+        transaction_status: 'submitted' // User already sent the transaction
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Error recording claim:', insertError)
+      
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { 
+            error: 'Airdrop already claimed',
+            alreadyClaimed: true
+          },
+          { status: 400 }
+        )
+      }
+      
+      return NextResponse.json(
+        { error: 'Failed to record claim' },
+        { status: 500 }
+      )
+    }
+
+    // Start confirmation process (async) - verify the transaction on-chain
+    confirmTransactionAsync(
+      transactionSignature,
+      claimRecord.id,
+      walletAddress,
+      claimAmount
+    )
+
+    const explorerUrl = AirdropTransactionBuilder.getExplorerUrl(
+      transactionSignature,
+      process.env.AIRDROP_ENABLE_MAINNET === 'true' ? 'mainnet' : 'devnet'
+    )
+
+    return NextResponse.json({
+      success: true,
+      claimId: claimRecord.id,
+      transactionSignature: transactionSignature,
+      explorerUrl,
+      claimAmount,
+      eligibilitySource,
+      claimedAt: claimRecord.claimed_at,
+      message: 'Airdrop claim recorded successfully!'
+    })
+
+  } catch (error) {
+    console.error('Error recording transaction claim:', error)
+    return NextResponse.json(
+      { error: 'Failed to record claim' },
+      { status: 500 }
+    )
   }
 }
 

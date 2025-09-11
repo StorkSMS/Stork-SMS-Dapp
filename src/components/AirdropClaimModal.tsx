@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { X, CheckCircle, AlertCircle, Loader2, ExternalLink } from "lucide-react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { Transaction } from "@solana/web3.js"
+import { getMainnetConnection } from "@/lib/solana-connection"
 
 interface AirdropClaimModalProps {
   isOpen: boolean
@@ -26,7 +27,7 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
   onClose,
   isDarkMode = false
 }) => {
-  const { publicKey, connected, signTransaction } = useWallet()
+  const { publicKey, connected, sendTransaction } = useWallet()
   const [eligibilityStatus, setEligibilityStatus] = useState<EligibilityStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isClaiming, setIsClaiming] = useState(false)
@@ -87,8 +88,8 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
       return
     }
 
-    if (!signTransaction) {
-      setError('This wallet does not support transaction signing. Please try a different wallet.')
+    if (!sendTransaction) {
+      setError('This wallet does not support sending transactions. Please try a different wallet.')
       return
     }
 
@@ -112,33 +113,36 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
         throw new Error(buildData.error || 'Failed to prepare transaction')
       }
 
-      // Step 2: Sign the transaction (user signature only)
+      // Step 2: Send the transaction (wallet will sign and send)
       setIsSigningTransaction(true)
       
       const transaction = Transaction.from(
         Buffer.from(buildData.unsignedTransaction, 'base64')
       )
       
-      console.log('🔍 Transaction to sign:', {
+      console.log('🔍 Transaction to send:', {
         feePayer: transaction.feePayer?.toString(),
         instructions: transaction.instructions.length,
-        signers: transaction.signatures.length
+        recentBlockhash: transaction.recentBlockhash
       })
       
-      // User only needs to sign their part
-      const signedTransaction = await signTransaction(transaction)
+      // Get connection for sending transaction
+      const connection = getMainnetConnection()
       
-      console.log('✅ Transaction signed successfully')
+      // Send transaction (wallet signs and submits)
+      const signature = await sendTransaction(transaction, connection)
+      
+      console.log('✅ Transaction sent successfully, signature:', signature)
       setIsSigningTransaction(false)
       
-      // Step 3: Submit signed transaction
+      // Step 3: Record the claim with transaction signature
       const submitResponse = await fetch('/api/claim-airdrop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           walletAddress: publicKey.toString(),
-          action: 'submit',
-          signedTransaction: signedTransaction.serialize().toString('base64')
+          action: 'record',
+          transactionSignature: signature
         })
       })
 
