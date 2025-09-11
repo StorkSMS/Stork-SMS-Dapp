@@ -252,47 +252,7 @@ async function submitSignedTransaction(
   }
 }
 
-// Async function to confirm transaction and update database
-async function confirmTransactionAsync(
-  transactionBuilder: AirdropTransactionBuilder,
-  signature: string,
-  claimId: string
-) {
-  try {
-    // Wait for confirmation (with timeout)
-    const confirmed = await Promise.race([
-      transactionBuilder.confirmTransaction(signature),
-      new Promise<boolean>((_, reject) => 
-        setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
-      )
-    ])
-
-    // Update database with confirmation status
-    await supabaseServer
-      .from('airdrop_claims')
-      .update({
-        transaction_status: confirmed ? 'confirmed' : 'failed',
-        confirmed_at: confirmed ? new Date().toISOString() : null
-      })
-      .eq('id', claimId)
-
-    console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
-
-  } catch (error) {
-    console.error('Error confirming transaction:', error)
-    
-    // Mark as failed in database
-    await supabaseServer
-      .from('airdrop_claims')
-      .update({
-        transaction_status: 'failed',
-        transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
-      })
-      .eq('id', claimId)
-  }
-}
-
-// Overloaded confirmTransactionAsync for the new record approach (no transaction builder needed)
+// Overloaded confirmTransactionAsync for both legacy and new approaches
 async function confirmTransactionAsync(
   signature: string,
   claimId: string,
