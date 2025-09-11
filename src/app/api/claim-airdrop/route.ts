@@ -106,7 +106,7 @@ async function buildUnsignedTransaction(
       encryptedPrivateKey: process.env.AIRDROP_TREASURY_WALLET_PRIVATE!,
       encryptionKey: process.env.AIRDROP_ENCRYPTION_KEY!,
       rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET!,
-      tokenMintAddress: process.env.NEXT_PUBLIC_STORK_TOKEN_MINT!,
+      tokenMintAddress: '51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump',
       isDryRun: process.env.AIRDROP_DRY_RUN_MODE === 'true',
       amountPerWallet: claimAmount
     })
@@ -167,7 +167,7 @@ async function submitSignedTransaction(
       encryptedPrivateKey: process.env.AIRDROP_TREASURY_WALLET_PRIVATE!,
       encryptionKey: process.env.AIRDROP_ENCRYPTION_KEY!,
       rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET!,
-      tokenMintAddress: process.env.NEXT_PUBLIC_STORK_TOKEN_MINT!,
+      tokenMintAddress: '51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump',
       isDryRun: process.env.AIRDROP_DRY_RUN_MODE === 'true',
       amountPerWallet: claimAmount
     })

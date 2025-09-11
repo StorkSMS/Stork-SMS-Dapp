@@ -412,7 +412,7 @@ async function verifySTORKPayment(
             const sourcePubkey = new PublicKey(transferInfo.source)
             
             // Get the associated token accounts
-            const storkTokenMint = new PublicKey(process.env.NEXT_PUBLIC_STORK_TOKEN_MINT || '51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump')
+            const storkTokenMint = new PublicKey('51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump')
             const senderTokenAccount = await TokenService.getAssociatedTokenAccount(
               senderPublicKey, 
               storkTokenMint

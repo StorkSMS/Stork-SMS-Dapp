@@ -53,7 +53,7 @@ export class AirdropTransactionBuilder {
       recipientAddress,
       amount,
       estimatedFee: 0,
-      tokenMintAddress: process.env.NEXT_PUBLIC_STORK_TOKEN_MINT!,
+      tokenMintAddress: '51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump',
       timestamp: Date.now()
     }
 
