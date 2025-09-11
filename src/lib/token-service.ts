@@ -16,8 +16,8 @@ const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xW
 // STORK Token Configuration
 export const TOKEN_CONFIG = {
   STORK_TOKEN_MINT: process.env.NEXT_PUBLIC_STORK_TOKEN_MINT || '51Yc9NkkNKMbo31XePni6ZFKMFz4d6H273M8CRhCpump',
-  JUPITER_API_URL: process.env.NEXT_PUBLIC_JUPITER_API_URL || 'https://quote-api.jup.ag/v6',
-  SOL_MINT: process.env.NEXT_PUBLIC_SOL_MINT || 'So11111111111111111111111111111111111111112', // Wrapped SOL mint
+  JUPITER_API_URL: 'https://quote-api.jup.ag/v6',
+  SOL_MINT: 'So11111111111111111111111111111111111111112', // Wrapped SOL mint
   PRICE_CACHE_DURATION: 30000, // 30 seconds
   SLIPPAGE_BPS: 50, // 0.5% slippage
   PUMP_FUN_DECIMALS: 6, // pump.fun tokens are 6 decimals
