@@ -83,7 +83,12 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
   }
 
   const handleClaim = async () => {
-    if (!publicKey || !eligibilityStatus?.isEligible || eligibilityStatus.alreadyClaimed || !connected || !signTransaction) {
+    if (!publicKey || !eligibilityStatus?.isEligible || eligibilityStatus.alreadyClaimed || !connected) {
+      return
+    }
+
+    if (!signTransaction) {
+      setError('This wallet does not support transaction signing. Please try a different wallet.')
       return
     }
 
@@ -114,8 +119,16 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
         Buffer.from(buildData.unsignedTransaction, 'base64')
       )
       
-      // User only needs to sign their part (partial sign)
+      console.log('🔍 Transaction to sign:', {
+        feePayer: transaction.feePayer?.toString(),
+        instructions: transaction.instructions.length,
+        signers: transaction.signatures.length
+      })
+      
+      // User only needs to sign their part
       const signedTransaction = await signTransaction(transaction)
+      
+      console.log('✅ Transaction signed successfully')
       setIsSigningTransaction(false)
       
       // Step 3: Submit signed transaction
