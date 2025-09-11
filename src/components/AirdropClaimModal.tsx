@@ -375,7 +375,7 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
 
                       <Button
                         onClick={handleClaim}
-                        disabled={isClaiming || isSigningTransaction || !signTransaction}
+                        disabled={isClaiming || isSigningTransaction || !sendTransaction}
                         className="w-full bg-[#3388FF] text-[#FFF] border-2 border-[#3388FF] hover:bg-[#2277EE] rounded-none h-12 px-8 relative disabled:opacity-50"
                         style={{
                           fontFamily: "Helvetica Neue, sans-serif",
