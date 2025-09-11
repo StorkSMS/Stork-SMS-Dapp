@@ -221,11 +221,10 @@ async function submitSignedTransaction(
     }
 
     // Start confirmation process (async) - use legacy approach
-    confirmTransactionAsync(
+    confirmTransactionWithBuilder(
       transactionBuilder,
       submitResult.signature!,
-      claimRecord.id,
-      undefined // expectedAmount not needed for legacy approach
+      claimRecord.id
     )
 
     const explorerUrl = AirdropTransactionBuilder.getExplorerUrl(
@@ -253,101 +252,90 @@ async function submitSignedTransaction(
   }
 }
 
-// Overloaded confirmTransactionAsync for both legacy and new approaches
-async function confirmTransactionAsync(
+// Legacy function for transaction builder approach
+async function confirmTransactionWithBuilder(
+  transactionBuilder: AirdropTransactionBuilder,
+  signature: string,
+  claimId: string
+) {
+  try {
+    // Wait for confirmation (with timeout)
+    const confirmed = await Promise.race([
+      transactionBuilder.confirmTransaction(signature),
+      new Promise<boolean>((_, reject) => 
+        setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
+      )
+    ])
+
+    // Update database with confirmation status
+    await supabaseServer
+      .from('airdrop_claims')
+      .update({
+        transaction_status: confirmed ? 'confirmed' : 'failed',
+        confirmed_at: confirmed ? new Date().toISOString() : null
+      })
+      .eq('id', claimId)
+
+    console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
+
+  } catch (error) {
+    console.error('Error confirming transaction:', error)
+    
+    // Mark as failed in database
+    await supabaseServer
+      .from('airdrop_claims')
+      .update({
+        transaction_status: 'failed',
+        transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
+      })
+      .eq('id', claimId)
+  }
+}
+
+// New function for signature-only approach
+async function confirmTransactionWithSignature(
   signature: string,
   claimId: string,
   walletAddress: string,
   expectedAmount: number
-): Promise<void>
-async function confirmTransactionAsync(
-  transactionBuilderOrSignature: AirdropTransactionBuilder | string,
-  signatureOrClaimId: string,
-  claimIdOrWalletAddress?: string,
-  expectedAmount?: number
 ) {
-  // Handle the new signature-only approach
-  if (typeof transactionBuilderOrSignature === 'string' && claimIdOrWalletAddress) {
-    const signature = transactionBuilderOrSignature
-    const claimId = signatureOrClaimId
-    const walletAddress = claimIdOrWalletAddress
+  try {
+    // Create a minimal connection to verify the transaction
+    const { Connection } = await import('@solana/web3.js')
+    const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET!, 'confirmed')
+    
+    console.log('🔍 Confirming transaction:', signature)
+    
+    // Wait for confirmation (with timeout)
+    const confirmed = await Promise.race([
+      connection.confirmTransaction(signature, 'confirmed').then(result => !result.value.err),
+      new Promise<boolean>((_, reject) => 
+        setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
+      )
+    ])
 
-    try {
-      // Create a minimal connection to verify the transaction
-      const { Connection } = await import('@solana/web3.js')
-      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET!, 'confirmed')
-      
-      console.log('🔍 Confirming transaction:', signature)
-      
-      // Wait for confirmation (with timeout)
-      const confirmed = await Promise.race([
-        connection.confirmTransaction(signature, 'confirmed').then(result => !result.value.err),
-        new Promise<boolean>((_, reject) => 
-          setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
-        )
-      ])
+    // Update database with confirmation status
+    await supabaseServer
+      .from('airdrop_claims')
+      .update({
+        transaction_status: confirmed ? 'confirmed' : 'failed',
+        confirmed_at: confirmed ? new Date().toISOString() : null
+      })
+      .eq('id', claimId)
 
-      // Update database with confirmation status
-      await supabaseServer
-        .from('airdrop_claims')
-        .update({
-          transaction_status: confirmed ? 'confirmed' : 'failed',
-          confirmed_at: confirmed ? new Date().toISOString() : null
-        })
-        .eq('id', claimId)
+    console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
 
-      console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
-
-    } catch (error) {
-      console.error('Error confirming transaction:', error)
-      
-      // Mark as failed in database
-      await supabaseServer
-        .from('airdrop_claims')
-        .update({
-          transaction_status: 'failed',
-          transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
-        })
-        .eq('id', claimId)
-    }
-  } else {
-    // Handle the legacy transaction builder approach
-    const transactionBuilder = transactionBuilderOrSignature as AirdropTransactionBuilder
-    const signature = signatureOrClaimId
-    const claimId = claimIdOrWalletAddress!
-
-    try {
-      // Wait for confirmation (with timeout)
-      const confirmed = await Promise.race([
-        transactionBuilder.confirmTransaction(signature),
-        new Promise<boolean>((_, reject) => 
-          setTimeout(() => reject(new Error('Confirmation timeout')), 60000)
-        )
-      ])
-
-      // Update database with confirmation status
-      await supabaseServer
-        .from('airdrop_claims')
-        .update({
-          transaction_status: confirmed ? 'confirmed' : 'failed',
-          confirmed_at: confirmed ? new Date().toISOString() : null
-        })
-        .eq('id', claimId)
-
-      console.log(`Transaction ${signature} ${confirmed ? 'confirmed' : 'failed'}`)
-
-    } catch (error) {
-      console.error('Error confirming transaction:', error)
-      
-      // Mark as failed in database
-      await supabaseServer
-        .from('airdrop_claims')
-        .update({
-          transaction_status: 'failed',
-          transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
-        })
-        .eq('id', claimId)
-    }
+  } catch (error) {
+    console.error('Error confirming transaction:', error)
+    
+    // Mark as failed in database
+    await supabaseServer
+      .from('airdrop_claims')
+      .update({
+        transaction_status: 'failed',
+        transaction_error: error instanceof Error ? error.message : 'Confirmation failed'
+      })
+      .eq('id', claimId)
   }
 }
 
@@ -401,7 +389,7 @@ async function recordTransactionClaim(
     }
 
     // Start confirmation process (async) - verify the transaction on-chain
-    confirmTransactionAsync(
+    confirmTransactionWithSignature(
       transactionSignature,
       claimRecord.id,
       walletAddress,
