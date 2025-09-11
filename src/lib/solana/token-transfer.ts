@@ -110,11 +110,11 @@ export class TokenTransferService {
     // Set fee payer to recipient (user pays fees)
     transaction.feePayer = recipientPubkey
 
-    // If treasury keypair provided, pre-sign the transaction
-    if (treasuryKeypair) {
-      transaction.partialSign(treasuryKeypair)
-      console.log('🔑 Treasury pre-signed transaction')
-    }
+    // Don't pre-sign - let the backend handle treasury signature after user signs
+    // if (treasuryKeypair) {
+    //   transaction.partialSign(treasuryKeypair)
+    //   console.log('🔑 Treasury pre-signed transaction')
+    // }
 
     // Estimate the transaction fee
     const estimatedFee = await this.estimateTransactionFee(transaction)

@@ -149,11 +149,19 @@ export class AirdropTransactionBuilder {
         }
       }
 
-      // Transaction already has treasury signature from build phase
-      console.log('🚀 User-signed transaction ready for submission (treasury already signed)')
+      // Add treasury signature to the user-signed transaction
+      const treasuryKeypair = this.treasuryService.getTreasuryKeypair()
+      console.log('🔑 Adding treasury signature to user-signed transaction')
+      
+      const fullySignedTransaction = await this.transferService.addTreasurySignature(
+        signedTransactionBase64,
+        treasuryKeypair
+      )
+      
+      console.log('🚀 Fully signed transaction ready for submission')
 
       // Submit to network
-      const signature = await this.transferService.submitTransaction(signedTransactionBase64)
+      const signature = await this.transferService.submitTransaction(fullySignedTransaction)
 
       console.log('✅ Transaction submitted successfully:', signature)
 
