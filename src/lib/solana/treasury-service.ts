@@ -117,10 +117,17 @@ export class TreasuryService {
       const { getAccount } = await import('@solana/spl-token')
       const tokenAccount = await this.getTreasuryTokenAccount()
       
+      console.log('🏦 Checking treasury balance for token account:', tokenAccount.toString())
+      console.log('🏦 Treasury wallet:', this.treasuryKeypair?.publicKey.toString())
+      console.log('🏦 Token mint:', this.config.tokenMintAddress)
+      
       const account = await getAccount(this.connection, tokenAccount)
-      return Number(account.amount)
+      const balance = Number(account.amount)
+      console.log('💰 Treasury balance:', balance, 'tokens')
+      return balance
     } catch (error) {
-      console.error('Error getting treasury balance:', error)
+      console.error('❌ Error getting treasury balance:', error)
+      console.log('🏦 This might mean the treasury token account does not exist or has no tokens')
       return 0
     }
   }
