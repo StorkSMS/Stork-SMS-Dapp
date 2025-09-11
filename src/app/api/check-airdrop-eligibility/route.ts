@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Server-side eligibility checking function
-async function checkServerAirdropEligibility(walletAddress: string) {
+export async function checkServerAirdropEligibility(walletAddress: string) {
   try {
     // 1. Check promotional_participants table
     const { data: promotionalData, error: promotionalError } = await supabaseServer
