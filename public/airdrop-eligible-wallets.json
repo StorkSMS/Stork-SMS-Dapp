@@ -6,7 +6,7 @@
       "addedDate": "2025-01-06"
     },
     {
-      "address": "GmWM7hZEBfsZAynLMq8RjgpApQ6mj92VKyiw57SZ1y8t",
+      "address": "8XpFoCut35sQ9phwmDpPFFxVkzpqqatXQrA7bg7iytuh",
       "reason": "Request-a-feature",
       "addedDate": "2025-01-06"
     },
@@ -33,6 +33,16 @@
     {
       "address": "9S4f9k5dSKGFfHuEuupYsJbMjAy4tTUzFgNWLL1zTC66",
       "reason": "bug",
+      "addedDate": "2025-01-06"
+    },
+    {
+      "address": "2jHkCvYwGSKHsjjBvGcnoXe8m1YngVWtEXpQQDfdmn1Q",
+      "reason": "test",
+      "addedDate": "2025-01-06"
+    },
+    {
+      "address": "MdyjRsVmsvCmThRmt3PBqpVdJWESQ1gwBVkuKrSgPQo",
+      "reason": "test",
       "addedDate": "2025-01-06"
     }
   ],

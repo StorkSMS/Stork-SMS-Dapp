@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Menu, X, MoreVertical, UserPlus, Users, Plane } from "lucide-react"
+import { Menu, X, MoreVertical, UserPlus, Users, Plane, Gift } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
 import ContactHeader from "@/components/ContactHeader"
@@ -26,6 +26,7 @@ interface MobileHeaderProps {
   onAddContactClick: () => void
   onManageContactsClick: () => void
   onAirdropCheckClick: () => void
+  onAirdropClaimClick: () => void
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -43,6 +44,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   onAddContactClick,
   onManageContactsClick,
   onAirdropCheckClick,
+  onAirdropClaimClick,
 }) => {
   const { isAuthenticated } = useAuth()
   const { contacts, refreshUserContacts } = useContacts()
@@ -105,6 +107,11 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   const handleAirdropCheckClickInternal = () => {
     setIsMenuOpen(false)
     onAirdropCheckClick()
+  }
+
+  const handleAirdropClaimClickInternal = () => {
+    setIsMenuOpen(false)
+    onAirdropClaimClick()
   }
   
   return (
@@ -231,6 +238,14 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
               >
                 <Users className="w-4 h-4" />
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
+              </button>
+              <button
+                onClick={handleAirdropClaimClickInternal}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Gift className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Airdrop Claim</span>
               </button>
               <button
                 onClick={handleAirdropCheckClickInternal}

@@ -3,11 +3,12 @@
 import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Plane } from "lucide-react"
+import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Plane, Gift } from "lucide-react"
 import DomainDisplay from "@/components/DomainDisplay"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
 import AirdropCheckModal from "@/components/AirdropCheckModal"
+import AirdropClaimModal from "@/components/AirdropClaimModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
 
@@ -112,6 +113,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
   const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
   const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
+  const [isAirdropClaimModalOpen, setIsAirdropClaimModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
   // Note: Domain resolution temporarily disabled for main chat list for debugging
@@ -155,6 +157,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const handleAirdropCheckClick = () => {
     setIsMenuOpen(false)
     setIsAirdropCheckModalOpen(true)
+  }
+
+  const handleAirdropClaimClick = () => {
+    setIsMenuOpen(false)
+    setIsAirdropClaimModalOpen(true)
   }
 
   const handleContactAdded = (contact: any) => {
@@ -249,6 +256,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               >
                 <Users className="w-4 h-4" />
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
+              </button>
+              <button
+                onClick={handleAirdropClaimClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Gift className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Airdrop Claim</span>
               </button>
               <button
                 onClick={handleAirdropCheckClick}
@@ -610,6 +625,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <AirdropCheckModal
         isOpen={isAirdropCheckModalOpen}
         onClose={() => setIsAirdropCheckModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+      
+      {/* Airdrop Claim Modal */}
+      <AirdropClaimModal
+        isOpen={isAirdropClaimModalOpen}
+        onClose={() => setIsAirdropClaimModalOpen(false)}
         isDarkMode={isDarkMode}
       />
     </div>

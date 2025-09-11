@@ -4,22 +4,30 @@ import React, { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import confetti from "canvas-confetti"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface CelebrationOverlayProps {
   isOpen: boolean
   onClose: () => void
   isDarkMode?: boolean
-  onAirdropCheckClick?: () => void
+  onAirdropClaimClick?: () => void
 }
 
 const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   isOpen,
   onClose,
   isDarkMode = false,
-  onAirdropCheckClick
+  onAirdropClaimClick
 }) => {
   const [mounted, setMounted] = useState(false)
   const confettiTimeout = useRef<NodeJS.Timeout | null>(null)
+  const { connected, connecting, wallets, select, connect, publicKey, signMessage } = useWallet()
+  const { isAuthenticated, isAuthenticating, authenticateWithWallet } = useAuth()
+  const [showWalletList, setShowWalletList] = useState(false)
+  const [userInitiatedConnection, setUserInitiatedConnection] = useState(false)
+  const [hasTriggeredAuth, setHasTriggeredAuth] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
@@ -67,6 +75,83 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
     confettiTimeout.current = interval
   }
 
+  // Trigger authentication after wallet connects
+  useEffect(() => {
+    if (connected && publicKey && !isAuthenticated && !isAuthenticating && !hasTriggeredAuth && userInitiatedConnection && signMessage) {
+      setHasTriggeredAuth(true)
+      authenticateWithWallet()
+    }
+  }, [connected, publicKey, isAuthenticated, isAuthenticating, hasTriggeredAuth, userInitiatedConnection, authenticateWithWallet, signMessage])
+
+  // Reset auth trigger when wallet disconnects
+  useEffect(() => {
+    if (!connected) {
+      setHasTriggeredAuth(false)
+      setUserInitiatedConnection(false)
+      setShowWalletList(false)
+    }
+  }, [connected])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowWalletList(false)
+      }
+    }
+
+    if (showWalletList) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showWalletList])
+
+  // Handle wallet selection
+  const handleWalletSelect = async (walletName: string) => {
+    setShowWalletList(false)
+    setUserInitiatedConnection(true)
+    select(walletName as any)
+    
+    try {
+      await connect()
+    } catch (error) {
+      console.error('Failed to connect wallet:', error)
+    }
+  }
+
+  // Handle button click
+  const handleButtonClick = () => {
+    if (connected && isAuthenticated) {
+      // Fully authenticated, open claim modal
+      onAirdropClaimClick?.()
+      onClose()
+    } else if (!connected) {
+      // Show wallet selection
+      setShowWalletList(!showWalletList)
+    } else if (connected && !isAuthenticated && !isAuthenticating) {
+      // Connected but not authenticated, trigger auth
+      setUserInitiatedConnection(true)
+      setHasTriggeredAuth(true)
+      authenticateWithWallet()
+    }
+  }
+
+  // Determine button text and disabled state
+  const getButtonText = () => {
+    if (connecting) return 'Connecting...'
+    if (isAuthenticating) return 'Awaiting Signature...'
+    if (connected && isAuthenticated) return 'Claim Your Airdrop'
+    if (connected && !isAuthenticated) return 'Sign to Authenticate'
+    return 'Connect Wallet to Claim'
+  }
+
+  const isButtonDisabled = connecting || isAuthenticating
+
+  const availableWallets = wallets.filter((wallet) => wallet.readyState === "Installed")
+
   useEffect(() => {
     if (isOpen && !mounted) {
       setMounted(true)
@@ -109,7 +194,12 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
         className="w-full max-w-lg border-4 rounded-sm relative"
         style={{ 
           backgroundColor: colors.bg, 
-          borderColor: colors.border 
+          borderColor: colors.border,
+          backgroundImage: 'url(/Nft-Build-Images/Recipient\ NFT/Paper-Texture\ \(position\ bottom\ right\).png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'bottom right',
+          backgroundRepeat: 'no-repeat',
+          backgroundBlendMode: isDarkMode ? 'multiply' : 'overlay'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,7 +229,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                 fontFamily: "Helvetica Neue, sans-serif" 
               }}
             >
-              Airdrop Qualification has ended
+              🎁 Airdrop is Live!
             </h1>
           </div>
         </div>
@@ -153,46 +243,79 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
               fontFamily: "Helvetica Neue, sans-serif" 
             }}
           >
-            <p className="mb-4">
-              The <strong>Seeker Airdrop qualification period is closed</strong>. 
-              The airdrop will take place at a random time between now as you read this message 
-              and <strong>11:59pm UTC September 10th</strong>. You can{" "}
-              <button
-                onClick={() => {
-                  onAirdropCheckClick?.()
-                  onClose()
-                }}
-                className="underline hover:opacity-80 font-semibold"
-                style={{ 
-                  color: colors.text,
-                  backgroundColor: "transparent",
-                  border: "none",
-                  padding: 0,
-                  fontFamily: "inherit"
-                }}
-              >
-                navigate to the airdrop checker
-              </button>{" "}
-              to check if your wallet is eligible.
+            <p className="mb-6 text-center">
+              <strong>🎁 Airdrop is now live!</strong> Eligible wallets include those from the 
+              7-day developer updates period, .skr domain holders, and manually added contributors.
             </p>
-            
-            <div 
-              className="p-4 border-2 rounded-sm"
-              style={{ 
-                borderColor: colors.border,
-                backgroundColor: isDarkMode ? '#1A1A1A' : '#F9F9F9'
-              }}
-            >
-              <p 
-                className="text-sm"
-                style={{ 
-                  color: colors.textSecondary,
-                  fontFamily: "Helvetica Neue, sans-serif" 
-                }}
-              >
-                📢 <strong>Stay tuned:</strong> This message will be updated with further details about the airdrop timing and distribution.
-              </p>
+
+            <div className="flex justify-center">
+              <div className="relative" ref={dropdownRef}>
+                <Button
+                  onClick={handleButtonClick}
+                  disabled={isButtonDisabled}
+                  className="bg-[#3388FF] text-[#FFF] border-2 border-[#3388FF] hover:bg-[#2277EE] rounded-none h-12 px-8 relative disabled:opacity-50"
+                  style={{
+                    fontFamily: "Helvetica Neue, sans-serif",
+                    fontWeight: 500,
+                    boxShadow: "inset 0 0 0 1px #FFF",
+                  }}
+                >
+                  {getButtonText()}
+                </Button>
+
+                {/* Wallet Selection Dropdown */}
+                {showWalletList && (
+                  <div 
+                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 border-2 min-w-[200px] z-[10002]"
+                    style={{ 
+                      backgroundColor: colors.bg,
+                      borderColor: colors.border
+                    }}
+                  >
+                    <div
+                      className="p-2 border-b-2 text-sm font-medium"
+                      style={{ 
+                        fontFamily: "Helvetica Neue, sans-serif",
+                        borderBottomColor: colors.border,
+                        color: colors.text
+                      }}
+                    >
+                      Connect Wallet
+                    </div>
+                    {availableWallets.length > 0 ? (
+                      availableWallets.map((wallet) => (
+                        <Button
+                          key={wallet.adapter.name}
+                          onClick={() => handleWalletSelect(wallet.adapter.name)}
+                          className="w-full border-none hover:opacity-70 rounded-none h-10 text-left justify-start flex items-center gap-2"
+                          style={{ 
+                            fontFamily: "Helvetica Neue, sans-serif",
+                            backgroundColor: "transparent",
+                            color: colors.text
+                          }}
+                        >
+                          {wallet.adapter.icon && (
+                            <img src={wallet.adapter.icon} alt={wallet.adapter.name} className="w-4 h-4" />
+                          )}
+                          {wallet.adapter.name}
+                        </Button>
+                      ))
+                    ) : (
+                      <div 
+                        className="p-4 text-sm"
+                        style={{ 
+                          fontFamily: "Helvetica Neue, sans-serif",
+                          color: colors.textSecondary
+                        }}
+                      >
+                        No wallets detected. Please install a Solana wallet.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
+            
           </div>
         </div>
       </div>

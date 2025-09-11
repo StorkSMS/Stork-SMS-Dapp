@@ -49,6 +49,7 @@ import MobileHeader from "@/components/chat/MobileHeader"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
 import AirdropCheckModal from "@/components/AirdropCheckModal"
+import AirdropClaimModal from "@/components/AirdropClaimModal"
 import CelebrationOverlay from "@/components/CelebrationOverlay"
 import { getThemeColors, formatRelativeTime } from "@/components/chat/utils"
 
@@ -120,7 +121,9 @@ export default function ChatApp() {
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false)
   const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
   const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
+  const [isAirdropClaimModalOpen, setIsAirdropClaimModalOpen] = useState(false)
   const [isCelebrationOverlayOpen, setIsCelebrationOverlayOpen] = useState(false)
+  const [hasCheckedEligibility, setHasCheckedEligibility] = useState(false)
   
   // Typing detection refs
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -293,6 +296,46 @@ export default function ChatApp() {
       return () => clearTimeout(timer)
     }
   }, [])
+
+  // Check for airdrop eligibility when wallet connects and is authenticated
+  useEffect(() => {
+    const checkAirdropEligibility = async () => {
+      if (!connected || !publicKey || !isActuallyAuthenticated || hasCheckedEligibility) {
+        return
+      }
+
+      setHasCheckedEligibility(true)
+
+      try {
+        const response = await fetch('/api/check-airdrop-eligibility', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress: publicKey.toString() })
+        })
+
+        const data = await response.json()
+
+        if (response.ok && data.isEligible && !data.alreadyClaimed) {
+          // Wallet is eligible and hasn't claimed yet - auto-open claim modal
+          setTimeout(() => {
+            setIsAirdropClaimModalOpen(true)
+          }, 2000) // Small delay after authentication
+        }
+      } catch (error) {
+        console.error('Error checking airdrop eligibility on connect:', error)
+        // Don't show error to user for auto-check
+      }
+    }
+
+    checkAirdropEligibility()
+  }, [connected, publicKey, isActuallyAuthenticated, hasCheckedEligibility])
+
+  // Reset eligibility check when wallet disconnects
+  useEffect(() => {
+    if (!connected) {
+      setHasCheckedEligibility(false)
+    }
+  }, [connected])
 
   // Initialize audio on mount with better error handling
   useEffect(() => {
@@ -1236,6 +1279,10 @@ export default function ChatApp() {
   const handleAirdropCheckClick = useCallback(() => {
     setIsAirdropCheckModalOpen(true)
   }, [])
+
+  const handleAirdropClaimClick = useCallback(() => {
+    setIsAirdropClaimModalOpen(true)
+  }, [])
   
   const handleContactAdded = useCallback((contact: any) => {
     console.log('✅ Contact added, refreshing list...', contact.name)
@@ -1319,6 +1366,7 @@ export default function ChatApp() {
           onAddContactClick={handleAddContactClick}
           onManageContactsClick={handleManageContactsClick}
           onAirdropCheckClick={handleAirdropCheckClick}
+          onAirdropClaimClick={handleAirdropClaimClick}
         />
       </div>
 
@@ -1591,11 +1639,17 @@ export default function ChatApp() {
         isDarkMode={isDarkMode}
       />
 
+      <AirdropClaimModal
+        isOpen={isAirdropClaimModalOpen}
+        onClose={() => setIsAirdropClaimModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
       <CelebrationOverlay
         isOpen={isCelebrationOverlayOpen}
         onClose={handleCloseCelebrationOverlay}
         isDarkMode={isDarkMode}
-        onAirdropCheckClick={handleAirdropCheckClick}
+        onAirdropClaimClick={handleAirdropClaimClick}
       />
 
       {/* Development Test Button - Hidden */}
