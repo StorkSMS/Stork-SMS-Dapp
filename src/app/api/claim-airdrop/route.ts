@@ -364,7 +364,7 @@ async function recordTransactionClaim(
         claim_transaction_signature: transactionSignature,
         claim_amount: claimAmount,
         eligibility_source: eligibilitySource,
-        transaction_status: 'submitted' // User already sent the transaction
+        transaction_status: 'confirmed' // User already sent the transaction successfully
       })
       .select()
       .single()

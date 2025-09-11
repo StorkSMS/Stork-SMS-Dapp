@@ -74,7 +74,7 @@ export class AirdropTransactionBuilder {
       // Get treasury token account
       const treasuryTokenAccount = await this.treasuryService.getTreasuryTokenAccount()
 
-      // Build unsigned transaction (pre-signed by treasury)
+      // Build transaction pre-signed by treasury (user will add their signature)
       const treasuryKeypair = this.treasuryService.getTreasuryKeypair()
       const unsignedTransaction = await this.transferService.buildUnsignedTransferTransaction({
         recipientAddress,
