@@ -114,7 +114,7 @@ async function buildUnsignedTransaction(
     // Create a temporary claim ID for tracking
     const claimId = `temp_${Date.now()}_${walletAddress.slice(-8)}`
 
-    // Build the transaction
+    // Build the transaction (user will sign first, treasury signs after)
     const result = await transactionBuilder.buildAirdropTransaction({
       recipientAddress: walletAddress,
       amount: claimAmount,
@@ -172,7 +172,7 @@ async function submitSignedTransaction(
 
     await transactionBuilder.initialize()
 
-    // Submit the signed transaction
+    // Add treasury signature to user-signed transaction and submit
     const submitResult = await transactionBuilder.submitSignedTransaction(
       signedTransaction,
       walletAddress,

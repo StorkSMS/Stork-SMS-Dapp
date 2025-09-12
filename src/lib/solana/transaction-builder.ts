@@ -74,7 +74,7 @@ export class AirdropTransactionBuilder {
       // Get treasury token account
       const treasuryTokenAccount = await this.treasuryService.getTreasuryTokenAccount()
 
-      // Build transaction pre-signed by treasury (user will add their signature)
+      // Build unsigned transaction (user will sign first, treasury after)
       const treasuryKeypair = this.treasuryService.getTreasuryKeypair()
       const unsignedTransaction = await this.transferService.buildUnsignedTransferTransaction({
         recipientAddress,
@@ -82,7 +82,7 @@ export class AirdropTransactionBuilder {
         tokenMintAddress: metadata.tokenMintAddress,
         treasuryTokenAccount,
         treasuryPublicKey: treasuryKeypair.publicKey,
-        treasuryKeypair: treasuryKeypair
+        treasuryKeypair: undefined // Don't pre-sign - follow Phantom guidelines
       })
 
       // Update metadata with estimated fee
@@ -127,7 +127,8 @@ export class AirdropTransactionBuilder {
   }
 
   /**
-   * Validate and submit a signed transaction
+   * Validate and submit a user-signed transaction
+   * Following Phantom's guidelines: user signs first, treasury signs after with partialSign
    */
   async submitSignedTransaction(
     signedTransactionBase64: string,
@@ -149,16 +150,16 @@ export class AirdropTransactionBuilder {
         }
       }
 
-      // Add treasury signature to the user-signed transaction
+      // Add treasury signature to the user-signed transaction (following Phantom guidelines)
       const treasuryKeypair = this.treasuryService.getTreasuryKeypair()
-      console.log('🔑 Adding treasury signature to user-signed transaction')
+      console.log('🔑 User signed first, now adding treasury signature (Phantom-compatible flow)')
       
       const fullySignedTransaction = await this.transferService.addTreasurySignature(
         signedTransactionBase64,
         treasuryKeypair
       )
       
-      console.log('🚀 Fully signed transaction ready for submission')
+      console.log('🚀 Both signatures applied - transaction ready for submission')
 
       // Submit to network
       const signature = await this.transferService.submitTransaction(fullySignedTransaction)

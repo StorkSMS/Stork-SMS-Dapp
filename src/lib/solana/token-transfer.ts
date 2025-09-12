@@ -41,6 +41,7 @@ export class TokenTransferService {
   /**
    * Build an unsigned transaction for the user to sign
    * This approach ensures the USER pays the network fees, not the treasury
+   * Following Phantom's recommendation: user signs first, treasury signs after
    */
   async buildUnsignedTransferTransaction({
     recipientAddress,
@@ -110,11 +111,8 @@ export class TokenTransferService {
     // Set fee payer to recipient (user pays fees)
     transaction.feePayer = recipientPubkey
 
-    // Pre-sign with treasury if keypair provided (required for multi-sig transactions)
-    if (treasuryKeypair) {
-      transaction.partialSign(treasuryKeypair)
-      console.log('🔑 Treasury pre-signed transaction')
-    }
+    // DO NOT pre-sign with treasury - let user sign first to avoid Phantom security warnings
+    console.log('🔑 Transaction built without treasury pre-signature (following Phantom guidelines)')
 
     // Estimate the transaction fee
     const estimatedFee = await this.estimateTransactionFee(transaction)
@@ -122,7 +120,7 @@ export class TokenTransferService {
     return {
       transaction,
       instructions,
-      requiredSigners: [recipientPubkey], // User must sign (treasury signs server-side)
+      requiredSigners: [recipientPubkey, treasuryPublicKey], // Both user and treasury must sign
       estimatedFee
     }
   }
