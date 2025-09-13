@@ -6,6 +6,7 @@ export interface AirdropTransactionParams {
   recipientAddress: string
   amount: number
   claimId: string
+  walletType?: string
 }
 
 export interface TransactionResult {
@@ -46,7 +47,8 @@ export class AirdropTransactionBuilder {
   async buildAirdropTransaction({
     recipientAddress,
     amount,
-    claimId
+    claimId,
+    walletType = 'mwa'
   }: AirdropTransactionParams): Promise<TransactionResult> {
     const metadata = {
       claimId,
@@ -74,15 +76,20 @@ export class AirdropTransactionBuilder {
       // Get treasury token account
       const treasuryTokenAccount = await this.treasuryService.getTreasuryTokenAccount()
 
-      // Build unsigned transaction (user will sign first, treasury after)
+      // Build unsigned transaction (signing approach depends on wallet type)
       const treasuryKeypair = this.treasuryService.getTreasuryKeypair()
+      const shouldPreSign = walletType !== 'phantom' // Pre-sign for MWA, not for Phantom
+      
+      console.log(`🔑 Building transaction for ${walletType} wallet - Pre-sign: ${shouldPreSign}`)
+      
       const unsignedTransaction = await this.transferService.buildUnsignedTransferTransaction({
         recipientAddress,
         amount,
         tokenMintAddress: metadata.tokenMintAddress,
         treasuryTokenAccount,
         treasuryPublicKey: treasuryKeypair.publicKey,
-        treasuryKeypair: undefined // Don't pre-sign - follow Phantom guidelines
+        treasuryKeypair: shouldPreSign ? treasuryKeypair : undefined,
+        walletType: walletType
       })
 
       // Update metadata with estimated fee

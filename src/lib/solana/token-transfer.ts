@@ -22,6 +22,7 @@ export interface TransferParams {
   treasuryTokenAccount: PublicKey
   treasuryPublicKey: PublicKey
   treasuryKeypair?: any // Optional for pre-signing
+  walletType?: string // Wallet type for signing flow
 }
 
 export interface UnsignedTransaction {
@@ -41,7 +42,7 @@ export class TokenTransferService {
   /**
    * Build an unsigned transaction for the user to sign
    * This approach ensures the USER pays the network fees, not the treasury
-   * Following Phantom's recommendation: user signs first, treasury signs after
+   * Signing flow depends on wallet type: Phantom (user-first) vs MWA (treasury pre-signed)
    */
   async buildUnsignedTransferTransaction({
     recipientAddress,
@@ -49,7 +50,8 @@ export class TokenTransferService {
     tokenMintAddress,
     treasuryTokenAccount,
     treasuryPublicKey,
-    treasuryKeypair
+    treasuryKeypair,
+    walletType = 'mwa'
   }: TransferParams): Promise<UnsignedTransaction> {
     const recipientPubkey = new PublicKey(recipientAddress)
     const tokenMint = new PublicKey(tokenMintAddress)
@@ -111,8 +113,19 @@ export class TokenTransferService {
     // Set fee payer to recipient (user pays fees)
     transaction.feePayer = recipientPubkey
 
-    // DO NOT pre-sign with treasury - let user sign first to avoid Phantom security warnings
-    console.log('🔑 Transaction built without treasury pre-signature (following Phantom guidelines)')
+    // Conditional signing based on wallet type
+    const isPhantom = walletType === 'phantom'
+    
+    if (isPhantom) {
+      // Phantom: DO NOT pre-sign with treasury - let user sign first to avoid security warnings
+      console.log('🔑 Phantom wallet: Transaction built without treasury pre-signature')
+    } else {
+      // MWA/Other wallets: Pre-sign with treasury to avoid multi-signer issues
+      if (treasuryKeypair) {
+        transaction.partialSign(treasuryKeypair)
+        console.log('🔑 MWA/Other wallet: Treasury pre-signed transaction')
+      }
+    }
 
     // Estimate the transaction fee
     const estimatedFee = await this.estimateTransactionFee(transaction)
@@ -120,7 +133,9 @@ export class TokenTransferService {
     return {
       transaction,
       instructions,
-      requiredSigners: [recipientPubkey, treasuryPublicKey], // Both user and treasury must sign
+      requiredSigners: isPhantom 
+        ? [recipientPubkey, treasuryPublicKey] // Phantom: Both signers required
+        : [recipientPubkey], // MWA: Only user signature needed (treasury already signed)
       estimatedFee
     }
   }

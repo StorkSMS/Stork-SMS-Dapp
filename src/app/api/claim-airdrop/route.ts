@@ -10,7 +10,7 @@ const supabaseServer = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
-    const { walletAddress, signedTransaction, transactionSignature, action = 'build' } = await request.json()
+    const { walletAddress, signedTransaction, transactionSignature, action = 'build', walletType = 'mwa' } = await request.json()
     
     if (!walletAddress) {
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     // Handle different actions
     if (action === 'build') {
       // Build unsigned transaction for user to sign
-      return await buildUnsignedTransaction(walletAddress, claimAmount, eligibilitySource)
+      return await buildUnsignedTransaction(walletAddress, claimAmount, eligibilitySource, walletType)
     } else if (action === 'submit') {
       // Submit signed transaction and record claim (legacy)
       return await submitSignedTransaction(walletAddress, signedTransaction, claimAmount, eligibilitySource)
@@ -95,7 +95,8 @@ export async function POST(request: NextRequest) {
 async function buildUnsignedTransaction(
   walletAddress: string, 
   claimAmount: number, 
-  eligibilitySource: string
+  eligibilitySource: string,
+  walletType: string = 'mwa'
 ) {
   try {
     // Initialize transaction builder
@@ -114,11 +115,12 @@ async function buildUnsignedTransaction(
     // Create a temporary claim ID for tracking
     const claimId = `temp_${Date.now()}_${walletAddress.slice(-8)}`
 
-    // Build the transaction (user will sign first, treasury signs after)
+    // Build the transaction (signing flow depends on wallet type)
     const result = await transactionBuilder.buildAirdropTransaction({
       recipientAddress: walletAddress,
       amount: claimAmount,
-      claimId
+      claimId,
+      walletType: walletType
     })
 
     if (!result.success) {

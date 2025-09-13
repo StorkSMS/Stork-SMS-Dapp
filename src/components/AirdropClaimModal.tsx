@@ -27,7 +27,7 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
   onClose,
   isDarkMode = false
 }) => {
-  const { publicKey, connected, sendTransaction } = useWallet()
+  const { publicKey, connected, sendTransaction, wallet } = useWallet()
   const [eligibilityStatus, setEligibilityStatus] = useState<EligibilityStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isClaiming, setIsClaiming] = useState(false)
@@ -36,6 +36,26 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null)
   const [explorerUrl, setExplorerUrl] = useState<string | null>(null)
   const [isSigningTransaction, setIsSigningTransaction] = useState(false)
+
+  // Helper function to determine wallet type for signing flow
+  const getWalletType = (): 'phantom' | 'mwa' | 'other' => {
+    if (!wallet?.adapter?.name) return 'other'
+    
+    const walletName = wallet.adapter.name.toLowerCase()
+    
+    // Phantom uses user-first signing (no pre-signing)
+    if (walletName.includes('phantom')) {
+      return 'phantom'
+    }
+    
+    // MWA and other mobile wallets need treasury pre-signing
+    if (walletName.includes('mobile') || walletName.includes('solflare') || walletName.includes('backpack')) {
+      return 'mwa'
+    }
+    
+    // Default to MWA flow for unknown wallets (safer for multi-sig)
+    return 'mwa'
+  }
 
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
@@ -97,13 +117,18 @@ const AirdropClaimModal: React.FC<AirdropClaimModalProps> = ({
     setError(null)
 
     try {
+      // Get wallet type for signing flow
+      const walletType = getWalletType()
+      console.log('🔍 Detected wallet type:', walletType, 'for wallet:', wallet?.adapter?.name)
+
       // Step 1: Build unsigned transaction
       const buildResponse = await fetch('/api/claim-airdrop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           walletAddress: publicKey.toString(),
-          action: 'build'
+          action: 'build',
+          walletType: walletType
         })
       })
 
