@@ -260,7 +260,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 style={{ backgroundColor: colors.border, opacity: 0.3 }} 
               />
               <a 
-                href="https://discord.gg/AdCKQAhe" 
+                href="https://discord.gg/YucFC3mn" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
