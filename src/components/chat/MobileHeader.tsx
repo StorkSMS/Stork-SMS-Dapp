@@ -7,7 +7,6 @@ import { Menu, X, MoreVertical, UserPlus, Users, Phone, Trophy, Smartphone } fro
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
 import ContactHeader from "@/components/ContactHeader"
-import TrophiesModal from "@/components/TrophiesModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
 
@@ -28,6 +27,7 @@ interface MobileHeaderProps {
   onManageContactsClick: () => void
   onAirdropCheckClick: () => void
   onAirdropClaimClick: () => void
+  onTrophiesClick: () => void
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -46,6 +46,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   onManageContactsClick,
   onAirdropCheckClick,
   onAirdropClaimClick,
+  onTrophiesClick,
 }) => {
   const { isAuthenticated } = useAuth()
   const { contacts, refreshUserContacts } = useContacts()
@@ -68,7 +69,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   // Social menu dropdown state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isTrophiesModalOpen, setIsTrophiesModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -126,7 +126,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
       return
     }
     setIsMenuOpen(false)
-    setIsTrophiesModalOpen(true)
+    onTrophiesClick()
   }
   
   return (
@@ -309,12 +309,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       </div>
 
-      {/* Trophies Modal */}
-      <TrophiesModal
-        isOpen={isTrophiesModalOpen}
-        onClose={() => setIsTrophiesModalOpen(false)}
-        isDarkMode={isDarkMode}
-      />
     </div>
   )
 }

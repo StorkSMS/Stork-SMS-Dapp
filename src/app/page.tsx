@@ -1425,6 +1425,7 @@ function ChatAppContent() {
           onManageContactsClick={handleManageContactsClick}
           onAirdropCheckClick={handleAirdropCheckClick}
           onAirdropClaimClick={handleAirdropClaimClick}
+          onTrophiesClick={handleTrophiesClick}
         />
       </div>
 
