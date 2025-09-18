@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { X, Trophy, Loader2 } from "lucide-react"
+import { X, Trophy as TrophyIcon, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { useWallet } from "@solana/wallet-adapter-react"
 import type { TrophyData, Trophy, TrophyStats } from "@/types/trophies"
@@ -335,7 +335,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
           style={{ borderBottomColor: colors.border }}
         >
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5" style={{ color: colors.text }} />
+            <TrophyIcon className="w-5 h-5" style={{ color: colors.text }} />
             <h2
               className="text-lg font-medium"
               style={{
@@ -374,7 +374,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
           ) : error ? (
             /* Error State */
             <div className="flex flex-col items-center justify-center py-8">
-              <Trophy className="w-8 h-8 mb-4 opacity-50" style={{ color: colors.text }} />
+              <TrophyIcon className="w-8 h-8 mb-4 opacity-50" style={{ color: colors.text }} />
               <p
                 className="text-sm text-center"
                 style={{
@@ -401,7 +401,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
           ) : !connected ? (
             /* Not Connected State */
             <div className="flex flex-col items-center justify-center py-8">
-              <Trophy className="w-8 h-8 mb-4 opacity-50" style={{ color: colors.text }} />
+              <TrophyIcon className="w-8 h-8 mb-4 opacity-50" style={{ color: colors.text }} />
               <p
                 className="text-sm text-center"
                 style={{
