@@ -29,38 +29,38 @@ interface LayerAsset {
 // Define layer assets in Z-index order (bottom to top)
 const LAYER_ASSETS: LayerAsset[] = [
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/White bg (position bottom left).png',
+    path: 'public/Nft-Build-Images/Recipient NFT/White bg (position bottom left).png',
     position: 'bottom-left',
     name: 'white-bg'
   },
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/Ticket edge (position top left).png',
+    path: 'public/Nft-Build-Images/Recipient NFT/Ticket edge (position top left).png',
     position: 'top-left',
     name: 'ticket-edge'
   },
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/under rip image (position bottom right).png',
+    path: 'public/Nft-Build-Images/Recipient NFT/under rip image (position bottom right).png',
     position: 'bottom-right',
     name: 'under-rip'
   },
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/Paper-rip (positon bottom right).png',
+    path: 'public/Nft-Build-Images/Recipient NFT/Paper-rip (positon bottom right).png',
     position: 'bottom-right',
     name: 'paper-rip'
   },
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/Stork-branding (position top right).png',
+    path: 'public/Nft-Build-Images/Recipient NFT/Stork-branding (position top right).png',
     position: 'top-right',
     name: 'stork-branding'
   },
   // User text layer will be drawn programmatically here
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/Paper-Texture (position bottom right).png',
+    path: 'public/Nft-Build-Images/Recipient NFT/Paper-Texture (position bottom right).png',
     position: 'bottom-right',
     name: 'paper-texture'
   },
   {
-    path: '/public/Nft-Build-Images/Recipient NFT/Stickers (position bottom left)',
+    path: 'public/Nft-Build-Images/Recipient NFT/Stickers (position bottom left)',
     position: 'bottom-left',
     name: 'stickers'
   }
@@ -279,7 +279,7 @@ async function generateProductionNFT(request: GenerateProductionNFTRequest): Pro
 
   // Draw white background first
   try {
-    const whiteBgPath = path.join(process.cwd(), '/public/Nft-Build-Images/Recipient NFT/White bg (position bottom left).png')
+    const whiteBgPath = path.join(process.cwd(), 'public/Nft-Build-Images/Recipient NFT/White bg (position bottom left).png')
     const whiteBgImage = await loadImage(whiteBgPath)
     const position = positionAsset(ctx, whiteBgImage, 'bottom-left', CANVAS_WIDTH, CANVAS_HEIGHT)
     ctx.drawImage(whiteBgImage, position.x, position.y)
@@ -373,7 +373,7 @@ async function generateProductionNFT(request: GenerateProductionNFTRequest): Pro
   console.log('⚠️ PAPER TEXTURE DISABLED FOR DEBUGGING')
   /*
   try {
-    const paperTexturePath = path.join(process.cwd(), '/public/Nft-Build-Images/Recipient NFT/Paper-Texture (position bottom right).png')
+    const paperTexturePath = path.join(process.cwd(), 'public/Nft-Build-Images/Recipient NFT/Paper-Texture (position bottom right).png')
     const paperTextureImage = await loadImage(paperTexturePath)
     const position = positionAsset(ctx, paperTextureImage, 'bottom-right', CANVAS_WIDTH, CANVAS_HEIGHT)
     
@@ -419,7 +419,7 @@ async function generateProductionNFT(request: GenerateProductionNFTRequest): Pro
   // Finally, draw stickers on top if provided
   if (sticker && STICKER_OPTIONS.includes(sticker)) {
     try {
-      const stickerPath = path.join(process.cwd(), '/public/Nft-Build-Images/Recipient NFT/Stickers (position bottom left)', sticker)
+      const stickerPath = path.join(process.cwd(), 'public/Nft-Build-Images/Recipient NFT/Stickers (position bottom left)', sticker)
       const stickerImage = await loadImage(stickerPath)
       const position = positionAsset(ctx, stickerImage, 'bottom-left', CANVAS_WIDTH, CANVAS_HEIGHT)
       ctx.drawImage(stickerImage, position.x, position.y)

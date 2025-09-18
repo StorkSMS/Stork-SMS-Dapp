@@ -3,10 +3,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Menu, X, MoreVertical, UserPlus, Users, Plane, Gift } from "lucide-react"
+import { Menu, X, MoreVertical, UserPlus, Users, Plane, Gift, Trophy } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
 import OnlineStatus from "@/components/OnlineStatus"
 import ContactHeader from "@/components/ContactHeader"
+import TrophiesModal from "@/components/TrophiesModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
 
@@ -67,6 +68,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   // Social menu dropdown state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isTrophiesModalOpen, setIsTrophiesModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -110,8 +112,21 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   }
 
   const handleAirdropClaimClickInternal = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to claim airdrops')
+      return
+    }
     setIsMenuOpen(false)
     onAirdropClaimClick()
+  }
+
+  const handleTrophiesClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to view trophies')
+      return
+    }
+    setIsMenuOpen(false)
+    setIsTrophiesModalOpen(true)
   }
   
   return (
@@ -224,6 +239,14 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
               }}
             >
               <button
+                onClick={handleTrophiesClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Trophy className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Trophies</span>
+              </button>
+              <button
                 onClick={handleAddContactClickInternal}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
                 style={{ color: colors.text }}
@@ -289,7 +312,13 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
           )}
         </div>
       </div>
-      
+
+      {/* Trophies Modal */}
+      <TrophiesModal
+        isOpen={isTrophiesModalOpen}
+        onClose={() => setIsTrophiesModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
     </div>
   )
 }

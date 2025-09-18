@@ -3,12 +3,13 @@
 import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Plane, Gift } from "lucide-react"
+import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Plane, Gift, Trophy } from "lucide-react"
 import DomainDisplay from "@/components/DomainDisplay"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
 import AirdropCheckModal from "@/components/AirdropCheckModal"
 import AirdropClaimModal from "@/components/AirdropClaimModal"
+import TrophiesModal from "@/components/TrophiesModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useContacts } from "@/hooks/useContacts"
 
@@ -114,6 +115,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [isManageContactsModalOpen, setIsManageContactsModalOpen] = useState(false)
   const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
   const [isAirdropClaimModalOpen, setIsAirdropClaimModalOpen] = useState(false)
+  const [isTrophiesModalOpen, setIsTrophiesModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
   // Note: Domain resolution temporarily disabled for main chat list for debugging
@@ -160,8 +162,21 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   }
 
   const handleAirdropClaimClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to claim airdrops')
+      return
+    }
     setIsMenuOpen(false)
     setIsAirdropClaimModalOpen(true)
+  }
+
+  const handleTrophiesClick = () => {
+    if (!isAuthenticated) {
+      alert('Please connect and authenticate your wallet to view trophies')
+      return
+    }
+    setIsMenuOpen(false)
+    setIsTrophiesModalOpen(true)
   }
 
   const handleContactAdded = (contact: any) => {
@@ -241,6 +256,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 borderColor: colors.border 
               }}
             >
+              <button
+                onClick={handleTrophiesClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Trophy className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Trophies</span>
+              </button>
               <button
                 onClick={handleAddContactClick}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
@@ -632,6 +655,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <AirdropClaimModal
         isOpen={isAirdropClaimModalOpen}
         onClose={() => setIsAirdropClaimModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Trophies Modal */}
+      <TrophiesModal
+        isOpen={isTrophiesModalOpen}
+        onClose={() => setIsTrophiesModalOpen(false)}
         isDarkMode={isDarkMode}
       />
     </div>
