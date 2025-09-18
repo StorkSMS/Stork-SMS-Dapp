@@ -51,6 +51,10 @@ import ContactManagementModal from "@/components/ContactManagementModal"
 import AirdropCheckModal from "@/components/AirdropCheckModal"
 import AirdropClaimModal from "@/components/AirdropClaimModal"
 import CelebrationOverlay from "@/components/CelebrationOverlay"
+import TrophyNotification from "@/components/TrophyNotification"
+import TrophiesModal from "@/components/TrophiesModal"
+import { TrophyProvider } from "@/contexts/TrophyContext"
+import { useTrophyNotifications } from "@/hooks/useTrophyNotifications"
 import { getThemeColors, formatRelativeTime } from "@/components/chat/utils"
 
 interface NewChatData {
@@ -74,7 +78,7 @@ interface PendingChat {
   }
 }
 
-export default function ChatApp() {
+function ChatAppContent() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null)
   const [message, setMessage] = useState("")
   const [isInputFocused, setIsInputFocused] = useState(false)
@@ -123,6 +127,7 @@ export default function ChatApp() {
   const [isAirdropCheckModalOpen, setIsAirdropCheckModalOpen] = useState(false)
   const [isAirdropClaimModalOpen, setIsAirdropClaimModalOpen] = useState(false)
   const [isCelebrationOverlayOpen, setIsCelebrationOverlayOpen] = useState(false)
+  const [isTrophiesModalOpen, setIsTrophiesModalOpen] = useState(false)
   const [hasCheckedEligibility, setHasCheckedEligibility] = useState(false)
   
   // Typing detection refs
@@ -136,9 +141,26 @@ export default function ChatApp() {
     setTimeout(() => setShowCopyToast(false), 2000)
   }, [])
 
+  // Trophy intro localStorage checking
+  const TROPHY_INTRO_KEY = 'hasSeenTrophyIntro'
+
+  const hasSeenTrophyIntro = useCallback(() => {
+    try {
+      return localStorage.getItem(TROPHY_INTRO_KEY) === 'true'
+    } catch (error) {
+      console.warn('Failed to read trophy intro state from localStorage:', error)
+      return false
+    }
+  }, [])
+
   // Celebration overlay handler
   const handleCloseCelebrationOverlay = useCallback(() => {
     setIsCelebrationOverlayOpen(false)
+  }, [])
+
+  // Trophies modal handler
+  const handleTrophiesClick = useCallback(() => {
+    setIsTrophiesModalOpen(true)
   }, [])
   
   // Initialize sticker state for new chat
@@ -152,7 +174,10 @@ export default function ChatApp() {
   
   // Load contacts for displaying names instead of wallet addresses
   const { contacts, refreshUserContacts } = useContacts()
-  
+
+  // Trophy notifications
+  const { currentNotification, checkForTrophyUpdates, dismissCurrentNotification } = useTrophyNotifications()
+
   // Access properties directly from the context
   const isAuthenticated = authState.isAuthenticated
   const isAuthenticating = authState.isAuthenticating
@@ -238,17 +263,19 @@ export default function ChatApp() {
       if (!isMobile) {
         // Desktop: immediate animation
         setIsAppLoaded(true)
-        
-        // Show celebration overlay on every page load
-        setTimeout(() => {
-          setIsCelebrationOverlayOpen(true)
-        }, 1000)
+
+        // Show celebration overlay only if user hasn't seen trophy intro yet
+        if (!hasSeenTrophyIntro()) {
+          setTimeout(() => {
+            setIsCelebrationOverlayOpen(true)
+          }, 1000)
+        }
       }
       // Mobile: wait for wallet connection (don't set isAppLoaded)
     }, 100) // Small delay to ensure mobile detection is complete
-    
+
     return () => clearTimeout(timer)
-  }, [isMobile])
+  }, [isMobile, hasSeenTrophyIntro])
 
   // Track when user has ever authenticated to prevent welcome screen from reappearing
   useEffect(() => {
@@ -260,27 +287,30 @@ export default function ChatApp() {
   // Trigger mobile animation after wallet connects AND authenticates
   useEffect(() => {
     if (isMobile && connected && isActuallyAuthenticated) {
-      // Show celebration overlay on every page load (mobile)
-      setTimeout(() => {
-        setIsCelebrationOverlayOpen(true)
-      }, 1500) // Slightly longer delay for mobile
+      // Show celebration overlay only if user hasn't seen trophy intro yet (mobile)
+      if (!hasSeenTrophyIntro()) {
+        setTimeout(() => {
+          setIsCelebrationOverlayOpen(true)
+        }, 1500) // Slightly longer delay for mobile
+      }
+
       const animationTimer = setTimeout(() => {
         setIsAppLoaded(true)
         // Open sidebar by default on mobile after wallet connection
         setIsMobileMenuOpen(true)
       }, 300) // Small delay after wallet connection for smooth transition
-      
+
       // Hide welcome screen elements 5 seconds after animation starts
       const hideWelcomeTimer = setTimeout(() => {
         setHideWelcomeScreen(true)
       }, 5300) // 300ms animation delay + 5000ms display time
-      
+
       return () => {
         clearTimeout(animationTimer)
         clearTimeout(hideWelcomeTimer)
       }
     }
-  }, [isMobile, connected, isActuallyAuthenticated])
+  }, [isMobile, connected, isActuallyAuthenticated, hasSeenTrophyIntro])
 
   // Check URL parameters on mount to auto-open airdrop checker
   useEffect(() => {
@@ -786,9 +816,9 @@ export default function ChatApp() {
         if (finalResult.status === 'completed' && finalResult.result?.chatId) {
           // Mark as newly created for success indicator
           setNewlyCreatedChats(prev => new Set(prev).add(finalResult.result.chatId))
-          
+
           // Conversations should update automatically via real-time subscription
-          
+
           // The new chat should automatically appear via realtime subscription
           // Auto-select the newly created chat after a brief delay to ensure it's in the conversations list
           setTimeout(() => {
@@ -796,6 +826,9 @@ export default function ChatApp() {
             loadChatMessages(finalResult.result.chatId)
             subscribeToMessageUpdates(finalResult.result.chatId)
           }, 100) // Small delay to ensure realtime subscription has processed the new chat
+
+          // Check for trophy updates after creating new chat
+          checkForTrophyUpdates()
         }
       }).catch((error) => {
         console.error('Background NFT creation failed:', error)
@@ -823,7 +856,7 @@ export default function ChatApp() {
         alert('Failed to create NFT chat. Please try again.')
       }
     }
-  }, [newChatData.to, stickerState, createNFTChatWithImmediateSignature, publicKey, setPendingChats, setNewlyCreatedChats, setSelectedChat, loadChatMessages, subscribeToMessageUpdates])
+  }, [newChatData.to, stickerState, createNFTChatWithImmediateSignature, publicKey, setPendingChats, setNewlyCreatedChats, setSelectedChat, loadChatMessages, subscribeToMessageUpdates, checkForTrophyUpdates])
 
   
   // Use the callback to call async createNFT operation
@@ -884,6 +917,9 @@ export default function ChatApp() {
           subscribeToReadReceiptsUpdates(chatId)
           clearUnreadStatus(chatId)
         }, 1000)
+
+        // Check for trophy updates after retry success
+        checkForTrophyUpdates()
       } else {
         // Type guard: if status is not 'completed', it must be 'failed' which has an error property
         const errorMessage = finalResult.status === 'failed' ? finalResult.error : 'Failed to create chat'
@@ -901,7 +937,7 @@ export default function ChatApp() {
         )
       )
     }
-  }, [pendingChats, createNFTChatWithImmediateSignature, refreshConversations, loadChatMessages, subscribeToMessageUpdates, subscribeToReadReceiptsUpdates, clearUnreadStatus])
+  }, [pendingChats, createNFTChatWithImmediateSignature, refreshConversations, loadChatMessages, subscribeToMessageUpdates, subscribeToReadReceiptsUpdates, clearUnreadStatus, checkForTrophyUpdates])
 
   const handleChatSelect = useCallback((chatId: string) => {
     console.log('💬 Selecting chat:', chatId)
@@ -954,10 +990,13 @@ export default function ChatApp() {
       
       console.log('✅ Sticker sent successfully')
       setIsChatStickerPickerOpen(false)
+
+      // Check for trophy updates after sending sticker
+      await checkForTrophyUpdates()
     } catch (error) {
       console.error('❌ Error sending sticker:', error)
     }
-  }, [selectedChat, conversations, publicKey, sendMessage])
+  }, [selectedChat, conversations, publicKey, sendMessage, checkForTrophyUpdates])
 
   const handleSendVoice = useCallback(async (audioBlob: Blob, duration: number) => {
     if (!selectedChat) return
@@ -994,10 +1033,13 @@ export default function ChatApp() {
       })
       
       console.log('✅ Voice message sent successfully')
+
+      // Check for trophy updates after sending voice message
+      await checkForTrophyUpdates()
     } catch (error) {
       console.error('❌ Error sending voice message:', error)
     }
-  }, [selectedChat, conversations, publicKey, sendMessage])
+  }, [selectedChat, conversations, publicKey, sendMessage, checkForTrophyUpdates])
 
   // Image upload handlers
   const handleFileSelect = useCallback((file: File) => {
@@ -1237,6 +1279,9 @@ export default function ChatApp() {
         console.log('📸 Sending message with images')
         await handleSendImagesWithText(message.trim(), recipientWallet, selectedChat)
         setMessage("")
+
+        // Check for trophy updates after sending images
+        await checkForTrophyUpdates()
         return
       }
       
@@ -1249,14 +1294,17 @@ export default function ChatApp() {
           recipientWallet,
           messageType: 'text'
         })
-        
+
         setMessage("")
+
+        // Check for trophy updates after sending text message
+        await checkForTrophyUpdates()
       }
     } catch (error) {
       console.error('Error sending message:', error)
       alert('Failed to send message')
     }
-  }, [message, selectedChat, conversations, publicKey, sendMessage, handleStopTyping, selectedImages, handleSendImagesWithText, selectedChatSticker])
+  }, [message, selectedChat, conversations, publicKey, sendMessage, handleStopTyping, selectedImages, handleSendImagesWithText, selectedChatSticker, checkForTrophyUpdates])
   
   const handleCancelNewChat = useCallback(() => {
     setIsCreatingNewChat(false)
@@ -1649,7 +1697,20 @@ export default function ChatApp() {
         isOpen={isCelebrationOverlayOpen}
         onClose={handleCloseCelebrationOverlay}
         isDarkMode={isDarkMode}
-        onAirdropClaimClick={handleAirdropClaimClick}
+        onTrophiesClick={handleTrophiesClick}
+      />
+
+      <TrophiesModal
+        isOpen={isTrophiesModalOpen}
+        onClose={() => setIsTrophiesModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Trophy Notification */}
+      <TrophyNotification
+        notification={currentNotification}
+        onComplete={dismissCurrentNotification}
+        isDarkMode={isDarkMode}
       />
 
       {/* Development Test Button - Hidden */}
@@ -1664,5 +1725,13 @@ export default function ChatApp() {
       )}
 
     </div>
+  )
+}
+
+export default function ChatApp() {
+  return (
+    <TrophyProvider>
+      <ChatAppContent />
+    </TrophyProvider>
   )
 }

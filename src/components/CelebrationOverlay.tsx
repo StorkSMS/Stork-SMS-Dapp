@@ -6,19 +6,20 @@ import { X } from "lucide-react"
 import confetti from "canvas-confetti"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useAuth } from "@/contexts/AuthContext"
+import Image from "next/image"
 
 interface CelebrationOverlayProps {
   isOpen: boolean
   onClose: () => void
   isDarkMode?: boolean
-  onAirdropClaimClick?: () => void
+  onTrophiesClick?: () => void
 }
 
 const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   isOpen,
   onClose,
   isDarkMode = false,
-  onAirdropClaimClick
+  onTrophiesClick
 }) => {
   const [mounted, setMounted] = useState(false)
   const confettiTimeout = useRef<NodeJS.Timeout | null>(null)
@@ -28,6 +29,17 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   const [userInitiatedConnection, setUserInitiatedConnection] = useState(false)
   const [hasTriggeredAuth, setHasTriggeredAuth] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Check if user has already seen the trophy intro
+  const TROPHY_INTRO_KEY = 'hasSeenTrophyIntro'
+
+  const markTrophyIntroSeen = () => {
+    try {
+      localStorage.setItem(TROPHY_INTRO_KEY, 'true')
+    } catch (error) {
+      console.warn('Failed to save trophy intro state to localStorage:', error)
+    }
+  }
 
   const colors = {
     bg: isDarkMode ? '#0E0E0E' : '#FFF',
@@ -83,6 +95,16 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
     }
   }, [connected, publicKey, isAuthenticated, isAuthenticating, hasTriggeredAuth, userInitiatedConnection, authenticateWithWallet, signMessage])
 
+  // Open trophy modal when authentication completes through this overlay
+  useEffect(() => {
+    if (connected && isAuthenticated && hasTriggeredAuth && userInitiatedConnection) {
+      // User just authenticated through this overlay, open trophy modal
+      markTrophyIntroSeen()
+      onTrophiesClick?.()
+      onClose()
+    }
+  }, [connected, isAuthenticated, hasTriggeredAuth, userInitiatedConnection, markTrophyIntroSeen, onTrophiesClick, onClose])
+
   // Reset auth trigger when wallet disconnects
   useEffect(() => {
     if (!connected) {
@@ -125,8 +147,9 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   // Handle button click
   const handleButtonClick = () => {
     if (connected && isAuthenticated) {
-      // Fully authenticated, open claim modal
-      onAirdropClaimClick?.()
+      // Fully authenticated, open trophies modal
+      markTrophyIntroSeen()
+      onTrophiesClick?.()
       onClose()
     } else if (!connected) {
       // Show wallet selection
@@ -143,9 +166,9 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
   const getButtonText = () => {
     if (connecting) return 'Connecting...'
     if (isAuthenticating) return 'Awaiting Signature...'
-    if (connected && isAuthenticated) return 'Claim Your Airdrop'
-    if (connected && !isAuthenticated) return 'Sign to Authenticate'
-    return 'Connect Wallet to Claim'
+    if (connected && isAuthenticated) return 'View Trophies'
+    if (connected && !isAuthenticated) return 'Sign in to View Your Collection'
+    return 'Connect Wallet to View'
   }
 
   const isButtonDisabled = connecting || isAuthenticating
@@ -181,6 +204,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
     if (confettiTimeout.current) {
       clearInterval(confettiTimeout.current)
     }
+    markTrophyIntroSeen()
     onClose()
   }
 
@@ -229,24 +253,45 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                 fontFamily: "Helvetica Neue, sans-serif" 
               }}
             >
-              🎁 Airdrop is Live!
+              🏆 Trophies are here!
             </h1>
           </div>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-4">
-          <div 
-            className="text-lg leading-relaxed"
-            style={{ 
+          {/* Trophy Display Section */}
+          <div className="flex justify-center items-center mb-8">
+            <Image
+              src="/trophies/Trophy lineup.png"
+              alt="Trophy Collection"
+              width={200}
+              height={120}
+            />
+          </div>
+
+          <div
+            className="text-lg leading-tight"
+            style={{
               color: colors.text,
-              fontFamily: "Helvetica Neue, sans-serif" 
+              fontFamily: "Helvetica Neue, sans-serif",
+              lineHeight: "1.3"
             }}
           >
-            <p className="mb-6 text-center">
-              <strong>🎁 Airdrop is now live!</strong> Eligible wallets include those from the 
-              7-day developer updates period, .skr domain holders, and manually added contributors.
-            </p>
+            <div className="mb-4 text-center space-y-2">
+              <p>
+                <strong>Trophies are a way to earn airdrop!</strong>
+              </p>
+              <p>
+                The higher tier trophies and the more you collect, the more airdrop you'll receive.
+              </p>
+              <p>
+                <strong>We're guaranteeing that all users' airdrop will be worth far more than the value of SMS needed to earn them!</strong>
+              </p>
+              <p className="text-sm" style={{ color: colors.textSecondary }}>
+                (More detailed info will be released soon)
+              </p>
+            </div>
 
             <div className="flex justify-center">
               <div className="relative" ref={dropdownRef}>

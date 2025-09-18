@@ -624,6 +624,7 @@ async function storeChatRecord(
       payment_method: paymentMethod,
       fee_transaction_signature: feeTransactionSignature,
       fee_paid: true,
+      initial_message_length: messageContent.length,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Plane, Gift, Trophy } from "lucide-react"
+import { Plus, AlertCircle, MoreVertical, UserPlus, Users, Phone, Trophy, Smartphone } from "lucide-react"
 import DomainDisplay from "@/components/DomainDisplay"
 import AddContactModal from "@/components/AddContactModal"
 import ContactManagementModal from "@/components/ContactManagementModal"
@@ -257,14 +257,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               }}
             >
               <button
-                onClick={handleTrophiesClick}
-                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
-                style={{ color: colors.text }}
-              >
-                <Trophy className="w-4 h-4" />
-                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Trophies</span>
-              </button>
-              <button
                 onClick={handleAddContactClick}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
                 style={{ color: colors.text }}
@@ -280,29 +272,33 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <Users className="w-4 h-4" />
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Manage Contacts</span>
               </button>
+              <div
+                className="h-px mx-2"
+                style={{ backgroundColor: colors.border, opacity: 0.3 }}
+              />
+              <button
+                onClick={handleTrophiesClick}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
+                style={{ color: colors.text }}
+              >
+                <Trophy className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Trophies</span>
+              </button>
               <button
                 onClick={handleAirdropClaimClick}
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
                 style={{ color: colors.text }}
               >
-                <Gift className="w-4 h-4" />
-                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Airdrop Claim</span>
+                <Smartphone className="w-4 h-4" />
+                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Seeker Airdrop</span>
               </button>
-              <button
-                onClick={handleAirdropCheckClick}
-                className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm w-full text-left"
-                style={{ color: colors.text }}
-              >
-                <Plane className="w-4 h-4" />
-                <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Airdrop Check</span>
-              </button>
-              <div 
-                className="h-px mx-2" 
-                style={{ backgroundColor: colors.border, opacity: 0.3 }} 
+              <div
+                className="h-px mx-2"
+                style={{ backgroundColor: colors.border, opacity: 0.3 }}
               />
-              <a 
-                href="https://discord.gg/YucFC3mn" 
-                target="_blank" 
+              <a
+                href="https://discord.gg/YucFC3mn"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
                 style={{ color: colors.text }}
@@ -311,13 +307,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <Image src="/discordlogo.svg" alt="Discord" width={16} height={16} className="w-4 h-4" />
                 <span style={{ fontFamily: "Helvetica Neue, sans-serif" }}>Discord</span>
               </a>
-              <div 
-                className="h-px mx-2" 
-                style={{ backgroundColor: colors.border, opacity: 0.3 }} 
+              <div
+                className="h-px mx-2"
+                style={{ backgroundColor: colors.border, opacity: 0.3 }}
               />
-              <a 
-                href="https://x.com/StorkSMS" 
-                target="_blank" 
+              <a
+                href="https://x.com/StorkSMS"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2 hover:opacity-70 transition-opacity text-sm"
                 style={{ color: colors.text }}
