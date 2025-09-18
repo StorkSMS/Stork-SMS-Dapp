@@ -312,17 +312,27 @@ function ChatAppContent() {
     }
   }, [isMobile, connected, isActuallyAuthenticated, hasSeenTrophyIntro])
 
-  // Check URL parameters on mount to auto-open airdrop checker
+  // Check URL parameters on mount to auto-open modals
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const airdropParam = urlParams.get('airdrop')
-    
+    const trophiesParam = urlParams.get('trophies')
+
     if (airdropParam === 'check') {
       // Wait for app to load before opening modal
       const timer = setTimeout(() => {
         setIsAirdropCheckModalOpen(true)
       }, 1000) // Small delay to ensure app is ready
-      
+
+      return () => clearTimeout(timer)
+    }
+
+    if (trophiesParam === 'intro') {
+      // Force show trophy celebration overlay even if user has seen it before
+      const timer = setTimeout(() => {
+        setIsCelebrationOverlayOpen(true)
+      }, 1000) // Small delay to ensure app is ready
+
       return () => clearTimeout(timer)
     }
   }, [])
