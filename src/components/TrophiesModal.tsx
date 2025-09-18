@@ -429,9 +429,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
                           !trophy.achieved ? 'opacity-50 grayscale' : ''
                         }`}
                         style={{
-                          imageRendering: 'pixelated',
-                          imageRendering: '-moz-crisp-edges',
-                          imageRendering: 'crisp-edges'
+                          imageRendering: 'pixelated'
                         }}
                       />
                     </div>
@@ -494,9 +492,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
                             !trophy.achieved ? 'opacity-50 grayscale' : ''
                           }`}
                           style={{
-                            imageRendering: 'pixelated',
-                            imageRendering: '-moz-crisp-edges',
-                            imageRendering: 'crisp-edges'
+                            imageRendering: 'pixelated'
                           }}
                         />
                       </div>
@@ -558,9 +554,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
                         height={40}
                         className="w-full h-full object-contain"
                         style={{
-                          imageRendering: 'pixelated',
-                          imageRendering: '-moz-crisp-edges',
-                          imageRendering: 'crisp-edges'
+                          imageRendering: 'pixelated'
                         }}
                       />
                     </div>
@@ -610,9 +604,7 @@ const TrophiesModal: React.FC<TrophiesModalProps> = ({
                         height={40}
                         className="w-full h-full object-contain opacity-50 grayscale"
                         style={{
-                          imageRendering: 'pixelated',
-                          imageRendering: '-moz-crisp-edges',
-                          imageRendering: 'crisp-edges'
+                          imageRendering: 'pixelated'
                         }}
                       />
                     </div>
